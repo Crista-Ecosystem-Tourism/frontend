@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin } from 'lucide-react'
@@ -23,7 +23,7 @@ const typeEmojis: Record<Place['type'], string> = {
 function createMarkerIcon(place: Place) {
   const emoji = typeEmojis[place.type]
   const isSelected = place.selected
-  
+
   return new DivIcon({
     className: 'custom-marker',
     html: `
@@ -49,13 +49,13 @@ function createMarkerIcon(place: Place) {
 }
 
 // Map center updater component
-function MapUpdater({ center, zoom, selectedPlace }: { 
+function MapUpdater({ center, zoom, selectedPlace }: {
   center: [number, number]
   zoom: number
-  selectedPlace: Place | null 
+  selectedPlace: Place | null
 }) {
   const map = useMap()
-  
+
   useEffect(() => {
     if (selectedPlace) {
       map.setView(selectedPlace.coordinates, 15, { animate: true, duration: 0.5 })
@@ -63,7 +63,7 @@ function MapUpdater({ center, zoom, selectedPlace }: {
       map.setView(center, zoom, { animate: true, duration: 0.5 })
     }
   }, [map, center, zoom, selectedPlace])
-  
+
   return null
 }
 
@@ -108,9 +108,9 @@ export function TravelMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
+
         <MapUpdater center={mapCenter} zoom={mapZoom} selectedPlace={selectedPlace} />
-        
+
         {places.map((place) => (
           <Marker
             key={place.id}
@@ -126,9 +126,9 @@ export function TravelMap() {
       {/* Place detail panel */}
       <AnimatePresence>
         {selectedPlace && (
-          <PlaceDetailPanel 
-            place={selectedPlace} 
-            onClose={() => setSelectedPlace(null)} 
+          <PlaceDetailPanel
+            place={selectedPlace}
+            onClose={() => setSelectedPlace(null)}
           />
         )}
       </AnimatePresence>

@@ -13,10 +13,10 @@ import { subscriptionPlans } from '@/mocks/subscriptions'
 import { PlanDetails, SubscriptionPlan } from '@/types'
 import { cn } from '@/lib/utils'
 
-function PlanCard({ plan, isSelected, onSelect }: { 
+function PlanCard({ plan, isSelected, onSelect }: {
   plan: PlanDetails
   isSelected: boolean
-  onSelect: () => void 
+  onSelect: () => void
 }) {
   const icons: Record<SubscriptionPlan, typeof Star> = {
     basic: Star,
@@ -32,8 +32,8 @@ function PlanCard({ plan, isSelected, onSelect }: {
       whileHover={{ scale: 1.02 }}
       className={cn(
         'relative p-4 rounded-xl border-2 cursor-pointer transition-all',
-        isSelected 
-          ? 'border-primary bg-primary/5' 
+        isSelected
+          ? 'border-primary bg-primary/5'
           : 'border-border hover:border-primary/50',
         plan.popular && 'ring-2 ring-primary ring-offset-2 ring-offset-surface'
       )}
@@ -49,8 +49,8 @@ function PlanCard({ plan, isSelected, onSelect }: {
         <div className={cn(
           'w-10 h-10 rounded-lg flex items-center justify-center',
           plan.id === 'premium' ? 'bg-gradient-to-br from-yellow-500 to-orange-500' :
-          plan.id === 'pro' ? 'bg-gradient-to-br from-primary to-accent' :
-          'bg-surface-light'
+            plan.id === 'pro' ? 'bg-gradient-to-br from-primary to-accent' :
+              'bg-surface-light'
         )}>
           <Icon className={cn(
             'w-5 h-5',
@@ -86,7 +86,7 @@ function PlanCard({ plan, isSelected, onSelect }: {
 }
 
 export function SubscriptionModal() {
-  const { activeModal, closeModal, openModal, selectedPlan, setSelectedPlan, authState } = useApp()
+  const { activeModal, closeModal, openModal, selectedPlan, setSelectedPlan } = useApp()
   const isOpen = activeModal === 'subscription'
 
   const handleContinue = () => {
@@ -128,8 +128,8 @@ export function SubscriptionModal() {
           <Button variant="ghost" onClick={closeModal} className="flex-1">
             Позже
           </Button>
-          <Button 
-            onClick={handleContinue} 
+          <Button
+            onClick={handleContinue}
             disabled={!selectedPlan}
             className="flex-1"
           >

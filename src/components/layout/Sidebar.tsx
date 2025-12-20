@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Settings, X, Menu, Moon, Sun, MessageSquare, Search, Bookmark, Map, Bell, Sparkles, PenSquare, User, ChevronLeft, Info } from 'lucide-react'
-import { useApp, ChatHistoryItem } from '@/context/AppContext'
+import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Bookmark, Map, Bell, Sparkles, PenSquare, User, ChevronLeft, Info } from 'lucide-react'
+import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import { cn, getInitials } from '@/lib/utils'
 import { Logo } from '@/components/icons/Logo'
 
@@ -30,9 +30,6 @@ export function Sidebar({ onSettings }: SidebarProps) {
     sidebarOpen,
     setSidebarOpen,
     openModal,
-    chatHistory,
-    currentChatId,
-    loadChat,
     newChat,
   } = useApp()
 
@@ -179,7 +176,7 @@ export function Sidebar({ onSettings }: SidebarProps) {
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-sm font-medium truncate text-text">{user.name}</p>
                   <p className="text-xs text-text-muted">
-                    {user.subscription === 'premium' ? 'Premium' : 'Бесплатный план'}
+                    {user.subscription === 'premium' ? 'Премиум' : 'Бесплатный план'}
                   </p>
                 </div>
               )}

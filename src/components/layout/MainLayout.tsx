@@ -11,7 +11,7 @@ import { PaymentModal } from '@/components/modals/PaymentModal'
 import { useApp } from '@/context/AppContext'
 
 export function MainLayout() {
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [, setSettingsOpen] = useState(false)
   const { currentChatId, newChat, sendMessage } = useApp()
 
   const handleSettings = () => {

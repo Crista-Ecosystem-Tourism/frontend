@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { MapPin, ArrowRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 
 export interface InspirationItem {
   id: string
@@ -55,7 +55,7 @@ const locations = [
   { title: 'Мачу-Пикчу', loc: 'Перу', type: 'culture', image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600&q=80' },
   { title: 'Вена', loc: 'Австрия', type: 'culture', image: 'https://images.unsplash.com/photo-1609856878074-cf31e21ccb6b?w=600&q=80' },
   { title: 'Копенгаген', loc: 'Дания', type: 'city', image: 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=600&q=80' }
-]
+] as const
 
 // Generate 60 items with guaranteed images
 const inspirationItems: InspirationItem[] = Array.from({ length: 60 }).map((_, i) => {
@@ -64,7 +64,7 @@ const inspirationItems: InspirationItem[] = Array.from({ length: 60 }).map((_, i
     id: `item-${i}`,
     title: loc.title,
     location: loc.loc,
-    type: loc.type as any,
+    type: loc.type,
     imageUrl: loc.image,
     height: Math.floor(Math.random() * (400 - 280 + 1) + 280)
   }
@@ -74,12 +74,12 @@ interface InspirationBoardProps {
   onSelect: (place: string) => void
 }
 
-function InfiniteColumn({ 
-  items, 
-  speed = 20, 
+function InfiniteColumn({
+  items,
+  speed = 20,
   className,
-  onSelect 
-}: { 
+  onSelect
+}: {
   items: InspirationItem[]
   speed?: number
   className?: string
@@ -89,7 +89,7 @@ function InfiniteColumn({
   const columnRef = useRef<HTMLDivElement>(null)
 
   return (
-    <div 
+    <div
       className={cn("relative h-full overflow-hidden", className)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -120,9 +120,9 @@ function InfiniteColumn({
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
               loading="lazy"
             />
-            
+
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-            
+
             <div className="absolute bottom-0 left-0 right-0 p-5 text-white transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
               <div className="flex items-center justify-between mb-2">
                 <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider border border-white/10">

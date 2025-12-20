@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion'
-import { X, Star, Clock, Wallet, MapPin, Navigation, Check, Plus, ExternalLink, Heart } from 'lucide-react'
+import { X, Star, Clock, Wallet, MapPin, Navigation, Check, Plus, Heart } from 'lucide-react'
 import { Place } from '@/types'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
-import { cn } from '@/lib/utils'
+
 
 interface PlaceDetailPanelProps {
   place: Place
@@ -47,8 +47,8 @@ export function PlaceDetailPanel({ place, onClose }: PlaceDetailPanelProps) {
       {/* Header Image */}
       <div className="relative h-48 flex-shrink-0">
         {place.imageUrl ? (
-          <img 
-            src={place.imageUrl} 
+          <img
+            src={place.imageUrl}
             alt={place.name}
             className="w-full h-full object-cover"
           />
@@ -57,10 +57,10 @@ export function PlaceDetailPanel({ place, onClose }: PlaceDetailPanelProps) {
             <span className="text-6xl">{typeInfo.emoji}</span>
           </div>
         )}
-        
+
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-        
+
         {/* Close button */}
         <button
           onClick={onClose}
@@ -140,8 +140,8 @@ export function PlaceDetailPanel({ place, onClose }: PlaceDetailPanelProps) {
 
       {/* Actions */}
       <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
-        <Button 
-          className="w-full gap-2" 
+        <Button
+          className="w-full gap-2"
           onClick={handleAddToRoute}
           variant={place.selected ? 'default' : 'outline'}
         >
@@ -157,7 +157,7 @@ export function PlaceDetailPanel({ place, onClose }: PlaceDetailPanelProps) {
             </>
           )}
         </Button>
-        
+
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1 gap-2" onClick={handleOpenMaps}>
             <Navigation className="w-4 h-4" />
