@@ -1,6 +1,8 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import PixelPlanet from '@/components/canvas/PixelPlanet'
+import LiquidBackground from '@/components/canvas/LiquidBackground'
+import { ReviewCard } from './ReviewCard'
+import { Logo } from '@/components/icons/Logo'
 
 interface AuthLayoutProps {
     children: React.ReactNode
@@ -8,55 +10,100 @@ interface AuthLayoutProps {
     subtitle?: string
 }
 
+const REVIEWS = [
+    {
+        text: "Этот AI-планировщик полностью изменил подход к моим путешествиям. Максимально интуитивно и красиво!",
+        author: "Александр Волков",
+        role: "Трэвел-блогер",
+        avatarUrl: "/avatars/alexander.png"
+    },
+    {
+        text: "Наконец-то нашла инструмент, который понимает мои предпочтения с полуслова.",
+        author: "Мария Соколова",
+        role: "Цифровой кочевник",
+        avatarUrl: "/avatars/maria.png"
+    },
+    {
+        text: "Дизайн просто космический. Пользуюсь каждый день для поиска вдохновения.",
+        author: "Дмитрий Петров",
+        role: "UI/UX Дизайнер",
+        avatarUrl: "/avatars/dmitry.png"
+    }
+]
+
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-screen w-full bg-background">
-            {/* Left side - content */}
-            <div className="flex w-full flex-col justify-center px-4 md:w-1/2 lg:w-[45%] xl:w-[40%]">
-                <div className="mx-auto w-full max-w-md">
-                    {/* Logo or Brand mark could go here */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <h1 className="mb-2 text-3xl font-bold tracking-tight text-text md:text-4xl">
-                            {title}
-                        </h1>
-                        {subtitle && (
-                            <p className="mb-8 text-lg text-text-secondary">{subtitle}</p>
-                        )}
-                    </motion.div>
+        <div className="relative flex min-h-screen w-full overflow-hidden bg-white">
+            {/* Split Container */}
+            <div className="flex w-full flex-col md:flex-row">
 
+                {/* Left Side: Form Area (Clean White) */}
+                <div className="relative z-20 flex w-full flex-col items-center justify-center bg-white px-6 py-12 md:w-1/2 lg:w-[48%] xl:w-[45%] md:m-8 md:rounded-[24px] md:shadow-[0_4px_40px_rgba(0,0,0,0.08)] md:border md:border-[#e5e5e5]">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="w-full max-w-[420px]"
                     >
-                        {children}
+                        {/* Logo at the top */}
+                        <div className="mb-20 flex items-center gap-2.5 justify-center md:justify-start">
+                            <Logo size={36} />
+                            <div className="flex flex-col text-left">
+                                <span className="text-lg font-bold leading-tight text-[#1a1a1a]">Crista</span>
+                                <span className="text-[10px] font-medium uppercase tracking-wider text-[#888888]">Travel</span>
+                            </div>
+                        </div>
+
+                        {/* Title and Subtitle */}
+                        <div className="mb-10 text-center md:text-left">
+                            <h1 className="text-[2.5rem] font-bold leading-tight tracking-tight text-[#1a1a1a]">
+                                {title}
+                            </h1>
+                            {subtitle && (
+                                <p className="mt-2 text-lg text-[#666666]">
+                                    {subtitle}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Form Content */}
+                        <div className="w-full">
+                            {children}
+                        </div>
+
+                        {/* Bottom Terms (as in ref image) */}
+                        <div className="mt-12 text-center text-[0.8rem] text-[#888888] md:text-left">
+                            Продолжая, вы подтверждаете, что принимаете наши{' '}
+                            <a href="#" className="underline hover:text-black transition-colors">Условия использования</a> и{' '}
+                            <a href="#" className="underline hover:text-black transition-colors">Политику конфиденциальности</a>.
+                        </div>
                     </motion.div>
                 </div>
-            </div>
 
-            {/* Right side - branding/visual */}
-            <div className="relative hidden w-0 flex-1 md:block bg-black">
-                <div className="absolute inset-0 overflow-hidden">
-                    <PixelPlanet />
+                {/* Right Side: Themed Showcase */}
+                <div className="relative hidden flex-1 items-center justify-center p-8 md:flex overflow-visible">
+                    {/* Shader layer restricted to right side */}
+                    <div className="absolute inset-0 z-0">
+                        <LiquidBackground />
+                    </div>
 
-                    {/* Overlay content */}
-                    <div className="absolute inset-0 pointer-events-none flex flex-col justify-end p-12 pb-24 text-center z-10">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.7, delay: 0.5 }}
-                        >
-                            <div className="glass-effect rounded-2xl p-6 backdrop-blur-md bg-black/30 border border-white/10 shadow-2xl max-w-md mx-auto">
-                                <h2 className="text-2xl font-bold text-white mb-2">Исследуйте мир</h2>
-                                <p className="text-gray-200">
-                                    Откройте для себя новые горизонты с нашим AI-планировщиком.
-                                </p>
+                    {/* Visual Decorative Glows - behind cards */}
+                    <div className="absolute -top-40 -right-20 h-96 w-96 rounded-full bg-[#5BC4F7]/10 blur-[120px] pointer-events-none" />
+                    <div className="absolute -bottom-40 -left-20 h-96 w-96 rounded-full bg-[#1A8A9C]/10 blur-[120px] pointer-events-none" />
+
+                    {/* Content on the right */}
+                    <div className="relative z-10 flex w-full max-w-lg flex-col gap-6">
+                        {REVIEWS.map((review, i) => (
+                            <div
+                                key={i}
+                                className={i === 1 ? 'ml-12' : i === 0 ? 'ml-6' : ''}
+                            >
+                                <ReviewCard
+                                    {...review}
+                                    delay={0.6 + i * 0.2}
+                                />
                             </div>
-                        </motion.div>
+                        ))}
                     </div>
                 </div>
             </div>

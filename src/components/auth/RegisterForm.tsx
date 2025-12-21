@@ -3,109 +3,85 @@ import { Link } from 'react-router-dom'
 import { AuthLayout } from './AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-
 import { YandexIcon } from '@/components/icons/YandexIcon'
-
-// Resusing icons inline or could extract to a shared component
 
 export function RegisterForm() {
     const [email, setEmail] = useState('')
-
     const [password, setPassword] = useState('')
     const [name, setName] = useState('')
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        // console.log('Register:', { name, email, password })
     }
 
     return (
         <AuthLayout
-            title="Создать аккаунт"
-            subtitle="Присоединяйтесь, чтобы спланировать своё путешествие."
+            title="Создайте"
+            subtitle="бесплатный аккаунт"
         >
-            <div className="grid gap-4">
+            <div className="mt-8 grid gap-6">
                 {/* Social Login Buttons */}
                 <div className="grid gap-3">
-                    <Button variant="outline" className="w-full h-12 rounded-full font-medium text-base border-border hover:bg-surface-light">
+                    <Button
+                        variant="outline"
+                        className="flex h-[3.5rem] w-full items-center justify-center gap-3 rounded-[12px] border border-[#e5e5e5] bg-white px-4 text-[1rem] font-semibold text-[#1a1a1a] transition-all hover:bg-[#f9f9f9] hover:border-[#d1d1d1]"
+                    >
                         <YandexIcon />
                         Зарегистрироваться через Яндекс
                     </Button>
                 </div>
 
-                <div className="relative my-4">
+                <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
+                        <span className="w-full border-t border-[#f0f0f0]" />
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-text-muted">
-                            Или зарегистрироваться с email
-                        </span>
+                    <div className="relative flex justify-center text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#cccccc]">
+                        <span className="bg-white px-4">ИЛИ</span>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Input
-                            id="name"
-                            placeholder="Полное имя"
-                            type="text"
-                            autoComplete="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="h-12 rounded-xl"
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Input
-                            id="email"
-                            placeholder="email@example.com"
-                            type="email"
-                            autoCapitalize="none"
-                            autoComplete="email"
-                            autoCorrect="off"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="h-12 rounded-xl"
-                        />
-                    </div>
-                    <div className="grid gap-2">
-                        <Input
-                            id="password"
-                            placeholder="Придумайте пароль"
-                            type="password"
-                            autoComplete="new-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-12 rounded-xl"
-                        />
-                    </div>
-                    <Button type="submit" className="w-full h-12 rounded-full text-base font-semibold shadow-lg shadow-primary/20">
+                    <Input
+                        id="name"
+                        placeholder="Полное имя"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white px-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                    />
+                    <Input
+                        id="email"
+                        placeholder="Рабочая эл. почта"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white px-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                    />
+                    <Input
+                        id="password"
+                        placeholder="Пароль"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white px-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                    />
+                    <Button
+                        type="submit"
+                        className="mt-2 h-[3.5rem] w-full rounded-[12px] bg-[#10a37f] text-[1rem] font-bold text-white transition-all hover:bg-[#0d8a6a]"
+                    >
                         Создать аккаунт
                     </Button>
                 </form>
 
-                <div className="text-center text-sm text-text-secondary mt-4">
-                    Уже есть аккаунт?{' '}
+                <div className="text-center text-[0.9rem] md:text-left">
+                    <span className="text-[#888888]">Уже есть аккаунт? </span>
                     <Link
                         to="/login"
-                        className="font-medium text-primary hover:text-primary-hover underline-offset-4 hover:underline"
+                        className="font-bold text-[#10a37f] hover:underline underline-offset-4"
                     >
                         Войти
                     </Link>
                 </div>
-
-                <p className="px-8 text-center text-xs text-text-muted mt-4">
-                    Нажимая «Создать аккаунт», вы соглашаетесь с{' '}
-                    <Link to="/terms" className="underline underline-offset-4 hover:text-primary">
-                        Условиями использования
-                    </Link>{' '}
-                    и{' '}
-                    <Link to="/privacy" className="underline underline-offset-4 hover:text-primary">
-                        Политикой конфиденциальности
-                    </Link>
-                    .
-                </p>
             </div>
         </AuthLayout>
     )
