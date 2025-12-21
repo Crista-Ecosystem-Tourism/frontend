@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sidebar } from './Sidebar'
 import { ChatPanel } from '@/components/chat/ChatPanel'
@@ -11,12 +10,7 @@ import { PaymentModal } from '@/components/modals/PaymentModal'
 import { useApp } from '@/context/AppContext'
 
 export function MainLayout() {
-  const [, setSettingsOpen] = useState(false)
   const { currentChatId, newChat, sendMessage } = useApp()
-
-  const handleSettings = () => {
-    setSettingsOpen(true)
-  }
 
   const handleHomeInput = async (text: string) => {
     newChat()
@@ -35,7 +29,7 @@ export function MainLayout() {
 
       {/* Sidebar - Always present but glassmorphic */}
       <div className="flex h-full relative z-10">
-        <Sidebar onSettings={handleSettings} />
+        <Sidebar />
 
         {/* Main Content Area */}
         <main className="flex-1 relative h-full min-w-0">

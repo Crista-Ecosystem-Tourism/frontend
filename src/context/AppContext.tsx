@@ -151,6 +151,9 @@ interface AppContextType {
   closeModal: () => void
   selectedPlan: SubscriptionPlan | null
   setSelectedPlan: (plan: SubscriptionPlan | null) => void
+
+  // Navigation
+  goHome: () => void
   
   // Sidebar
   sidebarOpen: boolean
@@ -295,6 +298,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setUser(null)
     setAuthState('guest')
+    setCurrentChatId(null)
+  }, [])
+
+  // Navigation - go to home screen
+  const goHome = useCallback(() => {
+    setCurrentChatId(null)
   }, [])
 
   const subscribe = useCallback((plan: SubscriptionPlan) => {
@@ -508,6 +517,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     closeModal,
     selectedPlan,
     setSelectedPlan,
+    goHome,
     sidebarOpen,
     setSidebarOpen,
     sidebarCollapsed,

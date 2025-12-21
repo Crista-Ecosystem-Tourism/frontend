@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useApp } from '@/context/AppContext'
 import { AuthLayout } from './AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,9 +9,16 @@ import { YandexIcon } from '@/components/icons/YandexIcon'
 export function LoginForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const navigate = useNavigate()
+    const { login } = useApp()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+    }
+
+    const handleYandexLogin = () => {
+        login('yandex')
+        navigate('/')
     }
 
     return (
@@ -23,6 +31,7 @@ export function LoginForm() {
                 <div className="grid gap-4">
                     <Button
                         variant="outline"
+                        onClick={handleYandexLogin}
                         className="flex h-[3.5rem] w-full items-center justify-center gap-3 rounded-[12px] border border-[#e5e5e5] bg-white px-4 text-[1rem] font-semibold text-[#1a1a1a] transition-all hover:bg-[#f9f9f9] hover:border-[#d1d1d1]"
                     >
                         <YandexIcon />

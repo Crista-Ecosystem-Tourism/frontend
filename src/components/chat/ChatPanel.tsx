@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, ArrowLeft } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { TypingIndicator } from './TypingIndicator'
 
 export function ChatPanel() {
-  const { messages, isTyping, sendMessage } = useApp()
+  const { messages, isTyping, sendMessage, goHome } = useApp()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -21,6 +21,13 @@ export function ChatPanel() {
       {/* Header */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-border/30 bg-surface/30">
         <div className="flex items-center gap-3">
+          <button
+            onClick={goHome}
+            className="w-9 h-9 rounded-xl bg-surface-hover hover:bg-surface-light flex items-center justify-center transition-colors"
+            title="На главную"
+          >
+            <ArrowLeft className="w-4 h-4 text-text-secondary" />
+          </button>
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
