@@ -25,6 +25,28 @@ export interface ChatMessage {
   createdAt: string
   places?: Place[] // Places mentioned in this message
   cityName?: string
+  itinerary?: ItineraryDay[]
+  suggestedReplies?: SuggestedReplyGroup[]
+}
+
+// Itinerary types
+export interface ItinerarySlot {
+  time_label: string     // "Утро", "Обед", "Вечер" — свободный текст
+  place_id: string       // ID места из search_results
+  place_name: string     // Название места
+  note: string           // Рекомендация от LLM
+  place?: Place          // Resolved Place object (заполняется маппером)
+}
+
+export interface ItineraryDay {
+  day: number
+  title: string
+  slots: ItinerarySlot[]
+}
+
+export interface BackendItinerary {
+  days: ItineraryDay[]
+  summary: string
 }
 
 // User state
@@ -63,6 +85,21 @@ export interface SavedRoute {
 
 // Modal states
 export type ModalType = 'auth' | 'subscription' | 'payment' | 'save-route' | null
+
+// Quick reply chips
+export interface SuggestedReplyOption {
+  value: string
+  label: string
+  description: string
+}
+
+export interface SuggestedReplyGroup {
+  category: string
+  label: string
+  icon: string
+  options: SuggestedReplyOption[]
+  allow_custom: boolean
+}
 
 // === Backend API types ===
 
@@ -115,6 +152,8 @@ export interface BackendMessageOut {
   preferences?: BackendPreferences | null
   route_geojson?: Record<string, unknown> | null
   route_metadata?: BackendRouteMetadata | null
+  itinerary?: BackendItinerary | null
+  suggested_replies?: SuggestedReplyGroup[] | null
 }
 
 export interface BackendSessionOutAnon {

@@ -1,13 +1,15 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, useMotionValue, useTransform, useAnimationControls, PanInfo } from 'framer-motion'
 import { X, Star, Clock, Wallet, MapPin, Navigation, Check, Plus, Heart } from 'lucide-react'
 import { Place } from '@/types'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
-
+import { type Breakpoint } from '@/hooks/useMediaBreakpoint'
 
 interface PlaceDetailPanelProps {
   place: Place
   onClose: () => void
+  breakpoint?: Breakpoint
 }
 
 const typeLabels: Record<Place['type'], { label: string; emoji: string }> = {
@@ -19,31 +21,21 @@ const typeLabels: Record<Place['type'], { label: string; emoji: string }> = {
   entertainment: { label: 'Развлечения', emoji: '🎪' },
 }
 
-export function PlaceDetailPanel({ place, onClose }: PlaceDetailPanelProps) {
-  const { togglePlaceSelection, authState, openModal } = useApp()
+// Snap points for mobile bottom sheet (from bottom)
+const SNAP_PEEK = 160
+const SNAP_HALF = typeof window !== 'undefined' ? window.innerHeight * 0.5 : 400
+const SNAP_FULL = typeof window !== 'undefined' ? window.innerHeight * 0.85 : 680
+
+function PlaceContent({ place, onClose, handleAddToRoute, handleOpenMaps }: {
+  place: Place
+  onClose: () => void
+  handleAddToRoute: () => void
+  handleOpenMaps: () => void
+}) {
   const typeInfo = typeLabels[place.type]
 
-  const handleAddToRoute = () => {
-    if (authState !== 'subscribed') {
-      openModal('subscription')
-      return
-    }
-    togglePlaceSelection(place.id)
-  }
-
-  const handleOpenMaps = () => {
-    const url = `https://yandex.ru/maps/?text=${encodeURIComponent(place.name + ' ' + (place.address || ''))}`
-    window.open(url, '_blank')
-  }
-
   return (
-    <motion.div
-      initial={{ x: '100%', opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: '100%', opacity: 0 }}
-      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="absolute top-0 right-0 h-full w-[360px] bg-surface border-l border-border shadow-2xl z-[1001] flex flex-col"
-    >
+    <>
       {/* Header Image */}
       <div className="relative h-48 flex-shrink-0">
         {place.imageUrl ? (
@@ -169,7 +161,196 @@ export function PlaceDetailPanel({ place, onClose }: PlaceDetailPanelProps) {
           </Button>
         </div>
       </div>
-    </motion.div>
+    </>
   )
 }
 
+// Mobile bottom sheet
+function MobileBottomSheet({ place, onClose, handleAddToRoute, handleOpenMaps }: {
+  place: Place
+  onClose: () => void
+  handleAddToRoute: () => void
+  handleOpenMaps: () => void
+}) {
+  const controls = useAnimationControls()
+  const [sheetHeight, setSheetHeight] = useState(SNAP_HALF)
+  const y = useMotionValue(0)
+  const backdropOpacity = useTransform(
+    y,
+    [0, SNAP_FULL - SNAP_PEEK],
+    [0.3, 0],
+  )
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    const velocity = info.velocity.y
+    const currentHeight = sheetHeight - info.offset.y
+
+    // Fast swipe down → dismiss
+    if (velocity > 500) {
+      onClose()
+      return
+    }
+    // Fast swipe up → full
+    if (velocity < -500) {
+      setSheetHeight(SNAP_FULL)
+      controls.start({ y: 0 })
+      return
+    }
+
+    // Snap to closest point
+    const snaps = [SNAP_PEEK, SNAP_HALF, SNAP_FULL]
+    let closest = snaps[0]
+    let minDist = Math.abs(currentHeight - snaps[0])
+    for (const snap of snaps) {
+      const dist = Math.abs(currentHeight - snap)
+      if (dist < minDist) {
+        minDist = dist
+        closest = snap
+      }
+    }
+
+    if (closest <= SNAP_PEEK / 2) {
+      onClose()
+      return
+    }
+
+    setSheetHeight(closest)
+    controls.start({ y: 0 })
+  }
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        style={{ opacity: backdropOpacity }}
+        className="fixed inset-0 z-[1000] bg-black"
+        onClick={onClose}
+      />
+
+      {/* Bottom sheet */}
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+        style={{ height: sheetHeight, y }}
+        drag="y"
+        dragConstraints={{ top: 0, bottom: sheetHeight }}
+        dragElastic={0.1}
+        onDragEnd={handleDragEnd}
+        className="fixed bottom-0 left-0 right-0 z-[1001] bg-surface rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center py-3 flex-shrink-0 cursor-grab active:cursor-grabbing">
+          <div className="w-10 h-1 rounded-full bg-text-muted/40" />
+        </div>
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <PlaceContent
+            place={place}
+            onClose={onClose}
+            handleAddToRoute={handleAddToRoute}
+            handleOpenMaps={handleOpenMaps}
+          />
+        </div>
+      </motion.div>
+    </>
+  )
+}
+
+// Tablet overlay
+function TabletOverlay({ place, onClose, handleAddToRoute, handleOpenMaps }: {
+  place: Place
+  onClose: () => void
+  handleAddToRoute: () => void
+  handleOpenMaps: () => void
+}) {
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 z-[1000] bg-black/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <motion.div
+        initial={{ x: '100%', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: '100%', opacity: 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="absolute top-0 right-0 h-full w-[300px] bg-surface border-l border-border shadow-2xl z-[1001] flex flex-col"
+      >
+        <PlaceContent
+          place={place}
+          onClose={onClose}
+          handleAddToRoute={handleAddToRoute}
+          handleOpenMaps={handleOpenMaps}
+        />
+      </motion.div>
+    </>
+  )
+}
+
+export function PlaceDetailPanel({ place, onClose, breakpoint = 'desktop' }: PlaceDetailPanelProps) {
+  const { togglePlaceSelection, authState, openModal } = useApp()
+
+  const handleAddToRoute = () => {
+    if (authState !== 'subscribed') {
+      openModal('subscription')
+      return
+    }
+    togglePlaceSelection(place.id)
+  }
+
+  const handleOpenMaps = () => {
+    const url = `https://yandex.ru/maps/?text=${encodeURIComponent(place.name + ' ' + (place.address || ''))}`
+    window.open(url, '_blank')
+  }
+
+  if (breakpoint === 'mobile') {
+    return (
+      <MobileBottomSheet
+        place={place}
+        onClose={onClose}
+        handleAddToRoute={handleAddToRoute}
+        handleOpenMaps={handleOpenMaps}
+      />
+    )
+  }
+
+  if (breakpoint === 'tablet') {
+    return (
+      <TabletOverlay
+        place={place}
+        onClose={onClose}
+        handleAddToRoute={handleAddToRoute}
+        handleOpenMaps={handleOpenMaps}
+      />
+    )
+  }
+
+  // Desktop — original sidebar
+  return (
+    <motion.div
+      initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      className="absolute top-0 right-0 h-full w-[360px] bg-surface border-l border-border shadow-2xl z-[1001] flex flex-col"
+    >
+      <PlaceContent
+        place={place}
+        onClose={onClose}
+        handleAddToRoute={handleAddToRoute}
+        handleOpenMaps={handleOpenMaps}
+      />
+    </motion.div>
+  )
+}

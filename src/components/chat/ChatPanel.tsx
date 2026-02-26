@@ -6,9 +6,10 @@ import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { TypingIndicator } from './TypingIndicator'
 import { PreferenceChips } from './PreferenceChips'
+import { QuickReplyChips } from './QuickReplyChips'
 
 export function ChatPanel() {
-  const { messages, isTyping, sendMessage, goHome, preferences } = useApp()
+  const { messages, isTyping, sendMessage, goHome, preferences, suggestedReplies } = useApp()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -52,9 +53,22 @@ export function ChatPanel() {
         </AnimatePresence>
       </div>
 
-      {/* Preference chips + Input */}
+      {/* Preference chips + Quick replies + Input */}
       <div className="flex-shrink-0 p-3 border-t border-border/30 bg-surface/30">
         <PreferenceChips preferences={preferences} />
+        {suggestedReplies && suggestedReplies.length > 0 ? (
+          <QuickReplyChips
+            groups={suggestedReplies}
+            onSend={sendMessage}
+            allPreferencesFilled={false}
+          />
+        ) : preferences && !suggestedReplies && (preferences.city || preferences.destination_type) ? (
+          <QuickReplyChips
+            groups={[]}
+            onSend={sendMessage}
+            allPreferencesFilled={true}
+          />
+        ) : null}
         <ChatInput onSend={sendMessage} disabled={isTyping} />
       </div>
     </div>

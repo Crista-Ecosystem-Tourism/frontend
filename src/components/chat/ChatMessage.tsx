@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Bot, User } from 'lucide-react'
 import { ChatMessage as ChatMessageType } from '@/types'
 import { PlacesGrid } from './PlacesGrid'
+import { ItineraryView } from './ItineraryView'
 
 interface ChatMessageProps {
   message: ChatMessageType
@@ -50,8 +51,15 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(function
         </div>
       </div>
 
-      {/* Places carousel */}
-      {!isUser && message.places && message.places.length > 0 && (
+      {/* Itinerary view (takes precedence over PlacesGrid) */}
+      {!isUser && message.itinerary && message.itinerary.length > 0 && (
+        <div className="mt-3 pl-9">
+          <ItineraryView days={message.itinerary} />
+        </div>
+      )}
+
+      {/* Places carousel (only when no itinerary) */}
+      {!isUser && message.places && message.places.length > 0 && !message.itinerary && (
         <div className="mt-3 pl-9">
           <PlacesGrid places={message.places} cityName={message.cityName} />
         </div>

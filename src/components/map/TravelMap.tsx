@@ -7,6 +7,7 @@ import { useApp } from '@/context/AppContext'
 import { Place } from '@/types'
 import { Button } from '@/components/ui/button'
 import { PlaceDetailPanel } from './PlaceDetailPanel'
+import { useMediaBreakpoint } from '@/hooks/useMediaBreakpoint'
 import 'leaflet/dist/leaflet.css'
 
 // Type icons
@@ -69,6 +70,7 @@ function MapUpdater({ center, zoom, selectedPlace }: {
 
 export function TravelMap() {
   const { places, mapCenter, mapZoom, selectedPlace, setSelectedPlace, routeGeoJSON } = useApp()
+  const breakpoint = useMediaBreakpoint()
   const selectedCount = places.filter(p => p.selected).length
 
   return (
@@ -135,15 +137,18 @@ export function TravelMap() {
         )}
       </MapContainer>
 
-      {/* Place detail panel */}
-      <AnimatePresence>
-        {selectedPlace && (
-          <PlaceDetailPanel
-            place={selectedPlace}
-            onClose={() => setSelectedPlace(null)}
-          />
-        )}
-      </AnimatePresence>
+      {/* Place detail panel — on mobile, rendered in MainLayout instead */}
+      {breakpoint !== 'mobile' && (
+        <AnimatePresence>
+          {selectedPlace && (
+            <PlaceDetailPanel
+              place={selectedPlace}
+              onClose={() => setSelectedPlace(null)}
+              breakpoint={breakpoint}
+            />
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Selected places count - show when no detail panel */}
       <AnimatePresence>

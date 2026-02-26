@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
-import { ChatMessage, Place, User, AuthState, SubscriptionPlan, ModalType, SavedRoute, SessionState, BackendRouteMetadata, BackendPreferences } from '@/types'
+import { ChatMessage, Place, User, AuthState, SubscriptionPlan, ModalType, SavedRoute, SessionState, BackendRouteMetadata, BackendPreferences, SuggestedReplyGroup } from '@/types'
 import { welcomeMessage, generateAIResponse, createUserMessage } from '@/mocks/chat'
 import { getPlacesByCity, getCityCenter, getCityName, parisPlaces, georgiaPlaces, baliPlaces, altaiPlaces, kyotoPlaces, spbPlaces, kenyaPlaces } from '@/mocks/places'
 import { delay, generateId } from '@/lib/utils'
@@ -155,6 +155,10 @@ interface AppContextType {
   selectedPlan: SubscriptionPlan | null
   setSelectedPlan: (plan: SubscriptionPlan | null) => void
 
+  // Mobile tab
+  mobileActiveTab: 'chat' | 'map'
+  setMobileActiveTab: (tab: 'chat' | 'map') => void
+
   // Navigation
   goHome: () => void
   
@@ -171,6 +175,7 @@ interface AppContextType {
   routeGeoJSON: Record<string, unknown> | null
   routeMetadata: BackendRouteMetadata | null
   preferences: BackendPreferences | null
+  suggestedReplies: SuggestedReplyGroup[] | null
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -265,6 +270,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeModal, setActiveModal] = useState<ModalType>(null)
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null)
   
+  // Mobile tab
+  const [mobileActiveTab, setMobileActiveTab] = useState<'chat' | 'map'>('chat')
+
   // Sidebar
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -278,6 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [routeGeoJSON, setRouteGeoJSON] = useState<Record<string, unknown> | null>(null)
   const [routeMetadata, setRouteMetadata] = useState<BackendRouteMetadata | null>(null)
   const [preferences, setPreferences] = useState<BackendPreferences | null>(null)
+  const [suggestedReplies, setSuggestedReplies] = useState<SuggestedReplyGroup[] | null>(null)
   const sessionRef = useRef<SessionState | null>(loadSession())
 
   // Health check on mount
@@ -383,6 +392,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRouteGeoJSON(null)
     setRouteMetadata(null)
     setPreferences(null)
+    setSuggestedReplies(null)
     setApiError(null)
 
     // Reset session for new chat
@@ -442,6 +452,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMessages(prev => [...prev, userMsg])
     setIsTyping(true)
     setApiError(null)
+    setSuggestedReplies(null)
 
     const useMocks = isMockMode() || !backendAvailable
 
@@ -470,6 +481,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         // Save preferences if present
         if (mapped.preferences) setPreferences(mapped.preferences)
+
+        // Update suggested replies
+        setSuggestedReplies(mapped.suggestedReplies)
 
         // Save route data if present
         if (response.route_geojson) setRouteGeoJSON(response.route_geojson)
@@ -593,6 +607,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveModal(null)
   }, [authState, places])
 
+  // Wrapped setSelectedPlace: auto-switch to map on mobile when selecting a place
+  const handleSetSelectedPlace = useCallback((place: Place | null) => {
+    setSelectedPlace(place)
+    if (place) {
+      setMobileActiveTab('map')
+    }
+  }, [])
+
   // Modal functions
   const openModal = useCallback((modal: ModalType) => {
     setActiveModal(modal)
@@ -621,7 +643,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadTripChat,
     places,
     selectedPlace,
-    setSelectedPlace,
+    setSelectedPlace: handleSetSelectedPlace,
     mapCenter,
     mapZoom,
     togglePlaceSelection,
@@ -632,6 +654,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     closeModal,
     selectedPlan,
     setSelectedPlan,
+    mobileActiveTab,
+    setMobileActiveTab,
     goHome,
     sidebarOpen,
     setSidebarOpen,
@@ -643,6 +667,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     routeGeoJSON,
     routeMetadata,
     preferences,
+    suggestedReplies,
   }
 
   return (

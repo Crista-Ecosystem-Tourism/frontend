@@ -1,4 +1,4 @@
-import type { Place, ChatMessage, BackendPlace, BackendSearchResult, BackendMessageOut, BackendPreferences } from '@/types'
+import type { Place, ChatMessage, BackendPlace, BackendSearchResult, BackendMessageOut, BackendPreferences, ItineraryDay, BackendItinerary, SuggestedReplyGroup } from '@/types'
 import { generateId } from '@/lib/utils'
 
 // Subtype → Place type mapping
@@ -87,10 +87,28 @@ export function flattenSearchResults(results: BackendSearchResult[]): Place[] {
   return mapBackendPlaces(allBackendPlaces)
 }
 
-/** Map a BackendMessageOut to a ChatMessage, extracted places, and preferences */
+/** Resolve place_id references in itinerary slots to actual Place objects */
+export function mapItinerary(backendItinerary: BackendItinerary, places: Place[]): ItineraryDay[] {
+  const placeMap = new Map(places.map(p => [p.id, p]))
+
+  return backendItinerary.days.map(day => ({
+    ...day,
+    slots: day.slots.map(slot => ({
+      ...slot,
+      place: placeMap.get(slot.place_id),
+    })),
+  }))
+}
+
+/** Map a BackendMessageOut to a ChatMessage, extracted places, preferences, and suggested replies */
 export function mapMessageOutToChatMessage(
   response: BackendMessageOut
-): { chatMessage: ChatMessage; places: Place[]; preferences: BackendPreferences | null } {
+): {
+  chatMessage: ChatMessage
+  places: Place[]
+  preferences: BackendPreferences | null
+  suggestedReplies: SuggestedReplyGroup[] | null
+} {
   const content = response.message
   let places: Place[] = []
 
@@ -98,15 +116,25 @@ export function mapMessageOutToChatMessage(
     places = flattenSearchResults(response.search_results)
   }
 
+  // Map itinerary if present
+  let itinerary: ItineraryDay[] | undefined
+  if (response.itinerary && places.length > 0) {
+    itinerary = mapItinerary(response.itinerary, places)
+  }
+
+  const suggestedReplies = response.suggested_replies ?? null
+
   const chatMessage: ChatMessage = {
     id: `ai-${Date.now()}-${generateId()}`,
     role: 'assistant',
     content,
     createdAt: new Date().toISOString(),
     places: places.length > 0 ? places : undefined,
+    itinerary,
+    suggestedReplies: suggestedReplies ?? undefined,
   }
 
-  return { chatMessage, places, preferences: response.preferences ?? null }
+  return { chatMessage, places, preferences: response.preferences ?? null, suggestedReplies }
 }
 
 /** Compute map center from a list of places */
