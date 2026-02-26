@@ -131,14 +131,14 @@ export function HomeInput({ onSend }: HomeInputProps) {
                   onBlur={() => setIsFocused(false)}
                   rows={1}
                   className={cn(
-                    'w-full resize-none bg-transparent text-text',
+                    'w-full resize-none bg-transparent text-gray-900',
                     'text-base sm:text-lg leading-relaxed outline-none min-h-[24px] sm:min-h-[28px] max-h-[100px] sm:max-h-[120px] py-2 sm:py-2.5',
                     'selection:bg-primary/30 transition-all duration-300'
                   )}
                 />
                 {!message && (
                   <div className="absolute inset-0 flex items-center pointer-events-none py-2 sm:py-2.5">
-                    <span className="text-base sm:text-lg text-text-muted">
+                    <span className="text-base sm:text-lg text-gray-400">
                       {displayedPlaceholder}
                       <span className="animate-pulse">|</span>
                     </span>
@@ -173,7 +173,7 @@ export function HomeInput({ onSend }: HomeInputProps) {
       </div>
 
       {/* Suggestions - Infinite Scroll - Full Width of Content Area */}
-      {!message && !isFocused && (
+      {!message && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

@@ -5,9 +5,10 @@ import { useApp } from '@/context/AppContext'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { TypingIndicator } from './TypingIndicator'
+import { PreferenceChips } from './PreferenceChips'
 
 export function ChatPanel() {
-  const { messages, isTyping, sendMessage, goHome } = useApp()
+  const { messages, isTyping, sendMessage, goHome, preferences } = useApp()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -51,8 +52,9 @@ export function ChatPanel() {
         </AnimatePresence>
       </div>
 
-      {/* Input */}
+      {/* Preference chips + Input */}
       <div className="flex-shrink-0 p-3 border-t border-border/30 bg-surface/30">
+        <PreferenceChips preferences={preferences} />
         <ChatInput onSend={sendMessage} disabled={isTyping} />
       </div>
     </div>

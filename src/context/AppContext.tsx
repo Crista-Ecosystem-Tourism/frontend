@@ -1,8 +1,11 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
-import { ChatMessage, Place, User, AuthState, SubscriptionPlan, ModalType, SavedRoute } from '@/types'
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from 'react'
+import { ChatMessage, Place, User, AuthState, SubscriptionPlan, ModalType, SavedRoute, SessionState, BackendRouteMetadata, BackendPreferences } from '@/types'
 import { welcomeMessage, generateAIResponse, createUserMessage } from '@/mocks/chat'
 import { getPlacesByCity, getCityCenter, getCityName, parisPlaces, georgiaPlaces, baliPlaces, altaiPlaces, kyotoPlaces, spbPlaces, kenyaPlaces } from '@/mocks/places'
 import { delay, generateId } from '@/lib/utils'
+import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession } from '@/api/chatApi'
+import { mapMessageOutToChatMessage, computeMapCenter, computeMapZoom } from '@/api/mappers'
+import { ApiError } from '@/api/chatApi'
 
 type Theme = 'light' | 'dark'
 
@@ -160,6 +163,14 @@ interface AppContextType {
   setSidebarOpen: (open: boolean) => void
   sidebarCollapsed: boolean
   setSidebarCollapsed: (collapsed: boolean) => void
+
+  // Backend
+  backendAvailable: boolean
+  apiError: string | null
+  clearApiError: () => void
+  routeGeoJSON: Record<string, unknown> | null
+  routeMetadata: BackendRouteMetadata | null
+  preferences: BackendPreferences | null
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -261,6 +272,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Auth prompt flag
   const [hasShownAuthPrompt, setHasShownAuthPrompt] = useState(false)
 
+  // Backend integration
+  const [backendAvailable, setBackendAvailable] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [routeGeoJSON, setRouteGeoJSON] = useState<Record<string, unknown> | null>(null)
+  const [routeMetadata, setRouteMetadata] = useState<BackendRouteMetadata | null>(null)
+  const [preferences, setPreferences] = useState<BackendPreferences | null>(null)
+  const sessionRef = useRef<SessionState | null>(loadSession())
+
+  // Health check on mount
+  useEffect(() => {
+    if (isMockMode()) {
+      setBackendAvailable(false)
+      return
+    }
+    checkHealth().then(ok => setBackendAvailable(ok))
+  }, [])
+
   // Apply theme
   useEffect(() => {
     const root = document.documentElement
@@ -314,6 +342,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveModal(null)
   }, [user])
 
+  // Clear API error
+  const clearApiError = useCallback(() => {
+    setApiError(null)
+  }, [])
+
+  // Ensure we have an active session
+  const ensureSession = useCallback(async (): Promise<SessionState> => {
+    if (sessionRef.current) return sessionRef.current
+    const session = await createSession()
+    sessionRef.current = session
+    return session
+  }, [])
+
   // Load chat from history
   const loadChat = useCallback((chatId: string) => {
     const chat = chatHistory.find(c => c.id === chatId)
@@ -339,6 +380,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSelectedPlace(null)
     setMapCenter([55.7558, 37.6173]) // Default to Moscow
     setMapZoom(10)
+    setRouteGeoJSON(null)
+    setRouteMetadata(null)
+    setPreferences(null)
+    setApiError(null)
+
+    // Reset session for new chat
+    sessionRef.current = null
+    clearSession()
   }, [])
 
   // Load a pre-made trip chat from suggestions
@@ -391,57 +440,123 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const userMsg = createUserMessage(content)
     setMessages(prev => [...prev, userMsg])
-
     setIsTyping(true)
-    await delay(1500 + Math.random() * 1000)
+    setApiError(null)
 
-    const { message: aiResponse, places: newPlaces } = generateAIResponse(content)
-    
-    setMessages(prev => [...prev, aiResponse])
-    setIsTyping(false)
+    const useMocks = isMockMode() || !backendAvailable
 
-    if (newPlaces.length > 0) {
-      setPlaces(newPlaces)
-      const center = getCityCenter(content)
-      setMapCenter(center)
-      setMapZoom(13)
-      
-      // Update chat history
-      const cityName = getCityName(content)
-      if (currentChatId) {
-        setChatHistory(prev => {
-          const existingIndex = prev.findIndex(c => c.id === currentChatId)
-          if (existingIndex >= 0) {
-            const updated = [...prev]
-            updated[existingIndex] = {
-              ...updated[existingIndex],
-              messages: [...updated[existingIndex].messages, userMsg, aiResponse],
-              places: newPlaces,
+    try {
+      let aiResponse: ChatMessage
+      let newPlaces: Place[] = []
+
+      if (useMocks) {
+        // Mock path
+        await delay(1500 + Math.random() * 1000)
+        const mockResult = generateAIResponse(content)
+        aiResponse = mockResult.message
+        newPlaces = mockResult.places
+      } else {
+        // Real API path
+        const session = await ensureSession()
+        const response = await apiSendMessage(
+          session.sessionId,
+          content,
+          session.sessionSecret
+        )
+
+        const mapped = mapMessageOutToChatMessage(response)
+        aiResponse = mapped.chatMessage
+        newPlaces = mapped.places
+
+        // Save preferences if present
+        if (mapped.preferences) setPreferences(mapped.preferences)
+
+        // Save route data if present
+        if (response.route_geojson) setRouteGeoJSON(response.route_geojson)
+        if (response.route_metadata) setRouteMetadata(response.route_metadata)
+      }
+
+      setMessages(prev => [...prev, aiResponse])
+      setIsTyping(false)
+
+      if (newPlaces.length > 0) {
+        setPlaces(newPlaces)
+
+        if (useMocks) {
+          const center = getCityCenter(content)
+          setMapCenter(center)
+          setMapZoom(13)
+        } else {
+          setMapCenter(computeMapCenter(newPlaces))
+          setMapZoom(computeMapZoom(newPlaces))
+        }
+
+        // Update chat history
+        const cityName = useMocks ? getCityName(content) : (newPlaces[0]?.address?.split(',')[0] || 'Путешествие')
+        if (currentChatId) {
+          setChatHistory(prev => {
+            const existingIndex = prev.findIndex(c => c.id === currentChatId)
+            if (existingIndex >= 0) {
+              const updated = [...prev]
+              updated[existingIndex] = {
+                ...updated[existingIndex],
+                messages: [...updated[existingIndex].messages, userMsg, aiResponse],
+                places: newPlaces,
+              }
+              return updated
             }
-            return updated
-          }
-          return [
-            {
-              id: currentChatId,
-              title: `${cityName} ${new Date().toLocaleDateString('ru')}`,
-              destination: cityName,
-              messages: [welcomeMessage, userMsg, aiResponse],
-              places: newPlaces,
-              createdAt: new Date().toISOString(),
-            },
-            ...prev,
-          ]
-        })
+            return [
+              {
+                id: currentChatId,
+                title: `${cityName} ${new Date().toLocaleDateString('ru')}`,
+                destination: cityName,
+                messages: [welcomeMessage, userMsg, aiResponse],
+                places: newPlaces,
+                createdAt: new Date().toISOString(),
+              },
+              ...prev,
+            ]
+          })
+        }
+
+        if (authState === 'guest' && !hasShownAuthPrompt) {
+          setTimeout(() => {
+            setActiveModal('auth')
+            setHasShownAuthPrompt(true)
+          }, 2000)
+        }
       }
-      
-      if (authState === 'guest' && !hasShownAuthPrompt) {
-        setTimeout(() => {
-          setActiveModal('auth')
-          setHasShownAuthPrompt(true)
-        }, 2000)
+    } catch (error) {
+      setIsTyping(false)
+
+      let errorMessage: string
+      if (error instanceof ApiError) {
+        if (error.status === 403) {
+          // Session invalid — reset and retry will create new one
+          sessionRef.current = null
+          clearSession()
+          errorMessage = 'Сессия истекла. Пожалуйста, отправьте сообщение ещё раз.'
+        } else if (error.status >= 500) {
+          errorMessage = 'Сервер временно недоступен. Попробуйте позже.'
+        } else {
+          errorMessage = error.detail
+        }
+      } else {
+        // Network error — fall back to mocks on next call
+        setBackendAvailable(false)
+        errorMessage = 'Не удалось подключиться к серверу. Переключаемся на офлайн-режим.'
       }
+
+      setApiError(errorMessage)
+      const systemMsg: ChatMessage = {
+        id: `system-${Date.now()}`,
+        role: 'system',
+        content: errorMessage,
+        createdAt: new Date().toISOString(),
+      }
+      setMessages(prev => [...prev, systemMsg])
     }
-  }, [authState, hasShownAuthPrompt, currentChatId])
+  }, [authState, hasShownAuthPrompt, currentChatId, backendAvailable, ensureSession])
 
   // Toggle place selection
   const togglePlaceSelection = useCallback((placeId: string) => {
@@ -522,6 +637,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSidebarOpen,
     sidebarCollapsed,
     setSidebarCollapsed,
+    backendAvailable,
+    apiError,
+    clearApiError,
+    routeGeoJSON,
+    routeMetadata,
+    preferences,
   }
 
   return (

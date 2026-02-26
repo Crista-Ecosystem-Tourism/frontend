@@ -63,3 +63,72 @@ export interface SavedRoute {
 
 // Modal states
 export type ModalType = 'auth' | 'subscription' | 'payment' | 'save-route' | null
+
+// === Backend API types ===
+
+export interface BackendPlace {
+  id?: string | null
+  name?: string | null
+  city?: string | null
+  country?: string | null
+  description?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  rating?: number | null
+  review_count?: number | null
+  subtype?: string | null
+  activities?: string | null
+  postalcode?: string | null
+  page_content?: string | null
+  [key: string]: unknown
+}
+
+export interface BackendSearchResult {
+  query: string
+  places: BackendPlace[]
+  count: number
+}
+
+export interface BackendPreferences {
+  city?: string | null
+  destination_type?: string | null
+  budget?: string | null
+  travel_companions?: string | null
+  activities?: string[]
+  duration_days?: number | null
+}
+
+export interface BackendRouteMetadata {
+  graph_id: string
+  build_time_seconds: number
+  nodes_count: number
+  edges_count: number
+  alternatives_count: number
+  metrics: Record<string, unknown>
+}
+
+export interface BackendMessageOut {
+  message: string
+  search_results?: BackendSearchResult[] | null
+  conversation_complete: boolean
+  has_search_results: boolean
+  preferences?: BackendPreferences | null
+  route_geojson?: Record<string, unknown> | null
+  route_metadata?: BackendRouteMetadata | null
+}
+
+export interface BackendSessionOutAnon {
+  id: string
+  title?: string | null
+  secret: string
+}
+
+export interface BackendHistoryOut {
+  session_id: string
+  messages: unknown[]
+}
+
+export interface SessionState {
+  sessionId: string
+  sessionSecret: string
+}

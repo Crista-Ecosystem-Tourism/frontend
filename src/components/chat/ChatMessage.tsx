@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { Bot, User } from 'lucide-react'
 import { ChatMessage as ChatMessageType } from '@/types'
@@ -8,7 +9,7 @@ interface ChatMessageProps {
   index: number
 }
 
-export function ChatMessage({ message, index }: ChatMessageProps) {
+export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(function ChatMessage({ message, index }, ref) {
   const isUser = message.role === 'user'
 
   const formatContent = (content: string) => {
@@ -23,6 +24,7 @@ export function ChatMessage({ message, index }: ChatMessageProps) {
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
@@ -61,4 +63,4 @@ export function ChatMessage({ message, index }: ChatMessageProps) {
       </div>
     </motion.div>
   )
-}
+})

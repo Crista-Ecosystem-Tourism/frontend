@@ -1,9 +1,11 @@
+import { forwardRef } from 'react'
 import { motion } from 'framer-motion'
 import { Bot } from 'lucide-react'
 
-export function TypingIndicator() {
+export const TypingIndicator = forwardRef<HTMLDivElement>(function TypingIndicator(_props, ref) {
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
@@ -26,4 +28,4 @@ export function TypingIndicator() {
       </div>
     </motion.div>
   )
-}
+})

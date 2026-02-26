@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, GeoJSON, useMap } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin } from 'lucide-react'
@@ -68,7 +68,7 @@ function MapUpdater({ center, zoom, selectedPlace }: {
 }
 
 export function TravelMap() {
-  const { places, mapCenter, mapZoom, selectedPlace, setSelectedPlace } = useApp()
+  const { places, mapCenter, mapZoom, selectedPlace, setSelectedPlace, routeGeoJSON } = useApp()
   const selectedCount = places.filter(p => p.selected).length
 
   return (
@@ -121,6 +121,18 @@ export function TravelMap() {
             }}
           />
         ))}
+
+        {routeGeoJSON && (
+          <GeoJSON
+            key={JSON.stringify(routeGeoJSON)}
+            data={routeGeoJSON as unknown as GeoJSON.GeoJsonObject}
+            style={{
+              color: '#6366f1',
+              weight: 4,
+              opacity: 0.8,
+            }}
+          />
+        )}
       </MapContainer>
 
       {/* Place detail panel */}
