@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, GeoJSON, useMap } from 'react-leaflet'
 import { DivIcon } from 'leaflet'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin } from 'lucide-react'
+import { MapPin, Share2, Loader2 } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { Place } from '@/types'
 import { Button } from '@/components/ui/button'
@@ -20,17 +20,41 @@ const typeEmojis: Record<Place['type'], string> = {
   entertainment: '🎪',
 }
 
+// Marker size based on user rating
+function getMarkerSize(place: Place): number {
+  if (!place.userRating) return 40
+  return 36 + place.userRating * 4 // 40..56
+}
+
+// Marker border color based on user rating
+function getRatingColor(rating?: number): string {
+  if (!rating) return 'border-gray-200'
+  if (rating >= 4) return 'border-green-400'
+  if (rating >= 3) return 'border-yellow-400'
+  return 'border-orange-400'
+}
+
+function getRatingBg(rating?: number): string {
+  if (!rating) return 'bg-white'
+  if (rating >= 4) return 'bg-green-50'
+  if (rating >= 3) return 'bg-yellow-50'
+  return 'bg-orange-50'
+}
+
 // Create custom marker icon
 function createMarkerIcon(place: Place) {
   const emoji = typeEmojis[place.type]
   const isSelected = place.selected
+  const size = getMarkerSize(place)
+  const ratingBorder = isSelected ? 'border-primary' : getRatingColor(place.userRating)
+  const ratingBg = isSelected ? 'bg-primary' : getRatingBg(place.userRating)
 
   return new DivIcon({
     className: 'custom-marker',
     html: `
       <div class="relative group cursor-pointer">
-        <div class="w-10 h-10 rounded-full ${isSelected ? 'bg-primary ring-2 ring-white' : 'bg-white'} 
-          shadow-lg flex items-center justify-center text-lg border-2 ${isSelected ? 'border-primary' : 'border-gray-200'}
+        <div style="width:${size}px;height:${size}px" class="rounded-full ${ratingBg} ${isSelected ? 'ring-2 ring-white' : ''}
+          shadow-lg flex items-center justify-center text-lg border-2 ${ratingBorder}
           transition-transform hover:scale-110">
           ${emoji}
         </div>
@@ -41,12 +65,37 @@ function createMarkerIcon(place: Place) {
             </svg>
           </div>
         ` : ''}
+        ${place.userRating ? `
+          <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1 py-0 rounded bg-amber-400 text-white text-[9px] font-bold">
+            ${place.userRating}
+          </div>
+        ` : ''}
       </div>
     `,
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size],
   })
+}
+
+// Style for graph GeoJSON edges
+function graphStyle(feature: GeoJSON.Feature | undefined) {
+  if (!feature?.properties) return { color: '#6366f1', weight: 3, opacity: 0.6 }
+
+  const type = feature.properties.type
+  if (type === 'edge') {
+    const dist = feature.properties.distance_m || 500
+    // Short edges = green, long = red
+    const ratio = Math.min(dist / 2000, 1)
+    const r = Math.round(ratio * 255)
+    const g = Math.round((1 - ratio) * 200)
+    return { color: `rgb(${r},${g},80)`, weight: 3, opacity: 0.7 }
+  }
+  if (type === 'alternative') {
+    return { color: '#a78bfa', weight: 2, opacity: 0.5, dashArray: '8 4' }
+  }
+  // node points — hide (rendered as markers)
+  return { color: 'transparent', weight: 0, opacity: 0 }
 }
 
 // Map center updater component
@@ -69,9 +118,13 @@ function MapUpdater({ center, zoom, selectedPlace }: {
 }
 
 export function TravelMap() {
-  const { places, mapCenter, mapZoom, selectedPlace, setSelectedPlace, routeGeoJSON } = useApp()
+  const {
+    places, mapCenter, mapZoom, selectedPlace, setSelectedPlace,
+    routeGeoJSON, graphGeoJSON, buildingGraph, buildPlaceGraph,
+  } = useApp()
   const breakpoint = useMediaBreakpoint()
   const selectedCount = places.filter(p => p.selected).length
+  const ratedCount = places.filter(p => p.userRating && p.userRating > 0).length
 
   return (
     <div className="h-full w-full relative">
@@ -124,14 +177,32 @@ export function TravelMap() {
           />
         ))}
 
+        {/* AI route GeoJSON */}
         {routeGeoJSON && (
           <GeoJSON
-            key={JSON.stringify(routeGeoJSON)}
+            key={`route-${JSON.stringify(routeGeoJSON).slice(0, 50)}`}
             data={routeGeoJSON as unknown as GeoJSON.GeoJsonObject}
             style={{
               color: '#6366f1',
               weight: 4,
               opacity: 0.8,
+            }}
+          />
+        )}
+
+        {/* Graph "паутинка" GeoJSON */}
+        {graphGeoJSON && (
+          <GeoJSON
+            key={`graph-${JSON.stringify(graphGeoJSON).slice(0, 50)}`}
+            data={graphGeoJSON as unknown as GeoJSON.GeoJsonObject}
+            style={graphStyle}
+            onEachFeature={(feature, layer) => {
+              if (feature.properties?.type === 'edge') {
+                const dist = Math.round(feature.properties.distance_m || 0)
+                const from = feature.properties.from_name || ''
+                const to = feature.properties.to_name || ''
+                layer.bindTooltip(`${from} → ${to}: ${dist}м`, { sticky: true })
+              }
             }}
           />
         )}
@@ -150,7 +221,32 @@ export function TravelMap() {
         </AnimatePresence>
       )}
 
-      {/* Selected places count - show when no detail panel */}
+      {/* Build graph button */}
+      <AnimatePresence>
+        {ratedCount >= 2 && !selectedPlace && (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            className="absolute top-4 right-4 z-[1000]"
+          >
+            <Button
+              onClick={buildPlaceGraph}
+              disabled={buildingGraph}
+              className="shadow-lg gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white"
+            >
+              {buildingGraph ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Share2 className="w-4 h-4" />
+              )}
+              {buildingGraph ? 'Строим...' : `Построить паутинку (${ratedCount})`}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Selected places count */}
       <AnimatePresence>
         {selectedCount > 0 && !selectedPlace && (
           <motion.div

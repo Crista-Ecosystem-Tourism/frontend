@@ -7,6 +7,7 @@ import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, 
 import { mapMessageOutToChatMessage, computeMapCenter, computeMapZoom } from '@/api/mappers'
 import { ApiError } from '@/api/chatApi'
 import { login as apiLogin, register as apiRegister, getMe, logout as apiLogout, getToken } from '@/api/authApi'
+import { buildGraph } from '@/api/graphApi'
 
 type Theme = 'light' | 'dark'
 
@@ -147,7 +148,11 @@ interface AppContextType {
   mapCenter: [number, number]
   mapZoom: number
   togglePlaceSelection: (placeId: string) => void
-  
+  ratePlace: (placeId: string, rating: number) => void
+  graphGeoJSON: Record<string, unknown> | null
+  buildingGraph: boolean
+  buildPlaceGraph: () => Promise<void>
+
   // Routes
   savedRoutes: SavedRoute[]
   saveCurrentRoute: (name: string) => void
@@ -295,6 +300,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [routeMetadata, setRouteMetadata] = useState<BackendRouteMetadata | null>(null)
   const [preferences, setPreferences] = useState<BackendPreferences | null>(null)
   const [suggestedReplies, setSuggestedReplies] = useState<SuggestedReplyGroup[] | null>(null)
+  const [graphGeoJSON, setGraphGeoJSON] = useState<Record<string, unknown> | null>(null)
+  const [buildingGraph, setBuildingGraph] = useState(false)
   const sessionRef = useRef<SessionState | null>(loadSession())
 
   // Health check + restore auth on mount
@@ -715,11 +722,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setActiveModal('subscription')
       return
     }
-    
-    setPlaces(prev => prev.map(p => 
+
+    setPlaces(prev => prev.map(p =>
       p.id === placeId ? { ...p, selected: !p.selected } : p
     ))
   }, [authState])
+
+  // Rate a place (1-5 stars, 0 = clear)
+  const ratePlace = useCallback((placeId: string, rating: number) => {
+    setPlaces(prev => prev.map(p =>
+      p.id === placeId ? { ...p, userRating: rating || undefined } : p
+    ))
+  }, [])
+
+  // Build place graph ("паутинка") from rated places
+  const buildPlaceGraph = useCallback(async () => {
+    const ratedPlaces = places.filter(p => p.userRating && p.userRating > 0)
+    if (ratedPlaces.length < 2) return
+    setBuildingGraph(true)
+    try {
+      const result = await buildGraph(ratedPlaces)
+      setGraphGeoJSON(result.geojson)
+    } catch (e) {
+      console.error('Graph build error:', e)
+      setApiError('Ошибка построения паутинки')
+    } finally {
+      setBuildingGraph(false)
+    }
+  }, [places])
 
   // Save route
   const saveCurrentRoute = useCallback((name: string) => {
@@ -787,6 +817,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     mapCenter,
     mapZoom,
     togglePlaceSelection,
+    ratePlace,
+    graphGeoJSON,
+    buildingGraph,
+    buildPlaceGraph,
     savedRoutes,
     saveCurrentRoute,
     activeModal,

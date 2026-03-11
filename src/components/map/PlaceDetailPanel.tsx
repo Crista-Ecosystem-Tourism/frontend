@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform, useAnimationControls, PanInfo } f
 import { X, Star, Clock, Wallet, MapPin, Navigation, Check, Plus, Heart } from 'lucide-react'
 import { Place } from '@/types'
 import { Button } from '@/components/ui/button'
+import { StarRating } from '@/components/ui/StarRating'
 import { useApp } from '@/context/AppContext'
 import { type Breakpoint } from '@/hooks/useMediaBreakpoint'
 
@@ -32,6 +33,7 @@ function PlaceContent({ place, onClose, handleAddToRoute, handleOpenMaps }: {
   handleAddToRoute: () => void
   handleOpenMaps: () => void
 }) {
+  const { ratePlace } = useApp()
   const typeInfo = typeLabels[place.type]
 
   return (
@@ -96,6 +98,19 @@ function PlaceContent({ place, onClose, handleAddToRoute, handleOpenMaps }: {
             <span>{place.address}</span>
           </div>
         )}
+
+        {/* User Rating */}
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-surface-light/50 border border-border/30">
+          <span className="text-xs text-text-muted">Ваша оценка:</span>
+          <StarRating
+            value={place.userRating || 0}
+            onChange={(r) => ratePlace(place.id, r)}
+            size="md"
+          />
+          {place.userRating && (
+            <span className="text-sm font-semibold text-amber-400">{place.userRating}/5</span>
+          )}
+        </div>
 
         {/* Meta info */}
         <div className="flex flex-wrap gap-3 mb-4">

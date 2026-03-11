@@ -1,6 +1,7 @@
 import { Star, Heart } from 'lucide-react'
 import { Place } from '@/types'
 import { useApp } from '@/context/AppContext'
+import { StarRating } from '@/components/ui/StarRating'
 
 interface PlaceCardProps {
   place: Place
@@ -17,7 +18,7 @@ const typeEmoji: Record<Place['type'], string> = {
 }
 
 export function PlaceCard({ place }: PlaceCardProps) {
-  const { togglePlaceSelection, setSelectedPlace } = useApp()
+  const { togglePlaceSelection, setSelectedPlace, ratePlace } = useApp()
   const emoji = typeEmoji[place.type]
 
   return (
@@ -71,9 +72,16 @@ export function PlaceCard({ place }: PlaceCardProps) {
       <div className="p-2">
         <h4 className="font-medium text-xs text-text line-clamp-1">{place.name}</h4>
         <p className="text-[10px] text-text-secondary line-clamp-2 mt-0.5">{place.description}</p>
-        {place.priceRange && (
-          <p className="text-[10px] font-medium text-primary mt-1">{place.priceRange}</p>
-        )}
+        <div className="mt-1 flex items-center justify-between">
+          <StarRating
+            value={place.userRating || 0}
+            onChange={(r) => ratePlace(place.id, r)}
+            size="sm"
+          />
+          {place.priceRange && (
+            <span className="text-[10px] font-medium text-primary">{place.priceRange}</span>
+          )}
+        </div>
       </div>
     </div>
   )

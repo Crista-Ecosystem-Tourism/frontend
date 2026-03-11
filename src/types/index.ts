@@ -11,6 +11,7 @@ export interface Place {
   rating?: number
   address?: string
   selected?: boolean
+  userRating?: number
   priceRange?: string
   duration?: string
 }
@@ -163,9 +164,22 @@ export interface BackendSessionOutAnon {
   secret: string
 }
 
+// pydantic-ai ModelMessage format returned by history endpoint
+export interface BackendMessagePart {
+  part_kind: 'user-prompt' | 'text' | 'system-prompt' | 'tool-call' | 'tool-return' | string
+  content?: string
+  timestamp?: string
+}
+
+export interface BackendModelMessage {
+  kind: 'request' | 'response' | 'retry-prompt' | string
+  parts: BackendMessagePart[]
+  timestamp?: string
+}
+
 export interface BackendHistoryOut {
   session_id: string
-  messages: unknown[]
+  messages: BackendModelMessage[]
 }
 
 export interface SessionState {
