@@ -6,6 +6,7 @@ import { delay, generateId } from '@/lib/utils'
 import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession } from '@/api/chatApi'
 import { mapMessageOutToChatMessage, computeMapCenter, computeMapZoom } from '@/api/mappers'
 import { ApiError } from '@/api/chatApi'
+import { login as apiLogin, register as apiRegister, getMe, logout as apiLogout, getToken } from '@/api/authApi'
 
 type Theme = 'light' | 'dark'
 
@@ -120,8 +121,11 @@ interface AppContextType {
   // User & Auth
   user: User | null
   authState: AuthState
-  login: (provider: 'yandex' | 'google') => void
+  loginWithEmail: (email: string, password: string) => Promise<void>
+  registerWithEmail: (email: string, password: string, name: string) => Promise<void>
   logout: () => void
+  authLoading: boolean
+  authError: string | null
   subscribe: (plan: SubscriptionPlan) => void
 
   // Chat
@@ -279,7 +283,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  // Auth prompt flag
+  // Auth
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState<string | null>(null)
   const [hasShownAuthPrompt, setHasShownAuthPrompt] = useState(false)
 
   // Backend integration
@@ -291,13 +297,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [suggestedReplies, setSuggestedReplies] = useState<SuggestedReplyGroup[] | null>(null)
   const sessionRef = useRef<SessionState | null>(loadSession())
 
-  // Health check on mount
+  // Health check + restore auth on mount
   useEffect(() => {
     if (isMockMode()) {
       setBackendAvailable(false)
       return
     }
     checkHealth().then(ok => setBackendAvailable(ok))
+
+    // Restore user session from stored token
+    if (getToken()) {
+      getMe()
+        .then(authUser => {
+          setUser({
+            id: authUser.id,
+            name: authUser.name || '',
+            email: authUser.email,
+            authState: 'registered',
+          })
+          setAuthState('registered')
+        })
+        .catch(() => {
+          // Token invalid/expired — stay as guest
+        })
+    }
   }, [])
 
   // Apply theme
@@ -318,26 +341,56 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Auth functions
-  const login = useCallback((provider: 'yandex' | 'google') => {
-    const mockUser: User = {
-      id: 'user-1',
-      name: provider === 'yandex' ? 'Иван Петров' : 'Ivan Petrov',
-      email: provider === 'yandex' ? 'ivan@yandex.ru' : 'ivan@gmail.com',
-      authState: 'registered',
+  const loginWithEmail = useCallback(async (email: string, password: string) => {
+    setAuthLoading(true)
+    setAuthError(null)
+    try {
+      const { user: authUser } = await apiLogin(email, password)
+      setUser({
+        id: authUser.id,
+        name: authUser.name || '',
+        email: authUser.email,
+        authState: 'registered',
+      })
+      setAuthState('registered')
+      setActiveModal(null)
+    } catch (error) {
+      const msg = error instanceof ApiError ? error.detail : 'Ошибка входа'
+      setAuthError(msg)
+      throw error
+    } finally {
+      setAuthLoading(false)
     }
-    setUser(mockUser)
-    setAuthState('registered')
-    setActiveModal(null)
-    
-    setTimeout(() => {
-      setActiveModal('subscription')
-    }, 500)
+  }, [])
+
+  const registerWithEmail = useCallback(async (email: string, password: string, name: string) => {
+    setAuthLoading(true)
+    setAuthError(null)
+    try {
+      const { user: authUser } = await apiRegister(email, password, name)
+      setUser({
+        id: authUser.id,
+        name: authUser.name || '',
+        email: authUser.email,
+        authState: 'registered',
+      })
+      setAuthState('registered')
+      setActiveModal(null)
+    } catch (error) {
+      const msg = error instanceof ApiError ? error.detail : 'Ошибка регистрации'
+      setAuthError(msg)
+      throw error
+    } finally {
+      setAuthLoading(false)
+    }
   }, [])
 
   const logout = useCallback(() => {
+    apiLogout()
     setUser(null)
     setAuthState('guest')
     setCurrentChatId(null)
+    setAuthError(null)
   }, [])
 
   // Navigation - go to home screen
@@ -656,8 +709,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleTheme,
     user,
     authState,
-    login,
+    loginWithEmail,
+    registerWithEmail,
     logout,
+    authLoading,
+    authError,
     subscribe,
     messages,
     isTyping,

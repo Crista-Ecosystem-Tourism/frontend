@@ -1,4 +1,5 @@
 import type { BackendMessageOut, BackendHistoryOut, SessionState } from '@/types'
+import { getAuthHeaders } from './authApi'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
@@ -83,12 +84,15 @@ export async function checkHealth(): Promise<boolean> {
   }
 }
 
-/** Create an anonymous chat session */
+/** Create a chat session (authenticated or anonymous) */
 export async function createSession(title?: string): Promise<SessionState> {
+  const auth = getAuthHeaders()
+  const isAnonymous = !auth.Authorization
+
   const response = await fetch(`${API_BASE_URL}/chat/sessions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title: title || null, anonymous: true }),
+    headers: { 'Content-Type': 'application/json', ...auth },
+    body: JSON.stringify({ title: title || null, anonymous: isAnonymous }),
   })
 
   const data = await handleResponse<{ id: string; title?: string | null; secret: string }>(response)
@@ -111,7 +115,7 @@ export async function sendMessage(
 ): Promise<BackendMessageOut> {
   const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}/messages`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({
       message,
       session_secret: sessionSecret,
@@ -133,7 +137,8 @@ export async function getHistory(
   if (view) params.set('view', view)
 
   const response = await fetch(
-    `${API_BASE_URL}/chat/sessions/${sessionId}/history?${params.toString()}`
+    `${API_BASE_URL}/chat/sessions/${sessionId}/history?${params.toString()}`,
+    { headers: { ...getAuthHeaders() } }
   )
 
   return handleResponse<BackendHistoryOut>(response)

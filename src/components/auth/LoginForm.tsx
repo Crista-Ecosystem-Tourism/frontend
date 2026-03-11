@@ -4,21 +4,34 @@ import { useApp } from '@/context/AppContext'
 import { AuthLayout } from './AuthLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { YandexIcon } from '@/components/icons/YandexIcon'
 
 export function LoginForm() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
-    const { login } = useApp()
+    const { loginWithEmail } = useApp()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-    }
+        setError('')
 
-    const handleYandexLogin = () => {
-        login('yandex')
-        navigate('/')
+        if (!email.trim() || !password) {
+            setError('Введите email и пароль')
+            return
+        }
+
+        setLoading(true)
+        try {
+            await loginWithEmail(email.trim(), password)
+            navigate('/')
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : 'Ошибка входа'
+            setError(msg)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -27,29 +40,13 @@ export function LoginForm() {
             subtitle="С возвращением! Введите свои данные."
         >
             <div className="mt-8 grid gap-8">
-                {/* Social Login Buttons */}
-                <div className="grid gap-4">
-                    <Button
-                        variant="outline"
-                        onClick={handleYandexLogin}
-                        className="flex h-[3.5rem] w-full items-center justify-center gap-3 rounded-[12px] border border-[#e5e5e5] bg-white px-4 text-[1rem] font-semibold text-[#1a1a1a] transition-all hover:bg-[#f9f9f9] hover:border-[#d1d1d1]"
-                    >
-                        <YandexIcon />
-                        Войти через Яндекс
-                    </Button>
-                </div>
-
-                {/* Elegant Divider */}
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-[#f0f0f0]" />
-                    </div>
-                    <div className="relative flex justify-center text-[0.7rem] font-bold uppercase tracking-[0.2em] text-[#cccccc]">
-                        <span className="bg-white px-4">ИЛИ</span>
-                    </div>
-                </div>
-
                 <form onSubmit={handleSubmit} className="grid gap-5">
+                    {error && (
+                        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                            {error}
+                        </div>
+                    )}
+
                     <div className="relative">
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#aaaaaa]">
                             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -58,10 +55,11 @@ export function LoginForm() {
                         </div>
                         <Input
                             id="email"
-                            placeholder="Рабочая эл. почта"
+                            placeholder="Эл. почта"
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            disabled={loading}
                             className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white pl-12 pr-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
                         />
                     </div>
@@ -77,15 +75,17 @@ export function LoginForm() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            disabled={loading}
                             className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white pl-12 pr-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
                         />
                     </div>
 
                     <Button
                         type="submit"
-                        className="h-[3.5rem] w-full rounded-[12px] bg-[#10a37f] text-[1rem] font-bold text-white transition-all hover:bg-[#0d8a6a]"
+                        disabled={loading}
+                        className="h-[3.5rem] w-full rounded-[12px] bg-[#10a37f] text-[1rem] font-bold text-white transition-all hover:bg-[#0d8a6a] disabled:opacity-50"
                     >
-                        Войти через почту
+                        {loading ? 'Входим...' : 'Войти'}
                     </Button>
                 </form>
 

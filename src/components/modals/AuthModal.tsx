@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Dialog,
@@ -7,72 +8,171 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useApp } from '@/context/AppContext'
 
-// Google icon SVG
-const GoogleIcon = () => (
-  <svg viewBox="0 0 24 24" className="w-5 h-5">
-    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-  </svg>
-)
+type Tab = 'login' | 'register'
 
 export function AuthModal() {
-  const { activeModal, closeModal, login } = useApp()
+  const { activeModal, closeModal, loginWithEmail, registerWithEmail, authLoading } = useApp()
   const isOpen = activeModal === 'auth'
 
+  const [tab, setTab] = useState<Tab>('login')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [error, setError] = useState('')
+
+  const reset = () => {
+    setEmail('')
+    setPassword('')
+    setName('')
+    setError('')
+  }
+
+  const switchTab = (t: Tab) => {
+    setTab(t)
+    setError('')
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!email.trim() || !password) {
+      setError('Введите email и пароль')
+      return
+    }
+    try {
+      await loginWithEmail(email.trim(), password)
+      reset()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка входа')
+    }
+  }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!name.trim()) { setError('Введите имя'); return }
+    if (!email.trim()) { setError('Введите email'); return }
+    if (password.length < 6) { setError('Пароль минимум 6 символов'); return }
+    try {
+      await registerWithEmail(email.trim(), password, name.trim())
+      reset()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка регистрации')
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={closeModal}>
+    <Dialog open={isOpen} onOpenChange={() => { closeModal(); reset() }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">
-            Войдите, чтобы продолжить
+            {tab === 'login' ? 'Войдите, чтобы продолжить' : 'Создайте аккаунт'}
           </DialogTitle>
           <DialogDescription className="text-center">
-            Зарегистрируйтесь, чтобы просмотреть полный маршрут,
-            сохранить места и получить персональные рекомендации
+            {tab === 'login'
+              ? 'Войдите, чтобы сохранить маршрут и получить персональные рекомендации'
+              : 'Регистрация бесплатна и займёт несколько секунд'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-6 space-y-3">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+        {/* Tabs */}
+        <div className="flex rounded-lg bg-surface-hover/50 p-1 gap-1">
+          <button
+            onClick={() => switchTab('login')}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+              tab === 'login' ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'
+            }`}
           >
-            <Button
-              variant="outline"
-              className="w-full h-12 gap-3 text-base"
-              onClick={() => login('yandex')}
-            >
-              <div className="w-6 h-6 rounded bg-[#FC3F1D] flex items-center justify-center">
-                <span className="text-white font-bold text-sm">Я</span>
-              </div>
-              Войти с Яндекс
-            </Button>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            Вход
+          </button>
+          <button
+            onClick={() => switchTab('register')}
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+              tab === 'register' ? 'bg-surface text-text shadow-sm' : 'text-text-muted hover:text-text'
+            }`}
           >
-            <Button
-              variant="outline"
-              className="w-full h-12 gap-3 text-base"
-              onClick={() => login('google')}
-            >
-              <GoogleIcon />
-              Войти с Google
-            </Button>
-          </motion.div>
+            Регистрация
+          </button>
         </div>
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-2.5 text-sm text-red-400"
+          >
+            {error}
+          </motion.div>
+        )}
+
+        {tab === 'login' ? (
+          <form onSubmit={handleLogin} className="space-y-3 py-2">
+            <Input
+              placeholder="Эл. почта"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={authLoading}
+              className="h-11"
+            />
+            <Input
+              placeholder="Пароль"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={authLoading}
+              className="h-11"
+            />
+            <Button
+              type="submit"
+              disabled={authLoading}
+              className="w-full h-11"
+            >
+              {authLoading ? 'Входим...' : 'Войти'}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-3 py-2">
+            <Input
+              placeholder="Ваше имя"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={authLoading}
+              className="h-11"
+            />
+            <Input
+              placeholder="Эл. почта"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={authLoading}
+              className="h-11"
+            />
+            <Input
+              placeholder="Пароль (мин. 6 символов)"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={authLoading}
+              className="h-11"
+            />
+            <Button
+              type="submit"
+              disabled={authLoading}
+              className="w-full h-11"
+            >
+              {authLoading ? 'Создаём...' : 'Создать аккаунт'}
+            </Button>
+          </form>
+        )}
 
         <div className="text-center">
           <p className="text-xs text-text-muted">
-            Нажимая "Войти", вы соглашаетесь с{' '}
+            Нажимая кнопку, вы соглашаетесь с{' '}
             <a href="#" className="text-primary hover:underline">
               условиями использования
             </a>
@@ -82,4 +182,3 @@ export function AuthModal() {
     </Dialog>
   )
 }
-
