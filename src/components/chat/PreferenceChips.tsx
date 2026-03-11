@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, Users, Wallet, Compass, Clock, Activity } from 'lucide-react'
+import { MapPin, Users, Wallet, Compass, Clock, Activity, PlaneTakeoff } from 'lucide-react'
 import type { BackendPreferences } from '@/types'
 
 interface PreferenceChipsProps {
@@ -18,8 +18,11 @@ const iconClass = 'w-3 h-3'
 function buildChips(p: BackendPreferences): ChipDef[] {
   const chips: ChipDef[] = []
 
+  if (p.origin_city) {
+    chips.push({ key: 'origin', icon: <PlaneTakeoff className={iconClass} />, label: 'Откуда', value: p.origin_city })
+  }
   if (p.city) {
-    chips.push({ key: 'city', icon: <MapPin className={iconClass} />, label: 'Город', value: p.city })
+    chips.push({ key: 'city', icon: <MapPin className={iconClass} />, label: 'Куда', value: p.city })
   }
   if (p.destination_type) {
     chips.push({ key: 'type', icon: <Compass className={iconClass} />, label: 'Тип', value: p.destination_type })

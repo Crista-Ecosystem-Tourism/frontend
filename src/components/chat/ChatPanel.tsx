@@ -1,18 +1,27 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { AnimatePresence } from 'framer-motion'
-import { Sparkles, ArrowLeft } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Sparkles, ArrowLeft, Plane, Info } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { ChatMessage } from './ChatMessage'
 import { ChatInput } from './ChatInput'
 import { TypingIndicator } from './TypingIndicator'
 import { PreferenceChips } from './PreferenceChips'
 import { QuickReplyChips } from './QuickReplyChips'
+import { TicketWidget } from './TicketWidget'
 import { formatChipSelections, mergeMessage } from './formatChipSelections'
+import { getIATACode } from '@/lib/iataMapping'
 
 export function ChatPanel() {
   const { messages, isTyping, sendMessage, goHome, preferences, suggestedReplies } = useApp()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [chipSelections, setChipSelections] = useState<Record<string, string>>({})
+  const [ticketWidgetOpen, setTicketWidgetOpen] = useState(false)
+
+  // Compute IATA codes from preferences
+  const originIATA = preferences?.origin_city ? getIATACode(preferences.origin_city) : null
+  const destinationIATA = preferences?.city ? getIATACode(preferences.city) : null
+  const canShowTickets = !!(originIATA && destinationIATA)
+  const hasDestinationOnly = !!(destinationIATA && !originIATA)
 
   // Reset chip selections when suggested replies change (new AI response)
   useEffect(() => {
@@ -77,9 +86,46 @@ export function ChatPanel() {
         </AnimatePresence>
       </div>
 
-      {/* Preference chips + Quick replies + Input */}
+      {/* Preference chips + Ticket button + Quick replies + Input */}
       <div className="flex-shrink-0 p-3 border-t border-border/30 bg-surface/30">
         <PreferenceChips preferences={preferences} />
+
+        {/* Ticket button or hint */}
+        <AnimatePresence>
+          {canShowTickets && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-1 pb-2"
+            >
+              <button
+                onClick={() => setTicketWidgetOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium bg-gradient-to-r from-primary to-violet-500 text-white hover:from-primary/90 hover:to-violet-500/90 transition-all shadow-md shadow-primary/20"
+              >
+                <Plane className="w-3.5 h-3.5" />
+                Купить билеты выгодно
+                <span className="text-[10px] opacity-70 ml-1">
+                  {preferences?.origin_city} → {preferences?.city}
+                </span>
+              </button>
+            </motion.div>
+          )}
+          {hasDestinationOnly && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="px-1 pb-2"
+            >
+              <p className="flex items-center gap-1.5 text-[11px] text-text-muted">
+                <Info className="w-3 h-3" />
+                Укажите город вылета, чтобы найти билеты
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {suggestedReplies && suggestedReplies.length > 0 ? (
           <QuickReplyChips
             groups={suggestedReplies}
@@ -103,6 +149,16 @@ export function ChatPanel() {
           hasChipSelections={hasChipSelections}
         />
       </div>
+
+      {/* Ticket widget modal */}
+      {canShowTickets && (
+        <TicketWidget
+          origin={originIATA}
+          destination={destinationIATA}
+          isOpen={ticketWidgetOpen}
+          onClose={() => setTicketWidgetOpen(false)}
+        />
+      )}
     </div>
   )
 }

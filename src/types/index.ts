@@ -128,6 +128,7 @@ export interface BackendSearchResult {
 
 export interface BackendPreferences {
   city?: string | null
+  origin_city?: string | null
   destination_type?: string | null
   budget?: string | null
   travel_companions?: string | null

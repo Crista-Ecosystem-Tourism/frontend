@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Wallet, Users, Compass, Clock, Map, Pencil, X } from 'lucide-react'
+import { Wallet, Users, Compass, Clock, Map, Pencil, X, PlaneTakeoff } from 'lucide-react'
 import type { SuggestedReplyGroup } from '@/types'
 
 interface QuickReplyChipsProps {
@@ -16,6 +16,7 @@ const iconMap: Record<string, React.ReactNode> = {
   users: <Users className="w-3.5 h-3.5" />,
   compass: <Compass className="w-3.5 h-3.5" />,
   clock: <Clock className="w-3.5 h-3.5" />,
+  plane: <PlaneTakeoff className="w-3.5 h-3.5" />,
 }
 
 export function QuickReplyChips({ groups, selections, onSelectionsChange, onBuildItinerary, allPreferencesFilled }: QuickReplyChipsProps) {
