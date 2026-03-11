@@ -240,8 +240,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [authState, setAuthState] = useState<AuthState>('guest')
   
-  // Chat History
-  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() => createMockChatHistory())
+  // Chat History — mock history only when using mocks
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() =>
+    isMockMode() ? createMockChatHistory() : []
+  )
   const [currentChatId, setCurrentChatId] = useState<string | null>(null) // Start with null for Home view
   
   // Get current chat data
@@ -372,8 +374,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMessages(chat.messages)
       setPlaces(chat.places)
       setSelectedPlace(null)
-      
-      if (chat.destination) {
+
+      if (chat.places.length > 0) {
+        setMapCenter(computeMapCenter(chat.places))
+        setMapZoom(computeMapZoom(chat.places))
+      } else if (chat.destination) {
         setMapCenter(getCityCenter(chat.destination))
         setMapZoom(13)
       }
@@ -398,50 +403,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Reset session for new chat
     sessionRef.current = null
     clearSession()
-  }, [])
-
-  // Load a pre-made trip chat from suggestions
-  const loadTripChat = useCallback((tripId: string) => {
-    const tripData = tripDataMap[tripId]
-    if (!tripData) return
-
-    const newId = `trip-${tripId}-${generateId()}`
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: tripData.userQuery,
-      createdAt: new Date().toISOString(),
-    }
-
-    const aiMessage: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      role: 'assistant',
-      content: tripData.aiResponse,
-      createdAt: new Date().toISOString(),
-      places: tripData.places,
-      cityName: tripData.cityName,
-    }
-
-    setCurrentChatId(newId)
-    setMessages([welcomeMessage, userMessage, aiMessage])
-    setPlaces(tripData.places)
-    setSelectedPlace(null)
-    setMapCenter(getCityCenter(tripData.cityName))
-    setMapZoom(13)
-
-    // Add to chat history
-    setChatHistory(prev => [
-      {
-        id: newId,
-        title: tripData.title,
-        destination: tripData.cityName,
-        messages: [welcomeMessage, userMessage, aiMessage],
-        places: tripData.places,
-        createdAt: new Date().toISOString(),
-      },
-      ...prev,
-    ])
   }, [])
 
   // Chat functions
@@ -571,6 +532,71 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMessages(prev => [...prev, systemMsg])
     }
   }, [authState, hasShownAuthPrompt, currentChatId, backendAvailable, ensureSession])
+
+  // Load a pre-made trip chat from suggestions
+  const loadTripChat = useCallback((tripId: string) => {
+    const tripData = tripDataMap[tripId]
+    if (!tripData) return
+
+    const useMocks = isMockMode() || !backendAvailable
+
+    if (!useMocks) {
+      // When backend is available, start a new chat and send the query via API
+      const newId = `trip-${tripId}-${generateId()}`
+      setCurrentChatId(newId)
+      setMessages([welcomeMessage])
+      setPlaces([])
+      setSelectedPlace(null)
+      setRouteGeoJSON(null)
+      setRouteMetadata(null)
+      setPreferences(null)
+      setSuggestedReplies(null)
+      setApiError(null)
+      sessionRef.current = null
+      clearSession()
+      // Send the trip query through the real API pipeline
+      setTimeout(() => sendMessage(tripData.userQuery), 100)
+      return
+    }
+
+    const newId = `trip-${tripId}-${generateId()}`
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: tripData.userQuery,
+      createdAt: new Date().toISOString(),
+    }
+
+    const aiMessage: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      role: 'assistant',
+      content: tripData.aiResponse,
+      createdAt: new Date().toISOString(),
+      places: tripData.places,
+      cityName: tripData.cityName,
+    }
+
+    setCurrentChatId(newId)
+    setMessages([welcomeMessage, userMessage, aiMessage])
+    setPlaces(tripData.places)
+    setSelectedPlace(null)
+    setMapCenter(getCityCenter(tripData.cityName))
+    setMapZoom(13)
+
+    // Add to chat history
+    setChatHistory(prev => [
+      {
+        id: newId,
+        title: tripData.title,
+        destination: tripData.cityName,
+        messages: [welcomeMessage, userMessage, aiMessage],
+        places: tripData.places,
+        createdAt: new Date().toISOString(),
+      },
+      ...prev,
+    ])
+  }, [backendAvailable, sendMessage])
 
   // Toggle place selection
   const togglePlaceSelection = useCallback((placeId: string) => {
