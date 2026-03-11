@@ -33,12 +33,12 @@ const REVIEWS = [
 
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
     return (
-        <div className="relative flex min-h-screen w-full overflow-hidden bg-white">
+        <div className="relative flex min-h-screen w-full overflow-hidden bg-background">
             {/* Split Container */}
             <div className="flex w-full flex-col md:flex-row">
 
                 {/* Left Side: Form Area (Clean White) */}
-                <div className="relative z-20 flex w-full flex-col items-center justify-center bg-white px-6 py-12 md:w-1/2 lg:w-[48%] xl:w-[45%] md:m-8 md:rounded-[24px] md:shadow-[0_4px_40px_rgba(0,0,0,0.08)] md:border md:border-[#e5e5e5]">
+                <div className="relative z-20 flex w-full flex-col items-center justify-center bg-surface px-6 py-12 md:w-1/2 lg:w-[48%] xl:w-[45%] md:m-8 md:rounded-[24px] md:shadow-[0_4px_40px_rgba(0,0,0,0.08)] md:border md:border-border">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -49,18 +49,18 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
                         <div className="mb-20 flex items-center gap-2.5 justify-center md:justify-start">
                             <Logo size={36} />
                             <div className="flex flex-col text-left">
-                                <span className="text-lg font-bold leading-tight text-[#1a1a1a]">Crista</span>
-                                <span className="text-[10px] font-medium uppercase tracking-wider text-[#888888]">Travel</span>
+                                <span className="text-lg font-bold leading-tight text-text">Crista</span>
+                                <span className="text-[10px] font-medium uppercase tracking-wider text-text-muted">Travel</span>
                             </div>
                         </div>
 
                         {/* Title and Subtitle */}
                         <div className="mb-10 text-center md:text-left">
-                            <h1 className="text-[2.5rem] font-bold leading-tight tracking-tight text-[#1a1a1a]">
+                            <h1 className="text-[2.5rem] font-bold leading-tight tracking-tight text-text">
                                 {title}
                             </h1>
                             {subtitle && (
-                                <p className="mt-2 text-lg text-[#666666]">
+                                <p className="mt-2 text-lg text-text-secondary">
                                     {subtitle}
                                 </p>
                             )}
@@ -72,10 +72,10 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
                         </div>
 
                         {/* Bottom Terms (as in ref image) */}
-                        <div className="mt-12 text-center text-[0.8rem] text-[#888888] md:text-left">
+                        <div className="mt-12 text-center text-[0.8rem] text-text-muted md:text-left">
                             Продолжая, вы подтверждаете, что принимаете наши{' '}
-                            <a href="#" className="underline hover:text-black transition-colors">Условия использования</a> и{' '}
-                            <a href="#" className="underline hover:text-black transition-colors">Политику конфиденциальности</a>.
+                            <a href="#" className="underline hover:text-text transition-colors">Условия использования</a> и{' '}
+                            <a href="#" className="underline hover:text-text transition-colors">Политику конфиденциальности</a>.
                         </div>
                     </motion.div>
                 </div>

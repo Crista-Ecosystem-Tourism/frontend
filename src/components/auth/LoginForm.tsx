@@ -42,7 +42,7 @@ export function LoginForm() {
             <div className="mt-8 grid gap-8">
                 <form onSubmit={handleSubmit} className="grid gap-5">
                     {error && (
-                        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
                             {error}
                         </div>
                     )}
@@ -60,7 +60,7 @@ export function LoginForm() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             disabled={loading}
-                            className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white pl-12 pr-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                            className="h-[3.5rem] w-full rounded-[12px] border-border bg-surface-light pl-12 pr-4 text-[1rem] text-text placeholder:text-text-muted focus:border-primary focus:ring-0 transition-colors"
                         />
                     </div>
                     <div className="relative">
@@ -76,7 +76,7 @@ export function LoginForm() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={loading}
-                            className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white pl-12 pr-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                            className="h-[3.5rem] w-full rounded-[12px] border-border bg-surface-light pl-12 pr-4 text-[1rem] text-text placeholder:text-text-muted focus:border-primary focus:ring-0 transition-colors"
                         />
                     </div>
 

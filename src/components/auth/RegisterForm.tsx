@@ -51,7 +51,7 @@ export function RegisterForm() {
             <div className="mt-8 grid gap-6">
                 <form onSubmit={handleSubmit} className="grid gap-4">
                     {error && (
-                        <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
                             {error}
                         </div>
                     )}
@@ -63,7 +63,7 @@ export function RegisterForm() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         disabled={loading}
-                        className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white px-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                        className="h-[3.5rem] w-full rounded-[12px] border-border bg-surface-light px-4 text-[1rem] text-text placeholder:text-text-muted focus:border-primary focus:ring-0 transition-colors"
                     />
                     <Input
                         id="email"
@@ -72,7 +72,7 @@ export function RegisterForm() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={loading}
-                        className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white px-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                        className="h-[3.5rem] w-full rounded-[12px] border-border bg-surface-light px-4 text-[1rem] text-text placeholder:text-text-muted focus:border-primary focus:ring-0 transition-colors"
                     />
                     <Input
                         id="password"
@@ -81,7 +81,7 @@ export function RegisterForm() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={loading}
-                        className="h-[3.5rem] w-full rounded-[12px] border-[#e5e5e5] bg-white px-4 text-[1rem] placeholder:text-[#bbbbbb] focus:border-[#1a1a1a] focus:ring-0 transition-colors"
+                        className="h-[3.5rem] w-full rounded-[12px] border-border bg-surface-light px-4 text-[1rem] text-text placeholder:text-text-muted focus:border-primary focus:ring-0 transition-colors"
                     />
                     <Button
                         type="submit"
