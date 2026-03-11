@@ -65,6 +65,22 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 // --- API functions ---
 
+// --- Types ---
+
+export interface SessionListItem {
+  id: string
+  title: string | null
+  updated_at: string | null
+}
+
+/** List all chat sessions for authenticated user */
+export async function listSessions(): Promise<SessionListItem[]> {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions`, {
+    headers: { ...getAuthHeaders() },
+  })
+  return handleResponse<SessionListItem[]>(response)
+}
+
 /** Health check with 3 second timeout */
 export async function checkHealth(): Promise<boolean> {
   try {

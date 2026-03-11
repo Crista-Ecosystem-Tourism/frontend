@@ -31,6 +31,9 @@ export function Sidebar() {
     newChat,
     logout,
     goHome,
+    chatHistory,
+    currentChatId,
+    loadChat,
   } = useApp()
 
   const [activeMenu, setActiveMenu] = useState('explore')
@@ -124,8 +127,40 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
+      {/* Chat History */}
+      {!collapsed && chatHistory.length > 0 && (
+        <div className="mt-3 px-3 flex-1 min-h-0 overflow-y-auto">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-2 px-1">
+            История чатов
+          </p>
+          <div className="space-y-0.5">
+            {chatHistory.map((chat) => (
+              <button
+                key={chat.id}
+                onClick={() => {
+                  loadChat(chat.id)
+                  setSidebarOpen(false)
+                }}
+                title={chat.title}
+                className={cn(
+                  'w-full text-left px-2.5 py-2 rounded-lg text-sm truncate transition-colors',
+                  currentChatId === chat.id
+                    ? 'bg-surface-light text-text font-medium'
+                    : 'text-text-secondary hover:bg-surface-hover hover:text-text'
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
+                  <span className="truncate">{chat.title}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Spacer (only when no chat history) */}
+      {(collapsed || chatHistory.length === 0) && <div className="flex-1" />}
 
       {/* Footer */}
       <div className="mt-auto border-t border-border">

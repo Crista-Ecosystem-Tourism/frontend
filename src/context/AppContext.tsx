@@ -3,7 +3,7 @@ import { ChatMessage, Place, User, AuthState, SubscriptionPlan, ModalType, Saved
 import { welcomeMessage, generateAIResponse, createUserMessage } from '@/mocks/chat'
 import { getPlacesByCity, getCityCenter, getCityName, parisPlaces, georgiaPlaces, baliPlaces, altaiPlaces, kyotoPlaces, spbPlaces, kenyaPlaces } from '@/mocks/places'
 import { delay, generateId } from '@/lib/utils'
-import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession } from '@/api/chatApi'
+import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession, listSessions, getHistory } from '@/api/chatApi'
 import { mapMessageOutToChatMessage, computeMapCenter, computeMapZoom } from '@/api/mappers'
 import { ApiError } from '@/api/chatApi'
 import { login as apiLogin, register as apiRegister, getMe, logout as apiLogout, getToken } from '@/api/authApi'
@@ -316,6 +316,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
             authState: 'registered',
           })
           setAuthState('registered')
+          // Load user's chat sessions
+          return listSessions()
+        })
+        .then(sessions => {
+          if (sessions) {
+            setChatHistory(sessions.map(s => ({
+              id: s.id,
+              title: s.title || 'Без названия',
+              destination: '',
+              messages: [],
+              places: [],
+              createdAt: s.updated_at || new Date().toISOString(),
+            })))
+          }
         })
         .catch(() => {
           // Token invalid/expired — stay as guest
@@ -341,6 +355,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Auth functions
+  const loadUserSessions = useCallback(async () => {
+    try {
+      const sessions = await listSessions()
+      setChatHistory(sessions.map(s => ({
+        id: s.id,
+        title: s.title || 'Без названия',
+        destination: '',
+        messages: [],
+        places: [],
+        createdAt: s.updated_at || new Date().toISOString(),
+      })))
+    } catch { /* ignore — user may have no sessions */ }
+  }, [])
+
   const loginWithEmail = useCallback(async (email: string, password: string) => {
     setAuthLoading(true)
     setAuthError(null)
@@ -354,6 +382,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       })
       setAuthState('registered')
       setActiveModal(null)
+      await loadUserSessions()
     } catch (error) {
       const msg = error instanceof ApiError ? error.detail : 'Ошибка входа'
       setAuthError(msg)
@@ -361,7 +390,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setAuthLoading(false)
     }
-  }, [])
+  }, [loadUserSessions])
 
   const registerWithEmail = useCallback(async (email: string, password: string, name: string) => {
     setAuthLoading(true)
@@ -419,24 +448,53 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return session
   }, [])
 
-  // Load chat from history
-  const loadChat = useCallback((chatId: string) => {
+  // Load chat from history — fetches messages from backend if needed
+  const loadChat = useCallback(async (chatId: string) => {
+    setCurrentChatId(chatId)
+    setSelectedPlace(null)
+    setRouteGeoJSON(null)
+    setRouteMetadata(null)
+    setPreferences(null)
+    setSuggestedReplies(null)
+
     const chat = chatHistory.find(c => c.id === chatId)
-    if (chat) {
-      setCurrentChatId(chatId)
+
+    // If messages already loaded locally
+    if (chat && chat.messages.length > 0) {
       setMessages(chat.messages)
       setPlaces(chat.places)
-      setSelectedPlace(null)
-
       if (chat.places.length > 0) {
         setMapCenter(computeMapCenter(chat.places))
         setMapZoom(computeMapZoom(chat.places))
-      } else if (chat.destination) {
-        setMapCenter(getCityCenter(chat.destination))
-        setMapZoom(13)
       }
+      // Set session ref so new messages go to this session
+      sessionRef.current = { sessionId: chatId, sessionSecret: '' }
+      return
     }
-  }, [chatHistory])
+
+    // Load from backend
+    if (!isMockMode() && backendAvailable) {
+      try {
+        await getHistory(chatId, '', 'short')
+        // History loaded from backend — show continuation prompt
+        setMessages([welcomeMessage, {
+          id: `loaded-${Date.now()}`,
+          role: 'assistant',
+          content: 'Предыдущий диалог загружен. Продолжайте общение!',
+          createdAt: new Date().toISOString(),
+        }])
+        setPlaces([])
+        sessionRef.current = { sessionId: chatId, sessionSecret: '' }
+      } catch {
+        setMessages([welcomeMessage])
+        setPlaces([])
+        sessionRef.current = { sessionId: chatId, sessionSecret: '' }
+      }
+    } else if (chat) {
+      setMessages(chat.messages.length > 0 ? chat.messages : [welcomeMessage])
+      setPlaces(chat.places)
+    }
+  }, [chatHistory, backendAvailable])
 
   // Create new chat
   const newChat = useCallback(() => {
