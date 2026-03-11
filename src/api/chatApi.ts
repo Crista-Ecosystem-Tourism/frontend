@@ -111,11 +111,11 @@ export async function createSession(title?: string): Promise<SessionState> {
     body: JSON.stringify({ title: title || null, anonymous: isAnonymous }),
   })
 
-  const data = await handleResponse<{ id: string; title?: string | null; secret: string }>(response)
+  const data = await handleResponse<{ id: string; title?: string | null; secret?: string }>(response)
 
   const session: SessionState = {
     sessionId: data.id,
-    sessionSecret: data.secret,
+    sessionSecret: data.secret ?? '',
   }
 
   saveSession(session)

@@ -1,4 +1,4 @@
-import type { Place, ChatMessage, BackendPlace, BackendSearchResult, BackendMessageOut, BackendPreferences, ItineraryDay, BackendItinerary, SuggestedReplyGroup } from '@/types'
+import type { Place, ChatMessage, BackendPlace, BackendSearchResult, BackendMessageOut, BackendPreferences, ItineraryDay, BackendItinerary, SuggestedReplyGroup, BackendModelMessage } from '@/types'
 import { generateId } from '@/lib/utils'
 
 // Subtype → Place type mapping
@@ -135,6 +135,45 @@ export function mapMessageOutToChatMessage(
   }
 
   return { chatMessage, places, preferences: response.preferences ?? null, suggestedReplies }
+}
+
+/** Map backend history (pydantic-ai ModelMessage[]) to frontend ChatMessage[] */
+export function mapHistoryToMessages(
+  messages: BackendModelMessage[],
+  sessionId: string
+): ChatMessage[] {
+  const result: ChatMessage[] = []
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i]
+
+    if (msg.kind === 'request') {
+      // Find the user-prompt part
+      const userPart = msg.parts.find(p => p.part_kind === 'user-prompt')
+      if (userPart?.content) {
+        result.push({
+          id: `hist-${sessionId}-${i}`,
+          role: 'user',
+          content: userPart.content,
+          createdAt: userPart.timestamp || msg.timestamp || new Date().toISOString(),
+        })
+      }
+    } else if (msg.kind === 'response') {
+      // Find the text part
+      const textPart = msg.parts.find(p => p.part_kind === 'text')
+      if (textPart?.content) {
+        result.push({
+          id: `hist-${sessionId}-${i}`,
+          role: 'assistant',
+          content: textPart.content,
+          createdAt: msg.timestamp || new Date().toISOString(),
+        })
+      }
+    }
+    // Skip retry-prompt, system-prompt, tool-call etc.
+  }
+
+  return result
 }
 
 /** Compute map center from a list of places */
