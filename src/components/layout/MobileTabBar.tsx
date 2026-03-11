@@ -1,51 +1,48 @@
-import { motion } from 'framer-motion'
-import { MessageSquare, Map } from 'lucide-react'
+import { MessageSquare, Map, Home } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
+import { cn } from '@/lib/utils'
 
-const tabs = [
-  { key: 'chat' as const, label: 'Чат', icon: MessageSquare },
-  { key: 'map' as const, label: 'Карта', icon: Map },
+type TabKey = 'chat' | 'map' | 'home'
+
+const tabs: { key: TabKey; label: string; icon: typeof MessageSquare }[] = [
+  { key: 'chat', label: 'Чат', icon: MessageSquare },
+  { key: 'home', label: 'Главная', icon: Home },
+  { key: 'map', label: 'Карта', icon: Map },
 ]
 
 export function MobileTabBar() {
-  const { mobileActiveTab, setMobileActiveTab } = useApp()
+  const { mobileActiveTab, setMobileActiveTab, goHome } = useApp()
+
+  const handleTab = (key: TabKey) => {
+    if (key === 'home') {
+      goHome()
+    } else {
+      setMobileActiveTab(key)
+    }
+  }
 
   return (
-    <motion.div
-      initial={{ y: 80, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 80, opacity: 0 }}
-      transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
-    >
-      <div className="flex items-center gap-1 px-1.5 py-1.5 rounded-full bg-surface/80 backdrop-blur-xl border border-white/10 shadow-2xl">
+    <div className="flex-shrink-0 border-t border-border bg-surface/95 backdrop-blur-sm">
+      <div className="flex items-center justify-around px-2 py-1.5 safe-area-pb">
         {tabs.map((tab) => {
-          const isActive = mobileActiveTab === tab.key
+          const isActive = tab.key !== 'home' && mobileActiveTab === tab.key
           return (
             <button
               key={tab.key}
-              onClick={() => setMobileActiveTab(tab.key)}
-              className="relative flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors"
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="mobile-tab-indicator"
-                  className="absolute inset-0 rounded-full bg-primary"
-                  transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                />
+              onClick={() => handleTab(tab.key)}
+              className={cn(
+                'flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-lg transition-colors min-w-[60px]',
+                isActive
+                  ? 'text-primary'
+                  : 'text-text-muted active:bg-surface-hover'
               )}
-              <tab.icon
-                className={`w-4 h-4 relative z-10 ${isActive ? 'text-white' : 'text-text-secondary'}`}
-              />
-              <span
-                className={`relative z-10 ${isActive ? 'text-white' : 'text-text-secondary'}`}
-              >
-                {tab.label}
-              </span>
+            >
+              <tab.icon className={cn('w-5 h-5', isActive && 'text-primary')} />
+              <span className="text-[10px] font-medium">{tab.label}</span>
             </button>
           )
         })}
       </div>
-    </motion.div>
+    </div>
   )
 }

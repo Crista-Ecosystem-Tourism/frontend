@@ -12,6 +12,7 @@ export interface Place {
   address?: string
   selected?: boolean
   userRating?: number
+  score?: number // 1-5 баллов для паутинки мест
   priceRange?: string
   duration?: string
 }

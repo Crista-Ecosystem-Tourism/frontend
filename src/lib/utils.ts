@@ -65,6 +65,23 @@ export function getInitials(name: string): string {
     .slice(0, 2)
 }
 
+// Format relative date (e.g., "2 часа назад", "Вчера")
+export function formatRelativeDate(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  const diffHrs = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMin < 1) return 'Только что'
+  if (diffMin < 60) return `${diffMin} мин. назад`
+  if (diffHrs < 24) return `${diffHrs} ч. назад`
+  if (diffDays === 1) return 'Вчера'
+  if (diffDays < 7) return `${diffDays} дн. назад`
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+}
+
 // Format time for display
 export function formatTime(time: string): string {
   const [hours, minutes] = time.split(':')

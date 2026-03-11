@@ -148,6 +148,7 @@ interface AppContextType {
   mapCenter: [number, number]
   mapZoom: number
   togglePlaceSelection: (placeId: string) => void
+  scorePlaceSelection: (placeId: string, score: number) => void
   ratePlace: (placeId: string, rating: number) => void
   graphGeoJSON: Record<string, unknown> | null
   buildingGraph: boolean
@@ -170,6 +171,8 @@ interface AppContextType {
 
   // Navigation
   goHome: () => void
+  mainView: 'home' | 'chatList' | 'inspiration'
+  setMainView: (view: 'home' | 'chatList' | 'inspiration') => void
   
   // Sidebar
   sidebarOpen: boolean
@@ -288,6 +291,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
+  // Main view (when no chat is open)
+  const [mainView, setMainView] = useState<'home' | 'chatList' | 'inspiration'>('home')
+
   // Auth
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
@@ -304,21 +310,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [buildingGraph, setBuildingGraph] = useState(false)
   const sessionRef = useRef<SessionState | null>(loadSession())
 
-  // Helper: restore chat history from a session
-  const restoreSessionHistory = useCallback(async (sessionId: string, sessionSecret: string) => {
+  // Helper: preload session history into chatHistory cache (does NOT open the chat)
+  const preloadSessionHistory = useCallback(async (sessionId: string, sessionSecret: string) => {
     try {
-      console.log('[restore] Loading history for session:', sessionId)
       const historyOut = await getHistory(sessionId, sessionSecret, 'full')
-      console.log('[restore] History response:', historyOut)
       const msgs = mapHistoryToMessages(historyOut.messages, sessionId)
-      console.log('[restore] Mapped messages:', msgs.length)
       if (msgs.length > 0) {
-        setMessages([welcomeMessage, ...msgs])
-        setCurrentChatId(sessionId)
+        // Cache messages in chatHistory so loadChat() can use them instantly
+        setChatHistory(prev => prev.map(c =>
+          c.id === sessionId ? { ...c, messages: [welcomeMessage, ...msgs] } : c
+        ))
         sessionRef.current = { sessionId, sessionSecret }
       }
-    } catch (err) {
-      console.error('[restore] Failed to load history:', err)
+    } catch {
+      // Session expired or invalid — ignore
     }
   }, [])
 
@@ -331,13 +336,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const init = async () => {
       const ok = await checkHealth()
-      console.log('[init] Health check:', ok)
       setBackendAvailable(ok)
       if (!ok) return
 
       const savedSession = sessionRef.current
-      console.log('[init] Saved session from sessionStorage:', savedSession)
-      console.log('[init] Auth token present:', !!getToken())
 
       // Restore user session from stored token
       if (getToken()) {
@@ -366,19 +368,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const lastSession = savedSession && sessions.some(s => s.id === savedSession.sessionId)
               ? savedSession
               : { sessionId: sessions[0].id, sessionSecret: '' }
-            await restoreSessionHistory(lastSession.sessionId, lastSession.sessionSecret)
+            await preloadSessionHistory(lastSession.sessionId, lastSession.sessionSecret)
           }
         } catch {
           // Token invalid/expired — stay as guest
         }
       } else if (savedSession) {
         // Anonymous user — restore session from sessionStorage
-        await restoreSessionHistory(savedSession.sessionId, savedSession.sessionSecret)
+        await preloadSessionHistory(savedSession.sessionId, savedSession.sessionSecret)
       }
     }
 
     init()
-  }, [restoreSessionHistory])
+  }, [preloadSessionHistory])
 
   // Apply theme
   useEffect(() => {
@@ -468,6 +470,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Navigation - go to home screen
   const goHome = useCallback(() => {
     setCurrentChatId(null)
+    setMainView('home')
   }, [])
 
   const subscribe = useCallback((plan: SubscriptionPlan) => {
@@ -792,6 +795,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ))
   }, [authState])
 
+  // Score place for паутинка (1-5 points); 0 = unpin
+  const scorePlaceSelection = useCallback((placeId: string, score: number) => {
+    if (authState !== 'subscribed') {
+      setActiveModal('subscription')
+      return
+    }
+
+    setPlaces(prev => prev.map(p =>
+      p.id === placeId
+        ? { ...p, selected: score > 0, score: score > 0 ? score : undefined }
+        : p
+    ))
+  }, [authState])
+
   // Rate a place (1-5 stars, 0 = clear)
   const ratePlace = useCallback((placeId: string, rating: number) => {
     setPlaces(prev => prev.map(p =>
@@ -881,6 +898,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     mapCenter,
     mapZoom,
     togglePlaceSelection,
+    scorePlaceSelection,
     ratePlace,
     graphGeoJSON,
     buildingGraph,
@@ -895,6 +913,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     mobileActiveTab,
     setMobileActiveTab,
     goHome,
+    mainView,
+    setMainView,
     sidebarOpen,
     setSidebarOpen,
     sidebarCollapsed,

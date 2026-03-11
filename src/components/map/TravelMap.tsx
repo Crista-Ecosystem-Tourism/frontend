@@ -135,7 +135,7 @@ export function TravelMap() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[1000] flex items-center justify-center bg-surface/90 backdrop-blur-sm"
+            className="absolute inset-0 z-[1000] flex items-center justify-center bg-background/95 backdrop-blur-md"
           >
             <div className="text-center p-6 max-w-md">
               <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">

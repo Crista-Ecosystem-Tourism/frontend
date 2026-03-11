@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion'
+import { Sparkles, Compass } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { MobileTabBar } from './MobileTabBar'
 import { ChatPanel } from '@/components/chat/ChatPanel'
+import { ChatListPanel } from '@/components/chat/ChatListPanel'
 import { TravelMap } from '@/components/map/TravelMap'
 import { PlaceDetailPanel } from '@/components/map/PlaceDetailPanel'
 import { InspirationBoard } from '@/components/home/InspirationBoard'
@@ -14,7 +16,7 @@ import { useMediaBreakpoint } from '@/hooks/useMediaBreakpoint'
 import { useResizableSplit } from '@/hooks/useResizableSplit'
 
 export function MainLayout() {
-  const { currentChatId, newChat, sendMessage, mobileActiveTab, selectedPlace, setSelectedPlace } = useApp()
+  const { currentChatId, newChat, sendMessage, mobileActiveTab, selectedPlace, setSelectedPlace, mainView, setMainView } = useApp()
   const breakpoint = useMediaBreakpoint()
   const { ratio, isDragging, handleMouseDown, handleDoubleClick, containerRef } = useResizableSplit({
     minLeftPx: 320,
@@ -38,14 +40,54 @@ export function MainLayout() {
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/20 via-background to-background opacity-60 pointer-events-none" />
       <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-accent/20 via-background to-background opacity-60 pointer-events-none" />
 
-      {/* Sidebar - hidden on mobile */}
+      {/* Sidebar */}
       <div className="flex h-full relative z-10">
-        {breakpoint !== 'mobile' && <Sidebar />}
+        <Sidebar />
 
         {/* Main Content Area */}
         <main className="flex-1 relative h-full min-w-0">
           <AnimatePresence mode="wait">
-            {isHome ? (
+            {isHome && mainView === 'chatList' ? (
+              <motion.div
+                key="chat-list"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full"
+              >
+                <ChatListPanel onBack={() => setMainView('home')} />
+              </motion.div>
+            ) : isHome && mainView === 'inspiration' ? (
+              <motion.div
+                key="inspiration"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full flex items-center justify-center"
+              >
+                <div className="text-center max-w-md px-6">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                    <Sparkles className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-text mb-3">Вдохновение</h2>
+                  <p className="text-text-secondary leading-relaxed mb-4">
+                    В следующей версии мы будем автоматически предлагать маршруты на основе ваших предпочтений и истории путешествий.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
+                    <Compass className="w-4 h-4" />
+                    <span>Скоро — персональные рекомендации</span>
+                  </div>
+                  <button
+                    onClick={() => setMainView('home')}
+                    className="mt-6 px-4 py-2 rounded-lg text-sm text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    Вернуться на главную
+                  </button>
+                </div>
+              </motion.div>
+            ) : isHome ? (
               <motion.div
                 key="home"
                 initial={{ opacity: 0 }}
@@ -68,45 +110,46 @@ export function MainLayout() {
               >
                 {/* Mobile layout */}
                 {breakpoint === 'mobile' && (
-                  <div className="relative w-full h-full">
-                    {/* Chat - always mounted, crossfade */}
-                    <motion.div
-                      animate={{
-                        opacity: mobileActiveTab === 'chat' ? 1 : 0,
-                        scale: mobileActiveTab === 'chat' ? 1 : 0.98,
-                      }}
-                      transition={{ duration: 0.25 }}
-                      className="absolute inset-0 pb-20"
-                      style={{ pointerEvents: mobileActiveTab === 'chat' ? 'auto' : 'none' }}
-                    >
-                      <ChatPanel />
-                    </motion.div>
+                  <div className="flex flex-col w-full h-full">
+                    {/* Content area */}
+                    <div className="relative flex-1 min-h-0">
+                      {/* Chat */}
+                      <motion.div
+                        animate={{
+                          opacity: mobileActiveTab === 'chat' ? 1 : 0,
+                        }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-0"
+                        style={{ pointerEvents: mobileActiveTab === 'chat' ? 'auto' : 'none' }}
+                      >
+                        <ChatPanel />
+                      </motion.div>
 
-                    {/* Map - always mounted, crossfade */}
-                    <motion.div
-                      animate={{
-                        opacity: mobileActiveTab === 'map' ? 1 : 0,
-                        scale: mobileActiveTab === 'map' ? 1 : 0.98,
-                      }}
-                      transition={{ duration: 0.25 }}
-                      className="absolute inset-0 pb-20 rounded-3xl overflow-hidden"
-                      style={{ pointerEvents: mobileActiveTab === 'map' ? 'auto' : 'none' }}
-                    >
-                      <TravelMap />
-                    </motion.div>
+                      {/* Map */}
+                      <motion.div
+                        animate={{
+                          opacity: mobileActiveTab === 'map' ? 1 : 0,
+                        }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-0"
+                        style={{ pointerEvents: mobileActiveTab === 'map' ? 'auto' : 'none' }}
+                      >
+                        <TravelMap />
+                      </motion.div>
 
-                    {/* Mobile PlaceDetailPanel — rendered outside map for visibility */}
-                    <AnimatePresence>
-                      {selectedPlace && (
-                        <PlaceDetailPanel
-                          place={selectedPlace}
-                          onClose={() => setSelectedPlace(null)}
-                          breakpoint="mobile"
-                        />
-                      )}
-                    </AnimatePresence>
+                      {/* Mobile PlaceDetailPanel */}
+                      <AnimatePresence>
+                        {selectedPlace && (
+                          <PlaceDetailPanel
+                            place={selectedPlace}
+                            onClose={() => setSelectedPlace(null)}
+                            breakpoint="mobile"
+                          />
+                        )}
+                      </AnimatePresence>
+                    </div>
 
-                    {/* Tab bar */}
+                    {/* Tab bar — part of flex flow, not floating */}
                     <MobileTabBar />
                   </div>
                 )}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Bookmark, Map, Bell, Sparkles, PenSquare, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut } from 'lucide-react'
+import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Bookmark, Map, Sparkles, PenSquare, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -11,11 +11,10 @@ import { cn, getInitials } from '@/lib/utils'
 import { Logo } from '@/components/icons/Logo'
 
 const menuItems = [
-  { icon: Search, label: 'Поиск', id: 'explore', path: '/' },
+  { icon: Search, label: 'Главная', id: 'explore', path: '/' },
   { icon: MessageSquare, label: 'Чаты', id: 'chats' },
   { icon: Bookmark, label: 'Сохранённое', id: 'saved' },
   { icon: Map, label: 'Маршруты', id: 'trips' },
-  { icon: Bell, label: 'Обновления', id: 'updates' },
   { icon: Sparkles, label: 'Вдохновение', id: 'inspiration' },
   { icon: PenSquare, label: 'Создать', id: 'create' },
 ]
@@ -31,9 +30,7 @@ export function Sidebar() {
     newChat,
     logout,
     goHome,
-    chatHistory,
-    currentChatId,
-    loadChat,
+    setMainView,
   } = useApp()
 
   const [activeMenu, setActiveMenu] = useState('explore')
@@ -87,7 +84,11 @@ export function Sidebar() {
                 goHome()
                 navigate('/')
               } else if (item.id === 'chats') {
-                // Scroll to chat history or show it — handled by activeMenu state below
+                goHome()
+                setMainView('chatList')
+              } else if (item.id === 'inspiration') {
+                goHome()
+                setMainView('inspiration')
               } else if ('path' in item && item.path) {
                 navigate(item.path)
               }
@@ -129,52 +130,8 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Chat History — always visible when "Чаты" selected or has chats */}
-      {!collapsed && (activeMenu === 'chats' || chatHistory.length > 0) && (
-        <div className="mt-3 px-3 flex-1 min-h-0 overflow-y-auto">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted mb-2 px-1">
-            История чатов
-          </p>
-          {chatHistory.length > 0 ? (
-            <div className="space-y-0.5">
-              {chatHistory.map((chat) => (
-                <button
-                  key={chat.id}
-                  onClick={() => {
-                    loadChat(chat.id)
-                    setSidebarOpen(false)
-                  }}
-                  title={chat.title}
-                  className={cn(
-                    'w-full text-left px-2.5 py-2 rounded-lg text-sm truncate transition-colors',
-                    currentChatId === chat.id
-                      ? 'bg-surface-light text-text font-medium'
-                      : 'text-text-secondary hover:bg-surface-hover hover:text-text'
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
-                    <span className="truncate">{chat.title}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="px-1 py-4 text-center">
-              <p className="text-xs text-text-muted">Чатов пока нет</p>
-              <button
-                onClick={() => { newChat(); setSidebarOpen(false) }}
-                className="mt-2 text-xs text-primary hover:underline"
-              >
-                Начать новый чат
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Spacer (when sidebar collapsed or no chats section shown) */}
-      {(collapsed || (activeMenu !== 'chats' && chatHistory.length === 0)) && <div className="flex-1" />}
+      {/* Spacer */}
+      <div className="flex-1" />
 
       {/* Footer */}
       <div className="mt-auto border-t border-border">
@@ -390,7 +347,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden fixed top-4 left-4 z-50 shadow-md border border-border rounded-full bg-surface hover:bg-surface-hover"
+        className="lg:hidden fixed top-4 right-4 z-50 shadow-md border border-border rounded-full bg-surface hover:bg-surface-hover"
         onClick={() => setSidebarOpen(true)}
       >
         <Menu className="w-5 h-5 text-text-secondary" />
