@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils'
 interface ChatInputProps {
   onSend: (message: string) => void
   disabled?: boolean
+  hasChipSelections?: boolean
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, hasChipSelections }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -24,13 +25,14 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     }
   }, [disabled]);
 
+  const canSend = (message.trim() || hasChipSelections) && !disabled
+
   const handleSend = () => {
-    if (message.trim() && !disabled) {
-      onSend(message.trim())
-      setMessage('')
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto'
-      }
+    if (!canSend) return
+    onSend(message.trim())
+    setMessage('')
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
     }
   }
 
@@ -49,8 +51,10 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     }
   }
 
+  const showSendButton = message.trim() || hasChipSelections
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative"
@@ -81,7 +85,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           onInput={handleInput}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="Сообщение..."
+          placeholder={hasChipSelections ? "Добавьте комментарий или нажмите отправить..." : "Сообщение..."}
           disabled={disabled}
           rows={1}
           className={cn(
@@ -92,7 +96,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         />
 
         <div className="flex items-center gap-1 pb-0.5 pr-0.5">
-          {!message.trim() && (
+          {!showSendButton && (
             <Button
               variant="ghost"
               size="icon-sm"
@@ -101,15 +105,15 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
               <Mic className="w-4 h-4" />
             </Button>
           )}
-          
+
           <Button
             onClick={handleSend}
-            disabled={!message.trim() || disabled}
+            disabled={!canSend}
             size="icon-sm"
             className={cn(
               "rounded-full h-9 w-9 transition-all duration-300 shadow-lg",
-              message.trim() 
-                ? "bg-primary text-white hover:bg-primary-hover scale-100" 
+              showSendButton
+                ? "bg-primary text-white hover:bg-primary-hover scale-100"
                 : "bg-white/5 text-text-muted scale-90 opacity-0 w-0 p-0 overflow-hidden"
             )}
           >

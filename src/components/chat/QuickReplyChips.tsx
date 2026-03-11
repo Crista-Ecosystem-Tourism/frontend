@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Wallet, Users, Compass, Clock, Send, Map, Pencil, X } from 'lucide-react'
+import { Wallet, Users, Compass, Clock, Map, Pencil, X } from 'lucide-react'
 import type { SuggestedReplyGroup } from '@/types'
 
 interface QuickReplyChipsProps {
   groups: SuggestedReplyGroup[]
-  onSend: (message: string) => void
+  selections: Record<string, string>
+  onSelectionsChange: (selections: Record<string, string>) => void
+  onBuildItinerary: () => void
   allPreferencesFilled: boolean
 }
 
@@ -16,26 +18,32 @@ const iconMap: Record<string, React.ReactNode> = {
   clock: <Clock className="w-3.5 h-3.5" />,
 }
 
-export function QuickReplyChips({ groups, onSend, allPreferencesFilled }: QuickReplyChipsProps) {
-  const [selections, setSelections] = useState<Record<string, string>>({})
+export function QuickReplyChips({ groups, selections, onSelectionsChange, onBuildItinerary, allPreferencesFilled }: QuickReplyChipsProps) {
   const [customInputs, setCustomInputs] = useState<Record<string, string>>({})
   const [showCustom, setShowCustom] = useState<Record<string, boolean>>({})
 
+  // Reset local UI state when selections are cleared from outside (after send)
+  useEffect(() => {
+    if (Object.keys(selections).length === 0) {
+      setCustomInputs({})
+      setShowCustom({})
+    }
+  }, [selections])
+
   const handleSelect = (category: string, value: string) => {
-    setSelections(prev => {
-      if (prev[category] === value) {
-        const next = { ...prev }
-        delete next[category]
-        return next
-      }
-      return { ...prev, [category]: value }
-    })
+    const next = { ...selections }
+    if (next[category] === value) {
+      delete next[category]
+    } else {
+      next[category] = value
+    }
+    onSelectionsChange(next)
     // Clear custom input when selecting a chip
     setShowCustom(prev => ({ ...prev, [category]: false }))
     setCustomInputs(prev => {
-      const next = { ...prev }
-      delete next[category]
-      return next
+      const updated = { ...prev }
+      delete updated[category]
+      return updated
     })
   }
 
@@ -43,51 +51,22 @@ export function QuickReplyChips({ groups, onSend, allPreferencesFilled }: QuickR
     setShowCustom(prev => ({ ...prev, [category]: !prev[category] }))
     if (!showCustom[category]) {
       // Clear chip selection when opening custom input
-      setSelections(prev => {
-        const next = { ...prev }
-        delete next[category]
-        return next
-      })
+      const next = { ...selections }
+      delete next[category]
+      onSelectionsChange(next)
     }
   }
 
   const handleCustomChange = (category: string, value: string) => {
     setCustomInputs(prev => ({ ...prev, [category]: value }))
+    const next = { ...selections }
     if (value.trim()) {
-      setSelections(prev => ({ ...prev, [category]: value.trim() }))
+      next[category] = value.trim()
     } else {
-      setSelections(prev => {
-        const next = { ...prev }
-        delete next[category]
-        return next
-      })
+      delete next[category]
     }
+    onSelectionsChange(next)
   }
-
-  const handleSend = () => {
-    const parts: string[] = []
-    for (const group of groups) {
-      const val = selections[group.category]
-      if (val) {
-        parts.push(`${group.label}: ${val}`)
-      }
-    }
-    if (parts.length > 0) {
-      onSend(parts.join(', '))
-      setSelections({})
-      setCustomInputs({})
-      setShowCustom({})
-    }
-  }
-
-  const handleBuildItinerary = () => {
-    onSend('Составь маршрут по дням')
-    setSelections({})
-    setCustomInputs({})
-    setShowCustom({})
-  }
-
-  const hasSelections = Object.keys(selections).length > 0
 
   return (
     <motion.div
@@ -179,32 +158,20 @@ export function QuickReplyChips({ groups, onSend, allPreferencesFilled }: QuickR
         ))}
       </AnimatePresence>
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-2 pt-1">
-        {hasSelections && (
+      {/* Build itinerary button */}
+      {allPreferencesFilled && (
+        <div className="flex items-center gap-2 pt-1">
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            onClick={handleSend}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Send className="w-3 h-3" />
-            Отправить выбранное
-          </motion.button>
-        )}
-
-        {allPreferencesFilled && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            onClick={handleBuildItinerary}
+            onClick={onBuildItinerary}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70 transition-all shadow-sm"
           >
             <Map className="w-3 h-3" />
             Составить маршрут
           </motion.button>
-        )}
-      </div>
+        </div>
+      )}
     </motion.div>
   )
 }
