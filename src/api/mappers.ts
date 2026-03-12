@@ -124,6 +124,10 @@ export function mapMessageOutToChatMessage(
 
   const suggestedReplies = response.suggested_replies ?? null
 
+  const followUpQuestions = response.follow_up_questions?.length
+    ? response.follow_up_questions
+    : undefined
+
   const chatMessage: ChatMessage = {
     id: `ai-${Date.now()}-${generateId()}`,
     role: 'assistant',
@@ -132,6 +136,7 @@ export function mapMessageOutToChatMessage(
     places: places.length > 0 ? places : undefined,
     itinerary,
     suggestedReplies: suggestedReplies ?? undefined,
+    followUpQuestions,
   }
 
   return { chatMessage, places, preferences: response.preferences ?? null, suggestedReplies }

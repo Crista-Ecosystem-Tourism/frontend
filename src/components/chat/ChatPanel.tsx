@@ -16,6 +16,7 @@ export function ChatPanel() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [chipSelections, setChipSelections] = useState<Record<string, string>>({})
   const [ticketWidgetOpen, setTicketWidgetOpen] = useState(false)
+  const [prefillText, setPrefillText] = useState<string | null>(null)
 
   // Compute IATA codes from preferences
   const originIATA = preferences?.origin_city ? getIATACode(preferences.origin_city) : null
@@ -45,6 +46,10 @@ export function ChatPanel() {
       setChipSelections({})
     }
   }, [chipSelections, suggestedReplies, sendMessage])
+
+  const handleFollowUpClick = useCallback((question: string) => {
+    setPrefillText(question)
+  }, [])
 
   const handleBuildItinerary = useCallback(() => {
     sendMessage('Составь маршрут по дням')
@@ -80,7 +85,7 @@ export function ChatPanel() {
       >
         <AnimatePresence mode="popLayout">
           {messages.map((message, index) => (
-            <ChatMessage key={message.id} message={message} index={index} />
+            <ChatMessage key={message.id} message={message} index={index} onFollowUpClick={handleFollowUpClick} />
           ))}
           {isTyping && <TypingIndicator />}
         </AnimatePresence>
@@ -147,6 +152,8 @@ export function ChatPanel() {
           onSend={handleCombinedSend}
           disabled={isTyping}
           hasChipSelections={hasChipSelections}
+          prefillText={prefillText}
+          onPrefillConsumed={() => setPrefillText(null)}
         />
       </div>
 

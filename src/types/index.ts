@@ -29,6 +29,7 @@ export interface ChatMessage {
   cityName?: string
   itinerary?: ItineraryDay[]
   suggestedReplies?: SuggestedReplyGroup[]
+  followUpQuestions?: string[]
 }
 
 // Itinerary types
@@ -157,6 +158,7 @@ export interface BackendMessageOut {
   route_metadata?: BackendRouteMetadata | null
   itinerary?: BackendItinerary | null
   suggested_replies?: SuggestedReplyGroup[] | null
+  follow_up_questions?: string[] | null
 }
 
 export interface BackendSessionOutAnon {

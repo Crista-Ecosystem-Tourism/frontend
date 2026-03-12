@@ -4,13 +4,15 @@ import { Bot, User } from 'lucide-react'
 import { ChatMessage as ChatMessageType } from '@/types'
 import { PlacesGrid } from './PlacesGrid'
 import { ItineraryView } from './ItineraryView'
+import { FollowUpQuestions } from './FollowUpQuestions'
 
 interface ChatMessageProps {
   message: ChatMessageType
   index: number
+  onFollowUpClick?: (question: string) => void
 }
 
-export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(function ChatMessage({ message, index }, ref) {
+export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(function ChatMessage({ message, index, onFollowUpClick }, ref) {
   const isUser = message.role === 'user'
 
   const formatContent = (content: string) => {
@@ -63,6 +65,11 @@ export const ChatMessage = forwardRef<HTMLDivElement, ChatMessageProps>(function
         <div className="mt-3 pl-9">
           <PlacesGrid places={message.places} cityName={message.cityName} />
         </div>
+      )}
+
+      {/* Follow-up questions */}
+      {!isUser && message.followUpQuestions && message.followUpQuestions.length > 0 && onFollowUpClick && (
+        <FollowUpQuestions questions={message.followUpQuestions} onQuestionClick={onFollowUpClick} />
       )}
 
       {/* Time */}

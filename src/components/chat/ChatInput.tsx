@@ -8,9 +8,11 @@ interface ChatInputProps {
   onSend: (message: string) => void
   disabled?: boolean
   hasChipSelections?: boolean
+  prefillText?: string | null
+  onPrefillConsumed?: () => void
 }
 
-export function ChatInput({ onSend, disabled, hasChipSelections }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, hasChipSelections, prefillText, onPrefillConsumed }: ChatInputProps) {
   const [message, setMessage] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -24,6 +26,24 @@ export function ChatInput({ onSend, disabled, hasChipSelections }: ChatInputProp
       }
     }
   }, [disabled]);
+
+  // Prefill text from follow-up question click
+  useEffect(() => {
+    if (prefillText) {
+      setMessage(prefillText)
+      onPrefillConsumed?.()
+      // Focus and resize textarea
+      if (textareaRef.current) {
+        textareaRef.current.focus()
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`
+          }
+        }, 0)
+      }
+    }
+  }, [prefillText, onPrefillConsumed])
 
   const canSend = (message.trim() || hasChipSelections) && !disabled
 
