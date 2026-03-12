@@ -1,4 +1,4 @@
-// Core domain types for AI Travel Planner v2
+// Core domain types for Crista Online v2
 
 // Map place with coordinates
 export interface Place {

@@ -192,7 +192,7 @@ export function SupportPage() {
                 <motion.a
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  href="mailto:support@crista.travel"
+                  href="mailto:support@crista.online"
                   className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl backdrop-blur-sm transition-colors"
                 >
                   <Mail className="w-4 h-4" />
@@ -411,7 +411,7 @@ export function SupportPage() {
             <motion.a
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              href="mailto:support@crista.travel"
+              href="mailto:support@crista.online"
               className="flex items-center gap-3 p-4 bg-surface rounded-2xl border border-border hover:border-primary/30 hover:shadow-lg transition-all"
             >
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -419,7 +419,7 @@ export function SupportPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-text">Email</p>
-                <p className="text-xs text-text-muted">support@crista.travel</p>
+                <p className="text-xs text-text-muted">support@crista.online</p>
               </div>
             </motion.a>
             <motion.a

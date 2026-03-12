@@ -54,7 +54,7 @@ const fragmentShader = `
     // Mix noise
     float fluid = n1 * 0.5 + n2 * 0.5;
 
-    // Colors: Crista Travel brand palette (teal/cyan gradient)
+    // Colors: Crista Online brand palette (teal/cyan gradient)
     // Light background base
     vec3 col = vec3(0.94, 0.97, 0.98);
 

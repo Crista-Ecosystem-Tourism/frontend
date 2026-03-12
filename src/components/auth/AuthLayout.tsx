@@ -50,7 +50,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
                             <Logo size={36} />
                             <div className="flex flex-col text-left">
                                 <span className="text-lg font-bold leading-tight text-text">Crista</span>
-                                <span className="text-[10px] font-medium uppercase tracking-wider text-text-muted">Travel</span>
+                                <span className="text-[10px] font-medium uppercase tracking-wider text-text-muted">Online</span>
                             </div>
                         </div>
 

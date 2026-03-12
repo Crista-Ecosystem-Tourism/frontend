@@ -417,7 +417,7 @@ export function SettingsPage() {
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[0.7rem] font-bold text-[#aaaaaa] uppercase tracking-[0.2em]">Система работает в штатном режиме</span>
               </div>
-              <p className="mt-6 text-[0.75rem] font-bold text-[#dddddd] uppercase tracking-[0.2em]">Crista Travel Ecosystem v1.4.0</p>
+              <p className="mt-6 text-[0.75rem] font-bold text-[#dddddd] uppercase tracking-[0.2em]">Crista Online v1.4.0</p>
               <p className="mt-2 text-[0.65rem] font-medium text-[#dddddd]">© 2025 All Rights Reserved</p>
             </motion.div>
           </div>

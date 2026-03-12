@@ -55,7 +55,7 @@ export function ProfilePage() {
     try {
       await navigator.share({
         title: `Профиль ${user.name}`,
-        text: `Посмотрите профиль ${user.name} в Crista Travel`,
+        text: `Посмотрите профиль ${user.name} в Crista Online`,
         url: window.location.href,
       })
     } catch {

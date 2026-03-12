@@ -48,7 +48,7 @@ export function Sidebar() {
             {!collapsed && (
               <div className="flex flex-col text-left">
                 <span className="text-lg font-bold leading-tight text-text">Crista</span>
-                <span className="text-[10px] font-medium uppercase tracking-wider text-text-muted">Travel</span>
+                <span className="text-[10px] font-medium uppercase tracking-wider text-text-muted">Online</span>
               </div>
             )}
           </button>
@@ -146,7 +146,7 @@ export function Sidebar() {
             <Logo size={32} />
             <div className="flex flex-col items-center" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
               <span className="text-[10px] font-bold text-text">Crista</span>
-              <span className="text-[8px] font-medium uppercase text-text-muted">Travel</span>
+              <span className="text-[8px] font-medium uppercase text-text-muted">Online</span>
             </div>
           </button>
         )}
@@ -299,8 +299,8 @@ export function Sidebar() {
                     <Logo size={24} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-text">Crista Travel</p>
-                    <p className="text-[11px] text-text-muted mt-0.5">AI-помощник для путешествий</p>
+                    <p className="text-sm font-semibold text-text">Crista Online</p>
+                    <p className="text-[11px] text-text-muted mt-0.5">Умный помощник для путешествий</p>
                   </div>
                 </div>
               </div>
@@ -319,7 +319,7 @@ export function Sidebar() {
                   </div>
                   <span>Помощь</span>
                 </a>
-                <a href="mailto:hello@crista.travel" className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover hover:text-text transition-colors group">
+                <a href="mailto:hello@crista.online" className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-text-secondary hover:bg-surface-hover hover:text-text transition-colors group">
                   <div className="w-7 h-7 rounded-lg bg-surface-light flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                     <MessageSquare className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />
                   </div>
@@ -334,7 +334,7 @@ export function Sidebar() {
                   <span>·</span>
                   <a href="#" className="hover:text-text transition-colors">Конфиденциальность</a>
                 </div>
-                <p className="text-[10px] text-text-muted/70 text-center">© 2025 Crista Travel</p>
+                <p className="text-[10px] text-text-muted/70 text-center">© 2025 Crista Online</p>
               </div>
             </PopoverContent>
           </Popover>
