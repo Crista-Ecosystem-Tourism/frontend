@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Map, Sparkles, PenSquare, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut } from 'lucide-react'
+import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Map, Sparkles, Database, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -15,7 +15,7 @@ const menuItems = [
   { icon: MessageSquare, label: 'Чаты', id: 'chats' },
   { icon: Map, label: 'Мои маршруты', id: 'saved' },
   { icon: Sparkles, label: 'Вдохновение', id: 'inspiration' },
-  { icon: PenSquare, label: 'Создать', id: 'create' },
+  { icon: Database, label: 'Данные', id: 'data' },
 ]
 
 export function Sidebar() {
@@ -91,6 +91,9 @@ export function Sidebar() {
               } else if (item.id === 'saved') {
                 goHome()
                 setMainView('saved')
+              } else if (item.id === 'data') {
+                goHome()
+                setMainView('data')
               } else if ('path' in item && item.path) {
                 navigate(item.path)
               }

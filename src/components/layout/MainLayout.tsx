@@ -8,6 +8,7 @@ import { TravelMap } from '@/components/map/TravelMap'
 import { PlaceDetailPanel } from '@/components/map/PlaceDetailPanel'
 import { InspirationBoard } from '@/components/home/InspirationBoard'
 import { SavedRoutesPanel } from '@/components/routes/SavedRoutesPanel'
+import { DataPanel } from '@/components/data/DataPanel'
 import { HomeInput } from '@/components/home/HomeInput'
 import { AuthModal } from '@/components/modals/AuthModal'
 import { SubscriptionModal } from '@/components/modals/SubscriptionModal'
@@ -88,6 +89,17 @@ export function MainLayout() {
                     Вернуться на главную
                   </button>
                 </div>
+              </motion.div>
+            ) : isHome && mainView === 'data' ? (
+              <motion.div
+                key="data"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full"
+              >
+                <DataPanel onBack={() => setMainView('home')} />
               </motion.div>
             ) : isHome && mainView === 'saved' ? (
               <motion.div
