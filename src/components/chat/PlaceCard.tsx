@@ -34,18 +34,21 @@ export function PlaceCard({ place, dragRef }: PlaceCardProps) {
   }
 
   return (
-    <div className="relative flex-shrink-0 w-[160px]">
+    <div className="relative flex-shrink-0 w-[180px]">
       <div
         onClick={handleCardClick}
         className={`
-          rounded-xl overflow-hidden cursor-pointer
-          bg-surface border border-border/50 hover:border-primary/30
-          shadow-sm hover:shadow-md transition-all duration-200
-          ${place.selected ? 'ring-2 ring-primary' : ''}
+          rounded-2xl overflow-hidden cursor-pointer
+          bg-surface
+          shadow-md shadow-black/[0.08] dark:shadow-black/30
+          hover:shadow-lg hover:shadow-black/[0.12] dark:hover:shadow-black/40
+          hover:-translate-y-0.5
+          transition-all duration-200
+          ${place.selected ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
         `}
       >
         {/* Image */}
-        <div className="relative h-[100px]">
+        <div className="relative h-[110px]">
           {place.imageUrl ? (
             <img
               src={place.imageUrl}
@@ -53,40 +56,40 @@ export function PlaceCard({ place, dragRef }: PlaceCardProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <span className="text-3xl">{emoji}</span>
+            <div className="w-full h-full bg-gradient-to-br from-primary/15 via-accent/10 to-primary/5 flex items-center justify-center">
+              <span className="text-4xl drop-shadow-sm">{emoji}</span>
             </div>
           )}
 
           {/* Rating badge */}
           {place.rating && (
-            <div className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/50 text-white text-[10px]">
+            <div className="absolute bottom-2 left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/50 backdrop-blur-sm text-white text-[10px] font-medium">
               <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
               {place.rating}
             </div>
           )}
 
-          {/* Heart button — toggle add to route */}
+          {/* Heart button */}
           <button
             onClick={handleHeartClick}
             className={`
-              absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center
+              absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center
               transition-all duration-200 backdrop-blur-sm
               ${place.selected
-                ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                : 'bg-black/40 text-white/90 hover:bg-black/60 hover:scale-110'
+                ? 'bg-primary text-white shadow-lg shadow-primary/30 scale-110'
+                : 'bg-black/30 text-white/90 hover:bg-black/50 hover:scale-110'
               }
             `}
           >
-            <Heart className={`w-3.5 h-3.5 ${place.selected ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${place.selected ? 'fill-current' : ''}`} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-2">
-          <h4 className="font-medium text-xs text-text line-clamp-1">{place.name}</h4>
-          <p className="text-[10px] text-text-secondary line-clamp-2 mt-0.5">{place.description}</p>
-          <div className="mt-1 flex items-center justify-between">
+        <div className="p-2.5">
+          <h4 className="font-semibold text-xs text-text line-clamp-1 mb-0.5">{place.name}</h4>
+          <p className="text-[10px] text-text-secondary line-clamp-2 leading-relaxed">{place.description}</p>
+          <div className="mt-1.5 flex items-center justify-between">
             <StarRating
               value={place.userRating || 0}
               onChange={(r) => ratePlace(place.id, r)}
