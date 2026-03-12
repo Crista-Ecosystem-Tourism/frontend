@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, useMotionValue, useTransform, useAnimationControls, PanInfo } from 'framer-motion'
-import { X, Star, Clock, Wallet, MapPin, Navigation, Check, Plus, Heart } from 'lucide-react'
+import { X, Star, Clock, Wallet, MapPin, Navigation, Check, Plus } from 'lucide-react'
 import { Place } from '@/types'
 import { Button } from '@/components/ui/button'
 import { StarRating } from '@/components/ui/StarRating'
@@ -165,16 +165,10 @@ function PlaceContent({ place, onClose, handleAddToRoute, handleOpenMaps }: {
           )}
         </Button>
 
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1 gap-2" onClick={handleOpenMaps}>
-            <Navigation className="w-4 h-4" />
-            Маршрут
-          </Button>
-          <Button variant="outline" className="flex-1 gap-2">
-            <Heart className="w-4 h-4" />
-            В избранное
-          </Button>
-        </div>
+        <Button variant="outline" className="w-full gap-2" onClick={handleOpenMaps}>
+          <Navigation className="w-4 h-4" />
+          Открыть в Яндекс Картах
+        </Button>
       </div>
     </>
   )
@@ -307,6 +301,7 @@ function TabletOverlay({ place, onClose, handleAddToRoute, handleOpenMaps }: {
           onClose={onClose}
           handleAddToRoute={handleAddToRoute}
           handleOpenMaps={handleOpenMaps}
+
         />
       </motion.div>
     </>
@@ -314,13 +309,9 @@ function TabletOverlay({ place, onClose, handleAddToRoute, handleOpenMaps }: {
 }
 
 export function PlaceDetailPanel({ place, onClose, breakpoint = 'desktop' }: PlaceDetailPanelProps) {
-  const { togglePlaceSelection, authState, openModal } = useApp()
+  const { togglePlaceSelection } = useApp()
 
   const handleAddToRoute = () => {
-    if (authState !== 'subscribed') {
-      openModal('subscription')
-      return
-    }
     togglePlaceSelection(place.id)
   }
 

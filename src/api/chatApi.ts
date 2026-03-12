@@ -142,6 +142,19 @@ export async function sendMessage(
   return handleResponse<BackendMessageOut>(response)
 }
 
+/** Update session title */
+export async function updateSessionTitle(
+  sessionId: string,
+  title: string,
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ title }),
+  })
+  await handleResponse(response)
+}
+
 /** Get chat history */
 export async function getHistory(
   sessionId: string,

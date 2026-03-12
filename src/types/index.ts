@@ -104,6 +104,22 @@ export interface SuggestedReplyGroup {
   allow_custom: boolean
 }
 
+// Place rating entry (for persistence)
+export interface PlaceRatingEntry {
+  rating?: number | null
+  score?: number | null
+  selected: boolean
+}
+
+// Saved route list item from API
+export interface SavedRouteListItem {
+  id: string
+  name: string
+  destination: string
+  created_at?: string | null
+  updated_at?: string | null
+}
+
 // === Backend API types ===
 
 export interface BackendPlace {

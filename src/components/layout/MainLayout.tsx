@@ -7,10 +7,12 @@ import { ChatListPanel } from '@/components/chat/ChatListPanel'
 import { TravelMap } from '@/components/map/TravelMap'
 import { PlaceDetailPanel } from '@/components/map/PlaceDetailPanel'
 import { InspirationBoard } from '@/components/home/InspirationBoard'
+import { SavedRoutesPanel } from '@/components/routes/SavedRoutesPanel'
 import { HomeInput } from '@/components/home/HomeInput'
 import { AuthModal } from '@/components/modals/AuthModal'
 import { SubscriptionModal } from '@/components/modals/SubscriptionModal'
 import { PaymentModal } from '@/components/modals/PaymentModal'
+import { SaveRouteModal } from '@/components/modals/SaveRouteModal'
 import { useApp } from '@/context/AppContext'
 import { useMediaBreakpoint } from '@/hooks/useMediaBreakpoint'
 import { useResizableSplit } from '@/hooks/useResizableSplit'
@@ -86,6 +88,17 @@ export function MainLayout() {
                     Вернуться на главную
                   </button>
                 </div>
+              </motion.div>
+            ) : isHome && mainView === 'saved' ? (
+              <motion.div
+                key="saved-routes"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full"
+              >
+                <SavedRoutesPanel onBack={() => setMainView('home')} />
               </motion.div>
             ) : isHome ? (
               <motion.div
@@ -214,6 +227,7 @@ export function MainLayout() {
       <AuthModal />
       <SubscriptionModal />
       <PaymentModal />
+      <SaveRouteModal />
     </div>
   )
 }

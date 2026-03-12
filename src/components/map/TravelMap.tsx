@@ -121,6 +121,7 @@ export function TravelMap() {
   const {
     places, mapCenter, mapZoom, selectedPlace, setSelectedPlace,
     routeGeoJSON, graphGeoJSON, buildingGraph, buildPlaceGraph,
+    openModal,
   } = useApp()
   const breakpoint = useMediaBreakpoint()
   const selectedCount = places.filter(p => p.selected).length
@@ -259,7 +260,7 @@ export function TravelMap() {
               <span className="text-sm font-medium">
                 Выбрано мест: {selectedCount}
               </span>
-              <Button size="sm" variant="secondary">
+              <Button size="sm" variant="secondary" onClick={() => openModal('save-route')}>
                 Сохранить маршрут
               </Button>
             </div>

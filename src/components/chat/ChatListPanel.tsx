@@ -20,9 +20,12 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
     : chatHistory
 
   const getLastMessage = (chat: typeof chatHistory[0]): string => {
-    if (!chat.messages || chat.messages.length === 0) return 'Нет сообщений'
+    if (!chat.messages || chat.messages.length === 0) {
+      // Show destination or title as fallback when messages not loaded yet
+      return chat.destination || chat.title || 'Нажмите, чтобы загрузить'
+    }
     const last = chat.messages[chat.messages.length - 1]
-    if (!last.content) return 'Нет сообщений'
+    if (!last.content) return chat.title || 'Нет сообщений'
     return last.content.length > 80
       ? last.content.slice(0, 80) + '...'
       : last.content

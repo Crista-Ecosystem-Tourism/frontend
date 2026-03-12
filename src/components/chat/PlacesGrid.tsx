@@ -1,14 +1,23 @@
-import { useRef, useCallback, useEffect } from 'react'
+import { useRef, useCallback, useEffect, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Place } from '@/types'
 import { PlaceCard } from './PlaceCard'
+import { useApp } from '@/context/AppContext'
 
 interface PlacesGridProps {
   places: Place[]
   cityName?: string
 }
 
-export function PlacesGrid({ places, cityName }: PlacesGridProps) {
+export function PlacesGrid({ places: messagePlaces, cityName }: PlacesGridProps) {
+  const { places: globalPlaces } = useApp()
+
+  // Merge: use global places (which have latest ratings/scores) but keep message places order
+  const places = useMemo(() => {
+    if (globalPlaces.length === 0) return messagePlaces
+    const globalMap = new Map(globalPlaces.map(p => [p.id, p]))
+    return messagePlaces.map(mp => globalMap.get(mp.id) || mp)
+  }, [messagePlaces, globalPlaces])
   const scrollRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0, moved: false })
 

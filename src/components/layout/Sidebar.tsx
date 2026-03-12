@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Bookmark, Map, Sparkles, PenSquare, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut } from 'lucide-react'
+import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Map, Sparkles, PenSquare, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -13,8 +13,7 @@ import { Logo } from '@/components/icons/Logo'
 const menuItems = [
   { icon: Search, label: 'Главная', id: 'explore', path: '/' },
   { icon: MessageSquare, label: 'Чаты', id: 'chats' },
-  { icon: Bookmark, label: 'Сохранённое', id: 'saved' },
-  { icon: Map, label: 'Маршруты', id: 'trips' },
+  { icon: Map, label: 'Мои маршруты', id: 'saved' },
   { icon: Sparkles, label: 'Вдохновение', id: 'inspiration' },
   { icon: PenSquare, label: 'Создать', id: 'create' },
 ]
@@ -89,6 +88,9 @@ export function Sidebar() {
               } else if (item.id === 'inspiration') {
                 goHome()
                 setMainView('inspiration')
+              } else if (item.id === 'saved') {
+                goHome()
+                setMainView('saved')
               } else if ('path' in item && item.path) {
                 navigate(item.path)
               }

@@ -3,11 +3,23 @@ import { ChatMessage, Place, User, AuthState, SubscriptionPlan, ModalType, Saved
 import { welcomeMessage, generateAIResponse, createUserMessage } from '@/mocks/chat'
 import { getPlacesByCity, getCityCenter, getCityName, parisPlaces, georgiaPlaces, baliPlaces, altaiPlaces, kyotoPlaces, spbPlaces, kenyaPlaces } from '@/mocks/places'
 import { delay, generateId } from '@/lib/utils'
-import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession, listSessions, getHistory } from '@/api/chatApi'
+import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession, listSessions, getHistory, updateSessionTitle } from '@/api/chatApi'
 import { mapMessageOutToChatMessage, mapHistoryToMessages, computeMapCenter, computeMapZoom } from '@/api/mappers'
 import { ApiError } from '@/api/chatApi'
 import { login as apiLogin, register as apiRegister, getMe, logout as apiLogout, getToken } from '@/api/authApi'
 import { buildGraph } from '@/api/graphApi'
+import {
+  savePlaceRatings as apiSavePlaceRatings,
+  loadPlaceRatings as apiLoadPlaceRatings,
+  savePlacesSnapshot as apiSavePlacesSnapshot,
+  loadPlacesSnapshot as apiLoadPlacesSnapshot,
+  saveGraphGeoJSON as apiSaveGraphGeoJSON,
+  loadGraphGeoJSON as apiLoadGraphGeoJSON,
+  createSavedRoute as apiCreateSavedRoute,
+  listSavedRoutes as apiListSavedRoutes,
+  getSavedRoute as apiGetSavedRoute,
+} from '@/api/travelDataApi'
+import type { PlaceRatingEntry } from '@/types'
 
 type Theme = 'light' | 'dark'
 
@@ -157,6 +169,7 @@ interface AppContextType {
   // Routes
   savedRoutes: SavedRoute[]
   saveCurrentRoute: (name: string) => void
+  loadSavedRoute: (routeId: string) => Promise<void>
   
   // Modals
   activeModal: ModalType
@@ -171,8 +184,8 @@ interface AppContextType {
 
   // Navigation
   goHome: () => void
-  mainView: 'home' | 'chatList' | 'inspiration'
-  setMainView: (view: 'home' | 'chatList' | 'inspiration') => void
+  mainView: 'home' | 'chatList' | 'inspiration' | 'saved' | 'trips'
+  setMainView: (view: 'home' | 'chatList' | 'inspiration' | 'saved' | 'trips') => void
   
   // Sidebar
   sidebarOpen: boolean
@@ -292,7 +305,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Main view (when no chat is open)
-  const [mainView, setMainView] = useState<'home' | 'chatList' | 'inspiration'>('home')
+  const [mainView, setMainView] = useState<'home' | 'chatList' | 'inspiration' | 'saved' | 'trips'>('home')
 
   // Auth
   const [authLoading, setAuthLoading] = useState(false)
@@ -309,16 +322,77 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [graphGeoJSON, setGraphGeoJSON] = useState<Record<string, unknown> | null>(null)
   const [buildingGraph, setBuildingGraph] = useState(false)
   const sessionRef = useRef<SessionState | null>(loadSession())
+  const ratingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingRatingsRef = useRef<Record<string, PlaceRatingEntry> | null>(null)
+
+  // Flush pending ratings to backend immediately
+  const flushPendingRatings = useCallback(() => {
+    if (ratingsTimerRef.current) {
+      clearTimeout(ratingsTimerRef.current)
+      ratingsTimerRef.current = null
+    }
+    const ratings = pendingRatingsRef.current
+    const sid = sessionRef.current?.sessionId
+    if (ratings && sid && !isMockMode()) {
+      apiSavePlaceRatings(sid, ratings).catch(() => {})
+      pendingRatingsRef.current = null
+    }
+  }, [])
+
+  // Debounced save of place ratings + places snapshot (500ms)
+  const scheduleSaveRatings = useCallback((updatedPlaces: Place[]) => {
+    if (isMockMode() || !sessionRef.current) return
+    const ratings: Record<string, PlaceRatingEntry> = {}
+    for (const p of updatedPlaces) {
+      if (p.userRating || p.score || p.selected) {
+        ratings[p.id] = {
+          rating: p.userRating ?? null,
+          score: p.score ?? null,
+          selected: p.selected ?? false,
+        }
+      }
+    }
+    pendingRatingsRef.current = ratings
+    if (ratingsTimerRef.current) clearTimeout(ratingsTimerRef.current)
+    ratingsTimerRef.current = setTimeout(() => {
+      flushPendingRatings()
+      // Also update places snapshot so stars/scores are visible after reload
+      const sid = sessionRef.current?.sessionId
+      if (sid) {
+        apiSavePlacesSnapshot(
+          sid,
+          updatedPlaces as unknown as Record<string, unknown>[],
+        ).catch(() => {})
+      }
+    }, 500)
+  }, [flushPendingRatings])
 
   // Helper: preload session history into chatHistory cache (does NOT open the chat)
   const preloadSessionHistory = useCallback(async (sessionId: string, sessionSecret: string) => {
     try {
-      const historyOut = await getHistory(sessionId, sessionSecret, 'full')
+      const [historyOut, savedPlaces] = await Promise.all([
+        getHistory(sessionId, sessionSecret, 'full'),
+        apiLoadPlacesSnapshot(sessionId).catch(() => null),
+      ])
       const msgs = mapHistoryToMessages(historyOut.messages, sessionId)
-      if (msgs.length > 0) {
-        // Cache messages in chatHistory so loadChat() can use them instantly
+      if (msgs.length > 0 || savedPlaces) {
+        const restoredPlaces: Place[] = savedPlaces
+          ? (savedPlaces as unknown as Place[])
+          : []
+        // Attach places to last assistant message so PlacesGrid renders
+        const allMsgs = [welcomeMessage, ...msgs]
+        if (restoredPlaces.length > 0) {
+          for (let i = allMsgs.length - 1; i >= 0; i--) {
+            if (allMsgs[i].role === 'assistant' && !allMsgs[i].places?.length) {
+              allMsgs[i] = { ...allMsgs[i], places: restoredPlaces }
+              break
+            }
+          }
+        }
         setChatHistory(prev => prev.map(c =>
-          c.id === sessionId ? { ...c, messages: [welcomeMessage, ...msgs] } : c
+          c.id === sessionId
+            ? { ...c, messages: allMsgs, places: restoredPlaces }
+            : c
         ))
         sessionRef.current = { sessionId, sessionSecret }
       }
@@ -370,6 +444,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
               : { sessionId: sessions[0].id, sessionSecret: '' }
             await preloadSessionHistory(lastSession.sessionId, lastSession.sessionSecret)
           }
+          // Load saved routes
+          try {
+            const routes = await apiListSavedRoutes()
+            setSavedRoutes(routes.map(r => ({
+              id: r.id,
+              name: r.name,
+              destination: r.destination,
+              days: 0,
+              places: [],
+              createdAt: r.created_at || new Date().toISOString(),
+            })))
+          } catch { /* ignore */ }
         } catch {
           // Token invalid/expired — stay as guest
         }
@@ -381,6 +467,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     init()
   }, [preloadSessionHistory])
+
+  // Flush pending ratings on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => flushPendingRatings()
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [flushPendingRatings])
 
   // Apply theme
   useEffect(() => {
@@ -412,6 +505,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         createdAt: s.updated_at || new Date().toISOString(),
       })))
     } catch { /* ignore — user may have no sessions */ }
+    // Load saved routes
+    try {
+      const routes = await apiListSavedRoutes()
+      setSavedRoutes(routes.map(r => ({
+        id: r.id,
+        name: r.name,
+        destination: r.destination,
+        days: 0,
+        places: [],
+        createdAt: r.created_at || new Date().toISOString(),
+      })))
+    } catch { /* ignore */ }
   }, [])
 
   const loginWithEmail = useCallback(async (email: string, password: string) => {
@@ -505,16 +610,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const chat = chatHistory.find(c => c.id === chatId)
 
-    // If messages already loaded locally
+    // If messages already loaded locally — still fetch ratings/graph from backend
     if (chat && chat.messages.length > 0) {
       setMessages(chat.messages)
-      setPlaces(chat.places)
-      if (chat.places.length > 0) {
-        setMapCenter(computeMapCenter(chat.places))
-        setMapZoom(computeMapZoom(chat.places))
-      }
-      // Set session ref so new messages go to this session
       sessionRef.current = { sessionId: chatId, sessionSecret: '' }
+
+      // Load ratings + graph from backend to merge into cached places
+      if (!isMockMode() && backendAvailable && chat.places.length > 0) {
+        try {
+          const [savedRatings, savedGraph] = await Promise.all([
+            apiLoadPlaceRatings(chatId),
+            apiLoadGraphGeoJSON(chatId),
+          ])
+          let merged = chat.places
+          if (savedRatings) {
+            merged = chat.places.map(p => {
+              const entry = savedRatings[p.id]
+              if (entry) {
+                return {
+                  ...p,
+                  userRating: entry.rating ?? undefined,
+                  score: entry.score ?? undefined,
+                  selected: entry.selected ?? undefined,
+                }
+              }
+              return p
+            })
+          }
+          setPlaces(merged)
+          setMapCenter(computeMapCenter(merged))
+          setMapZoom(computeMapZoom(merged))
+          if (savedGraph) setGraphGeoJSON(savedGraph)
+          // Update cache
+          setChatHistory(prev => prev.map(c =>
+            c.id === chatId ? { ...c, places: merged } : c
+          ))
+        } catch {
+          setPlaces(chat.places)
+          if (chat.places.length > 0) {
+            setMapCenter(computeMapCenter(chat.places))
+            setMapZoom(computeMapZoom(chat.places))
+          }
+        }
+      } else {
+        setPlaces(chat.places)
+        if (chat.places.length > 0) {
+          setMapCenter(computeMapCenter(chat.places))
+          setMapZoom(computeMapZoom(chat.places))
+        }
+      }
       return
     }
 
@@ -530,12 +674,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
           ? [welcomeMessage, ...restoredMessages]
           : [welcomeMessage]
         setMessages(loadedMessages)
-        setPlaces([])
         sessionRef.current = { sessionId: chatId, sessionSecret: secret }
+
+        // Load persisted places, ratings and graph
+        let restoredPlaces: Place[] = []
+        try {
+          const [savedPlaces, savedRatings, savedGraph] = await Promise.all([
+            apiLoadPlacesSnapshot(chatId),
+            apiLoadPlaceRatings(chatId),
+            apiLoadGraphGeoJSON(chatId),
+          ])
+          // Use saved places snapshot as the source of truth
+          const basePlaces: Place[] = savedPlaces
+            ? (savedPlaces as unknown as Place[])
+            : loadedMessages.flatMap(m => m.places ?? [])
+          // Merge ratings into places
+          if (savedRatings && basePlaces.length > 0) {
+            restoredPlaces = basePlaces.map(p => {
+              const entry = savedRatings[p.id]
+              if (entry) {
+                return {
+                  ...p,
+                  userRating: entry.rating ?? undefined,
+                  score: entry.score ?? undefined,
+                  selected: entry.selected ?? undefined,
+                }
+              }
+              return p
+            })
+          } else {
+            restoredPlaces = basePlaces
+          }
+          if (savedGraph) setGraphGeoJSON(savedGraph)
+        } catch {
+          restoredPlaces = loadedMessages.flatMap(m => m.places ?? [])
+        }
+
+        // Attach places to the last assistant message so PlacesGrid renders
+        if (restoredPlaces.length > 0) {
+          for (let i = loadedMessages.length - 1; i >= 0; i--) {
+            if (loadedMessages[i].role === 'assistant' && !loadedMessages[i].places?.length) {
+              loadedMessages[i] = { ...loadedMessages[i], places: restoredPlaces }
+              break
+            }
+          }
+          setMessages([...loadedMessages])
+        }
+
+        setPlaces(restoredPlaces)
+        if (restoredPlaces.length > 0) {
+          setMapCenter(computeMapCenter(restoredPlaces))
+          setMapZoom(computeMapZoom(restoredPlaces))
+        }
 
         // Update chatHistory entry with loaded messages
         setChatHistory(prev => prev.map(c =>
-          c.id === chatId ? { ...c, messages: loadedMessages } : c
+          c.id === chatId ? { ...c, messages: loadedMessages, places: restoredPlaces } : c
         ))
       } catch {
         setMessages([welcomeMessage])
@@ -639,8 +833,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setMessages(prev => [...prev, aiResponse])
       setIsTyping(false)
 
+      // Update session title from first user message if no title yet
+      if (!useMocks && sessionRef.current && newPlaces.length === 0) {
+        const truncated = content.length > 60 ? content.slice(0, 60) + '…' : content
+        setChatHistory(prev => {
+          const sid = sessionRef.current?.sessionId
+          const entry = prev.find(c => c.id === sid || c.id === currentChatId)
+          if (entry && (!entry.title || entry.title === 'Без названия')) {
+            updateSessionTitle(sid!, truncated).catch(() => {})
+            return prev.map(c =>
+              c.id === (sid || currentChatId)
+                ? { ...c, title: truncated }
+                : c
+            )
+          }
+          return prev
+        })
+      }
+
       if (newPlaces.length > 0) {
         setPlaces(newPlaces)
+
+        // Persist places snapshot to backend
+        if (!useMocks && sessionRef.current) {
+          apiSavePlacesSnapshot(
+            sessionRef.current.sessionId,
+            newPlaces as unknown as Record<string, unknown>[],
+          ).catch(() => {})
+        }
 
         if (useMocks) {
           const center = getCityCenter(content)
@@ -653,22 +873,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         // Update chat history
         const cityName = useMocks ? getCityName(content) : (newPlaces[0]?.address?.split(',')[0] || 'Путешествие')
+        const chatTitle = `${cityName} ${new Date().toLocaleDateString('ru')}`
         if (currentChatId) {
           setChatHistory(prev => {
             const existingIndex = prev.findIndex(c => c.id === currentChatId)
             if (existingIndex >= 0) {
               const updated = [...prev]
+              const needsTitle = !updated[existingIndex].title || updated[existingIndex].title === 'Без названия'
               updated[existingIndex] = {
                 ...updated[existingIndex],
+                title: needsTitle ? chatTitle : updated[existingIndex].title,
+                destination: cityName,
                 messages: [...updated[existingIndex].messages, userMsg, aiResponse],
                 places: newPlaces,
               }
+              // Update title on backend
+              if (needsTitle && !useMocks && sessionRef.current) {
+                updateSessionTitle(sessionRef.current.sessionId, chatTitle).catch(() => {})
+              }
               return updated
+            }
+            // New chat entry
+            if (!useMocks && sessionRef.current) {
+              updateSessionTitle(sessionRef.current.sessionId, chatTitle).catch(() => {})
             }
             return [
               {
                 id: currentChatId,
-                title: `${cityName} ${new Date().toLocaleDateString('ru')}`,
+                title: chatTitle,
                 destination: cityName,
                 messages: [welcomeMessage, userMsg, aiResponse],
                 places: newPlaces,
@@ -785,36 +1017,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Toggle place selection
   const togglePlaceSelection = useCallback((placeId: string) => {
-    if (authState !== 'subscribed') {
-      setActiveModal('subscription')
-      return
-    }
-
-    setPlaces(prev => prev.map(p =>
-      p.id === placeId ? { ...p, selected: !p.selected } : p
-    ))
-  }, [authState])
+    setPlaces(prev => {
+      const updated = prev.map(p =>
+        p.id === placeId ? { ...p, selected: !p.selected } : p
+      )
+      scheduleSaveRatings(updated)
+      return updated
+    })
+  }, [scheduleSaveRatings])
 
   // Score place for паутинка (1-5 points); 0 = unpin
   const scorePlaceSelection = useCallback((placeId: string, score: number) => {
-    if (authState !== 'subscribed') {
-      setActiveModal('subscription')
-      return
-    }
-
-    setPlaces(prev => prev.map(p =>
-      p.id === placeId
-        ? { ...p, selected: score > 0, score: score > 0 ? score : undefined }
-        : p
-    ))
-  }, [authState])
+    setPlaces(prev => {
+      const updated = prev.map(p =>
+        p.id === placeId
+          ? { ...p, selected: score > 0, score: score > 0 ? score : undefined }
+          : p
+      )
+      scheduleSaveRatings(updated)
+      return updated
+    })
+  }, [scheduleSaveRatings])
 
   // Rate a place (1-5 stars, 0 = clear)
   const ratePlace = useCallback((placeId: string, rating: number) => {
-    setPlaces(prev => prev.map(p =>
-      p.id === placeId ? { ...p, userRating: rating || undefined } : p
-    ))
-  }, [])
+    setPlaces(prev => {
+      const updated = prev.map(p =>
+        p.id === placeId ? { ...p, userRating: rating || undefined } : p
+      )
+      scheduleSaveRatings(updated)
+      return updated
+    })
+  }, [scheduleSaveRatings])
 
   // Build place graph ("паутинка") from rated places
   const buildPlaceGraph = useCallback(async () => {
@@ -824,6 +1058,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const result = await buildGraph(ratedPlaces)
       setGraphGeoJSON(result.geojson)
+      // Persist graph to backend
+      const sid = sessionRef.current?.sessionId
+      if (sid && !isMockMode() && result.geojson) {
+        apiSaveGraphGeoJSON(sid, result.geojson).catch(() => {})
+      }
     } catch (e) {
       console.error('Graph build error:', e)
       setApiError('Ошибка построения паутинки')
@@ -833,35 +1072,106 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [places])
 
   // Save route
-  const saveCurrentRoute = useCallback((name: string) => {
-    if (authState !== 'subscribed') {
-      setActiveModal('subscription')
-      return
-    }
-    
+  const saveCurrentRoute = useCallback(async (name: string) => {
     const selectedPlaces = places.filter(p => p.selected)
     if (selectedPlaces.length === 0) return
-    
+
+    const destination = selectedPlaces[0]?.address?.split(',')[0] || 'Путешествие'
+
+    // Try to save via API
+    if (!isMockMode() && backendAvailable) {
+      try {
+        const result = await apiCreateSavedRoute({
+          name,
+          destination,
+          session_id: sessionRef.current?.sessionId ?? null,
+          places: selectedPlaces as unknown as Record<string, unknown>[],
+          graph_geojson: graphGeoJSON,
+        })
+        const newRoute: SavedRoute = {
+          id: result.id,
+          name: result.name,
+          destination: result.destination,
+          days: selectedPlaces.length,
+          places: selectedPlaces,
+          createdAt: result.created_at || new Date().toISOString(),
+        }
+        setSavedRoutes(prev => [...prev, newRoute])
+        setActiveModal(null)
+        return
+      } catch {
+        // Fall through to local save
+      }
+    }
+
+    // Local fallback
     const newRoute: SavedRoute = {
       id: `route-${Date.now()}`,
       name,
-      destination: 'Краснодар',
-      days: 3,
+      destination,
+      days: selectedPlaces.length,
       places: selectedPlaces,
       createdAt: new Date().toISOString(),
     }
-    
     setSavedRoutes(prev => [...prev, newRoute])
     setActiveModal(null)
-  }, [authState, places])
+  }, [places, backendAvailable, graphGeoJSON])
+
+  // Load a saved route and display its places on the map
+  const loadSavedRoute = useCallback(async (routeId: string) => {
+    try {
+      const route = await apiGetSavedRoute(routeId)
+      const routePlaces = (route.places || []) as unknown as Place[]
+      if (routePlaces.length > 0) {
+        setPlaces(routePlaces)
+        setMapCenter(computeMapCenter(routePlaces))
+        setMapZoom(computeMapZoom(routePlaces))
+      }
+      if (route.graph_geojson) {
+        setGraphGeoJSON(route.graph_geojson)
+      }
+      // Switch to a chat-like view to show the map
+      setCurrentChatId(`route-${routeId}`)
+      setMessages([{
+        id: `route-msg-${routeId}`,
+        role: 'assistant',
+        content: `Маршрут **${route.name}** — ${route.destination}. ${routePlaces.length} мест.`,
+        createdAt: route.created_at || new Date().toISOString(),
+        places: routePlaces,
+      }])
+      setSelectedPlace(null)
+      setRouteGeoJSON(null)
+      setRouteMetadata(null)
+    } catch {
+      setApiError('Не удалось загрузить маршрут')
+    }
+  }, [])
+
+  // Sync selectedPlace with places array when places change (ratings, selection, etc.)
+  useEffect(() => {
+    if (selectedPlace) {
+      const updated = places.find(p => p.id === selectedPlace.id)
+      if (updated && (
+        updated.userRating !== selectedPlace.userRating ||
+        updated.score !== selectedPlace.score ||
+        updated.selected !== selectedPlace.selected
+      )) {
+        setSelectedPlace(updated)
+      }
+    }
+  }, [places, selectedPlace])
 
   // Wrapped setSelectedPlace: auto-switch to map on mobile when selecting a place
   const handleSetSelectedPlace = useCallback((place: Place | null) => {
-    setSelectedPlace(place)
+    // If selecting a place, use the latest version from places array
     if (place) {
+      const latest = places.find(p => p.id === place.id)
+      setSelectedPlace(latest || place)
       setMobileActiveTab('map')
+    } else {
+      setSelectedPlace(null)
     }
-  }, [])
+  }, [places])
 
   // Modal functions
   const openModal = useCallback((modal: ModalType) => {
@@ -905,6 +1215,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     buildPlaceGraph,
     savedRoutes,
     saveCurrentRoute,
+    loadSavedRoute,
     activeModal,
     openModal,
     closeModal,
