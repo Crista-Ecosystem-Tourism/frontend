@@ -136,7 +136,7 @@ export function TravelMap() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[1000] flex items-center justify-center bg-background/95 backdrop-blur-md"
+            className="absolute inset-0 z-[1000] flex items-center justify-center bg-background"
           >
             <div className="text-center p-6 max-w-md">
               <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
@@ -191,11 +191,12 @@ export function TravelMap() {
           />
         )}
 
-        {/* Graph "паутинка" GeoJSON */}
+        {/* Graph "паутинка" GeoJSON — only edges, no node markers */}
         {graphGeoJSON && (
           <GeoJSON
             key={`graph-${JSON.stringify(graphGeoJSON).slice(0, 50)}`}
             data={graphGeoJSON as unknown as GeoJSON.GeoJsonObject}
+            filter={(feature) => feature.geometry?.type !== 'Point'}
             style={graphStyle}
             onEachFeature={(feature, layer) => {
               if (feature.properties?.type === 'edge') {
