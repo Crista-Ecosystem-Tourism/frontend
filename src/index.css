@@ -210,12 +210,13 @@
     @apply relative px-4 py-3 rounded-lg max-w-[80%];
   }
 
+  /* Тёмный текст на тиле: белый давал 2.8:1 и не проходил WCAG */
   .chat-bubble-user {
-    @apply bg-primary text-white ml-auto rounded-br-md;
+    @apply bg-primary text-ink-950 ml-auto rounded-br-md;
   }
 
   .chat-bubble-assistant {
-    @apply bg-surface-light text-text mr-auto rounded-bl-md;
+    @apply bg-white/[0.07] border border-white/[0.08] text-text mr-auto rounded-bl-md backdrop-blur-sm;
   }
 
   .glass {
