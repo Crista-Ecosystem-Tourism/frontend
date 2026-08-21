@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   ArrowLeft, Globe2, Flame, PiggyBank, Trophy, CheckCircle2,
   Circle, TrendingDown, MapPin, ChevronRight, BookOpenCheck, RotateCcw,
@@ -6,7 +6,9 @@ import {
 import { GlassPanel, Chip, DisplayTitle, IconButton } from '@/components/ui/glass'
 import { WorldMap } from './WorldMap'
 import { CountryQuests } from './CountryQuests'
+import { TravelPassport } from './TravelPassport'
 import { useGameProgress } from '@/hooks/useGameProgress'
+import { useApp } from '@/context/AppContext'
 import { gameCountries, findCountry, questCategoryLabel } from '@/mocks/game'
 import { cn } from '@/lib/utils'
 
@@ -43,8 +45,10 @@ function ProgressRing({ value, size = 60 }: { value: number; size?: number }) {
 }
 
 export function GamePanel({ onBack }: GamePanelProps) {
-  const [dailyDone, setDailyDone] = useState(false)
+  const [dailyDone, setDailyDone] = useState<Record<string, boolean>>({})
   const [selectedIso, setSelectedIso] = useState<string>('RU')
+  const [showPassport, setShowPassport] = useState(false)
+  const { user } = useApp()
 
   const {
     isDone, toggleQuest, countryProgress, cityProgress, categoryProgress, stats, resetProgress,
@@ -54,12 +58,25 @@ export function GamePanel({ onBack }: GamePanelProps) {
   const progress = countryProgress(country.iso)
   const categories = categoryProgress(country.iso)
 
-  // Фокус страны: та, что открыта и ещё не закрыта полностью
-  const focus = useMemo(
-    () => gameCountries.find((c) => c.opened && countryProgress(c.iso) < 100) ?? gameCountries[0],
-    [countryProgress]
-  )
-  const focusProgress = countryProgress(focus.iso)
+  // Фокус, треки и копилка следуют за выбранной на карте страной
+  const focus = country
+  const focusProgress = progress
+  const daily = country.daily
+  const weekly = country.weekly
+  const savings = country.savings
+  const savedPercent = savings ? Math.round((savings.current / savings.target) * 100) : 0
+  const isDailyDone = Boolean(dailyDone[country.iso])
+
+  if (showPassport) {
+    return (
+      <TravelPassport
+        onBack={() => setShowPassport(false)}
+        countryProgress={countryProgress}
+        cityProgress={cityProgress}
+        ownerName={user?.name ?? 'Путешественник'}
+      />
+    )
+  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -162,25 +179,29 @@ export function GamePanel({ onBack }: GamePanelProps) {
                   <Flame className="h-3.5 w-3.5" /> 12
                 </span>
               </div>
-              <button
-                onClick={() => setDailyDone((v) => !v)}
-                aria-pressed={dailyDone}
-                className="flex w-full items-start gap-3 rounded-md p-2 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                {dailyDone ? (
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                ) : (
-                  <Circle className="mt-0.5 h-5 w-5 shrink-0 text-text-muted" aria-hidden="true" />
-                )}
-                <span>
-                  <span className={cn('block font-sans text-sm font-medium text-text', dailyDone && 'text-text-muted line-through')}>
-                    Фраза дня: «Гамарджоба» это привет по-грузински
+              {daily ? (
+                <button
+                  onClick={() => setDailyDone((prev) => ({ ...prev, [country.iso]: !prev[country.iso] }))}
+                  aria-pressed={isDailyDone}
+                  className="flex w-full items-start gap-3 rounded-md p-2 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  {isDailyDone ? (
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                  ) : (
+                    <Circle className="mt-0.5 h-5 w-5 shrink-0 text-text-muted" aria-hidden="true" />
+                  )}
+                  <span>
+                    <span className={cn('block font-sans text-sm font-medium text-text', isDailyDone && 'text-text-muted line-through')}>
+                      {daily.title}
+                    </span>
+                    <span className="mt-0.5 block font-sans text-xs text-text-muted">{daily.hint}</span>
                   </span>
-                  <span className="mt-0.5 block font-sans text-xs text-text-muted">
-                    Мини-квест, 60 секунд
-                  </span>
-                </span>
-              </button>
+                </button>
+              ) : (
+                <p className="p-2 font-sans text-sm text-text-muted">
+                  Задания появятся, когда {country.name} будет открыта
+                </p>
+              )}
             </GlassPanel>
 
             <GlassPanel variant="flat" className="p-4">
@@ -190,13 +211,21 @@ export function GamePanel({ onBack }: GamePanelProps) {
                 </span>
                 <BookOpenCheck className="h-4 w-4 text-accent-soft" aria-hidden="true" />
               </div>
-              <p className="mb-3 font-sans text-sm font-medium text-text">
-                Онлайн-курс: «История Кавказа за 10 минут»
-              </p>
-              <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-accent" style={{ width: '45%' }} />
-              </div>
-              <p className="font-sans text-xs tabular text-text-muted">Урок 3 из 6, пройдено 45%</p>
+              {weekly ? (
+                <>
+                  <p className="mb-3 font-sans text-sm font-medium text-text">{weekly.title}</p>
+                  <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-full rounded-full bg-accent" style={{ width: `${weekly.percent}%` }} />
+                  </div>
+                  <p className="font-sans text-xs tabular text-text-muted">
+                    Урок {weekly.lesson} из {weekly.totalLessons}, пройдено {weekly.percent}%
+                  </p>
+                </>
+              ) : (
+                <p className="font-sans text-sm text-text-muted">
+                  Курс по стране появится после её открытия
+                </p>
+              )}
             </GlassPanel>
           </div>
 
@@ -224,46 +253,59 @@ export function GamePanel({ onBack }: GamePanelProps) {
           </div>
         </GlassPanel>
 
-        {/* Копилка */}
-        <GlassPanel className="p-5 sm:p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15 text-primary">
-              <PiggyBank className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <span>
-              <span className="block font-sans text-xs uppercase tracking-wide text-text-muted">
-                Копилка
+        {/* Копилка выбранной страны */}
+        {savings && (
+          <GlassPanel className="p-5 sm:p-6">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/15 text-primary">
+                <PiggyBank className="h-5 w-5" aria-hidden="true" />
               </span>
-              <span className="block font-display text-xl font-semibold text-text">
-                Батуми, 5 дней
+              <span>
+                <span className="block font-sans text-xs uppercase tracking-wide text-text-muted">
+                  Копилка
+                </span>
+                <span className="block font-display text-xl font-semibold text-text">
+                  {savings.destination}
+                </span>
               </span>
-            </span>
-          </div>
+            </div>
 
-          <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-white/[0.08]">
-            <div className="h-full rounded-full bg-primary" style={{ width: '58%' }} />
-          </div>
-          <div className="mb-4 flex items-center justify-between font-sans text-sm">
-            <span className="font-semibold tabular text-text">
-              34 800 ₽ <span className="font-normal text-text-muted">из 60 000 ₽</span>
-            </span>
-            <span className="tabular text-text-muted">58%</span>
-          </div>
+            <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-white/[0.08]">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-slow ease-standard"
+                style={{ width: `${savedPercent}%` }}
+              />
+            </div>
+            <div className="mb-4 flex items-center justify-between font-sans text-sm">
+              <span className="font-semibold tabular text-text">
+                {savings.current.toLocaleString('ru')} ₽{' '}
+                <span className="font-normal text-text-muted">
+                  из {savings.target.toLocaleString('ru')} ₽
+                </span>
+              </span>
+              <span className="tabular text-text-muted">{savedPercent}%</span>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Chip variant="active" size="sm">
-              <TrendingDown />
-              Билет подешевел на 12%
-            </Chip>
-            <span className="font-sans text-xs tabular text-text-muted">
-              Рекомендуем откладывать 2 100 ₽ в неделю
-            </span>
-          </div>
-        </GlassPanel>
+            <div className="flex flex-wrap items-center gap-3">
+              <Chip variant={savings.priceTrend < 0 ? 'active' : 'default'} size="sm">
+                <TrendingDown className={savings.priceTrend > 0 ? 'rotate-180' : undefined} />
+                {savings.priceTrend < 0
+                  ? `Билет подешевел на ${Math.abs(savings.priceTrend)}%`
+                  : `Билет подорожал на ${savings.priceTrend}%`}
+              </Chip>
+              <span className="font-sans text-xs tabular text-text-muted">
+                Рекомендуем откладывать {savings.weekly.toLocaleString('ru')} ₽ в неделю
+              </span>
+            </div>
+          </GlassPanel>
+        )}
 
         {/* Паспорт и сброс */}
         <div className="flex flex-wrap items-center gap-3">
-          <button className="group flex flex-1 items-center justify-between gap-4 rounded-lg border border-white/[0.09] bg-white/[0.05] p-4 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+          <button
+            onClick={() => setShowPassport(true)}
+            className="group flex flex-1 items-center justify-between gap-4 rounded-lg border border-white/[0.09] bg-white/[0.05] p-4 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
             <span className="flex items-center gap-3">
               <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
               <span>

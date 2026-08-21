@@ -23,6 +23,30 @@ export interface QuestCity {
   quests: QuestPoint[]
 }
 
+/** Ежедневный трек: короткое задание, держит стрик */
+export interface DailyTrack {
+  title: string
+  hint: string
+}
+
+/** Еженедельный трек: развёрнутый материал по культуре страны */
+export interface WeeklyTrack {
+  title: string
+  lesson: number
+  totalLessons: number
+  percent: number
+}
+
+/** Копилка под конкретное направление */
+export interface SavingsGoal {
+  destination: string
+  current: number
+  target: number
+  /** Изменение цены билета в процентах, отрицательное значит подешевел */
+  priceTrend: number
+  weekly: number
+}
+
 export interface GameCountry {
   iso: string
   name: string
@@ -30,6 +54,9 @@ export interface GameCountry {
   /** Страна открыта, если по ней уже строился маршрут */
   opened: boolean
   cities: QuestCity[]
+  daily?: DailyTrack
+  weekly?: WeeklyTrack
+  savings?: SavingsGoal
 }
 
 export const questCategoryLabel: Record<QuestCategory, string> = {
@@ -44,6 +71,17 @@ export const gameCountries: GameCountry[] = [
     name: 'Россия',
     flag: '🇷🇺',
     opened: true,
+    daily: {
+      title: 'Слово дня: «авось» это надежда на удачу без плана',
+      hint: 'Мини-квест, 60 секунд',
+    },
+    weekly: {
+      title: 'Онлайн-курс: «Русский авангард за 10 минут»',
+      lesson: 3,
+      totalLessons: 6,
+      percent: 45,
+    },
+    savings: { destination: 'Санкт-Петербург, 4 дня', current: 21400, target: 48000, priceTrend: -8, weekly: 1800 },
     cities: [
       {
         id: 'msk',
@@ -88,6 +126,17 @@ export const gameCountries: GameCountry[] = [
     name: 'Грузия',
     flag: '🇬🇪',
     opened: true,
+    daily: {
+      title: 'Фраза дня: «Гамарджоба» это привет по-грузински',
+      hint: 'Мини-квест, 60 секунд',
+    },
+    weekly: {
+      title: 'Онлайн-курс: «История Кавказа за 10 минут»',
+      lesson: 3,
+      totalLessons: 6,
+      percent: 45,
+    },
+    savings: { destination: 'Батуми, 5 дней', current: 34800, target: 60000, priceTrend: -12, weekly: 2100 },
     cities: [
       {
         id: 'tbilisi',
@@ -115,6 +164,17 @@ export const gameCountries: GameCountry[] = [
     name: 'Турция',
     flag: '🇹🇷',
     opened: true,
+    daily: {
+      title: 'Фраза дня: «Merhaba» это здравствуйте по-турецки',
+      hint: 'Мини-квест, 60 секунд',
+    },
+    weekly: {
+      title: 'Онлайн-курс: «Османская архитектура за 10 минут»',
+      lesson: 1,
+      totalLessons: 5,
+      percent: 20,
+    },
+    savings: { destination: 'Стамбул, 6 дней', current: 12600, target: 71000, priceTrend: 4, weekly: 2600 },
     cities: [
       {
         id: 'istanbul',
