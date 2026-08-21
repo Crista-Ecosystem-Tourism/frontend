@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, MessageSquare, Map, MapPin, Crown, ChevronRight, ChevronLeft, Camera, Share2, Award, Compass, Star, Globe, Bell, HelpCircle, Lock } from 'lucide-react'
+import { ArrowLeft, MessageSquare, Map, MapPin, Crown, ChevronRight, ChevronLeft, Camera, Share2, Award, Compass, Star, Globe, Bell, HelpCircle, Lock, Sparkles, Link2 } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -15,10 +15,19 @@ const MOCK_STATS = {
 }
 
 const MOCK_TRIPS = [
-  { id: '1', name: 'Париж', emoji: '🗼', days: 5, date: 'Дек 2024', gradient: 'from-pink-500 to-rose-500' },
-  { id: '2', name: 'Токио', emoji: '🗾', days: 7, date: 'Окт 2024', gradient: 'from-red-500 to-orange-500' },
-  { id: '3', name: 'Барселона', emoji: '🏖️', days: 4, date: 'Авг 2024', gradient: 'from-amber-500 to-yellow-500' },
-  { id: '4', name: 'Нью-Йорк', emoji: '🗽', days: 6, date: 'Июн 2024', gradient: 'from-blue-500 to-cyan-500' },
+  { id: '1', name: 'Тбилиси', emoji: '🇬🇪', days: 5, date: 'Дек 2025', gradient: 'from-pink-500 to-rose-500', status: 'Завершено' },
+  { id: '2', name: 'Сочи', emoji: '🏖️', days: 7, date: 'Окт 2025', gradient: 'from-red-500 to-orange-500', status: 'Завершено' },
+  { id: '3', name: 'Стамбул', emoji: '🕌', days: 4, date: 'Авг 2025', gradient: 'from-amber-500 to-yellow-500', status: 'В процессе' },
+  { id: '4', name: 'Москва', emoji: '🏛️', days: 6, date: 'Июн 2025', gradient: 'from-blue-500 to-cyan-500', status: 'Завершено' },
+]
+
+const PASSPORT_STAMPS = [
+  { id: '1', country: 'Россия', flag: '🇷🇺', collected: true },
+  { id: '2', country: 'Грузия', flag: '🇬🇪', collected: true },
+  { id: '3', country: 'Турция', flag: '🇹🇷', collected: true },
+  { id: '4', country: 'Италия', flag: '🇮🇹', collected: false },
+  { id: '5', country: 'Япония', flag: '🇯🇵', collected: false },
+  { id: '6', country: 'Индонезия', flag: '🇮🇩', collected: false },
 ]
 
 const ACHIEVEMENTS = [
@@ -211,6 +220,57 @@ export function ProfilePage() {
               </div>
             </motion.div>
 
+            {/* Crista Wrapped promo */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 }}
+              className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-violet-600 via-fuchsia-600 to-orange-500 p-8 mb-10 text-white shadow-[0_20px_60px_rgba(124,58,237,0.25)]"
+            >
+              <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/10 blur-2xl" />
+              <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-widest bg-white/20 rounded-full px-3 py-1 mb-3">
+                    <Sparkles className="w-3 h-3" /> Crista Wrapped 2026
+                  </span>
+                  <h3 className="text-2xl font-bold mb-1">Ваш годовой рекап готов</h3>
+                  <p className="text-white/80 text-sm">3 страны · 4 210 км · экономия 18 600 ₽ — сравните с друзьями</p>
+                </div>
+                <button className="flex-shrink-0 rounded-full bg-white text-[#1a1a1a] font-bold px-6 h-11 hover:bg-white/90 transition-colors">
+                  Смотреть Wrapped
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Travel Passport */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.26 }}
+              className="mb-10"
+            >
+              <div className="flex items-center justify-between mb-6 px-2">
+                <h3 className="text-[0.75rem] font-black text-[#666666] uppercase tracking-[0.2em]">Тревел-паспорт</h3>
+                <span className="text-[0.75rem] font-bold text-[#1a1a1a] bg-white px-3 py-1 rounded-full border border-black/[0.08] shadow-sm">3 из 6 штампов</span>
+              </div>
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                {PASSPORT_STAMPS.map(stamp => (
+                  <motion.div
+                    key={stamp.id}
+                    whileHover={{ scale: 1.05, rotate: stamp.collected ? -2 : 0 }}
+                    className={`aspect-square rounded-full border-[3px] flex flex-col items-center justify-center transition-all ${stamp.collected
+                      ? 'border-amber-400 bg-amber-50 shadow-[0_4px_16px_rgba(251,191,36,0.25)]'
+                      : 'border-dashed border-black/[0.12] bg-white/40 opacity-50'
+                      }`}
+                    style={{ transform: stamp.collected ? 'rotate(-3deg)' : undefined }}
+                  >
+                    <span className={`text-2xl ${!stamp.collected && 'grayscale opacity-60'}`}>{stamp.flag}</span>
+                    <span className="text-[0.6rem] font-bold text-[#666666] mt-0.5">{stamp.country}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
             {/* Trips Showcase */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -219,7 +279,7 @@ export function ProfilePage() {
               className="mb-10"
             >
               <div className="flex items-center justify-between mb-6 px-2">
-                <h3 className="text-[0.75rem] font-black text-[#888888] uppercase tracking-[0.2em]">Мои приключения</h3>
+                <h3 className="text-[0.75rem] font-black text-[#888888] uppercase tracking-[0.2em]">Мои путешествия</h3>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
                     <button
@@ -258,10 +318,15 @@ export function ProfilePage() {
                     </div>
                     <div className="p-6">
                       <h4 className="text-[1.1rem] font-bold text-[#1a1a1a] mb-1">{trip.name}</h4>
-                      <div className="flex items-center justify-between text-[#888888]">
+                      <div className="flex items-center justify-between text-[#888888] mb-3">
                         <span className="text-[0.75rem] font-medium">{trip.date}</span>
-                        <div className="h-2 w-2 rounded-full bg-emerald-400" />
+                        <span className={`text-[0.65rem] font-bold uppercase tracking-wide ${trip.status === 'Завершено' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                          {trip.status}
+                        </span>
                       </div>
+                      <button className="flex items-center gap-1.5 text-[0.75rem] font-bold text-blue-600 hover:text-blue-700">
+                        <Link2 className="w-3 h-3" /> Мини-сайт поездки
+                      </button>
                     </div>
                   </motion.div>
                 ))}

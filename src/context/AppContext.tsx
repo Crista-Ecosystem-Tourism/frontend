@@ -259,13 +259,23 @@ function createMockChatHistory(): ChatHistoryItem[] {
   })
 }
 
+// В мок-режиме (без бэкенда) сразу показываем демо-пользователя, чтобы профиль,
+// паспорт путешественника и Crista Wrapped были доступны без формы логина.
+const mockUser: User = {
+  id: 'mock-user',
+  name: 'Александра Крист',
+  email: 'demo@crista.online',
+  authState: 'subscribed',
+  subscription: 'premium',
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   // Theme
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   
   // User
-  const [user, setUser] = useState<User | null>(null)
-  const [authState, setAuthState] = useState<AuthState>('guest')
+  const [user, setUser] = useState<User | null>(() => isMockMode() ? mockUser : null)
+  const [authState, setAuthState] = useState<AuthState>(() => isMockMode() ? 'subscribed' : 'guest')
   
   // Chat History — mock history only when using mocks
   const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>(() =>

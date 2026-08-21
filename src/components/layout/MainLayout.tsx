@@ -11,6 +11,7 @@ import { DataPanel } from '@/components/data/DataPanel'
 import { SuitcasePanel } from '@/components/suitcase/SuitcasePanel'
 import { InspirationPanel } from '@/components/inspiration/InspirationPanel'
 import { CommunityPanel } from '@/components/community/CommunityPanel'
+import { GamePanel } from '@/components/game/GamePanel'
 import { PlaceByPhotoPanel } from '@/components/place/PlaceByPhotoPanel'
 import { ToursGlampingPanel } from '@/components/tours/ToursGlampingPanel'
 import { HomeInput } from '@/components/home/HomeInput'
@@ -86,6 +87,17 @@ export function MainLayout() {
                 className="w-full h-full"
               >
                 <DataPanel onBack={() => setMainView('home')} />
+              </motion.div>
+            ) : isHome && mainView === 'game' ? (
+              <motion.div
+                key="game"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full h-full"
+              >
+                <GamePanel onBack={() => setMainView('home')} />
               </motion.div>
             ) : isHome && mainView === 'community' ? (
               <motion.div

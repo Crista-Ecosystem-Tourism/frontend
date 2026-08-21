@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Map, Sparkles, BookOpen, Luggage, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut, Users, ImagePlus, Tent } from 'lucide-react'
+import { Plus, X, Menu, Moon, Sun, MessageSquare, Search, Map, Sparkles, BookOpen, Luggage, User, ChevronLeft, Info, ChevronRight, Settings, HelpCircle, LogOut, Users, ImagePlus, Tent, Globe2, Languages } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -12,17 +12,19 @@ import { Logo } from '@/components/icons/Logo'
 
 const menuItems = [
   { icon: Search, label: 'Главная', id: 'explore', path: '/' },
-  { icon: MessageSquare, label: 'Чаты', id: 'chats' },
-  { icon: Map, label: 'Мои маршруты', id: 'saved' },
+  { icon: MessageSquare, label: 'Маршрут', id: 'chats' },
+  { icon: Globe2, label: 'Игра', id: 'game' },
   { icon: Users, label: 'Сообщество', id: 'community' },
+  { icon: BookOpen, label: 'Wiki', id: 'data' },
+  { icon: Map, label: 'Мои маршруты', id: 'saved' },
   { icon: ImagePlus, label: 'Место по фото', id: 'placeByPhoto' },
   { icon: Tent, label: 'Туры и глемпинг', id: 'toursGlamping' },
-  { icon: BookOpen, label: 'CristaWiki', id: 'data' },
   { icon: Luggage, label: 'Мой чемодан', id: 'suitcase' },
 ]
 
 export function Sidebar() {
   const navigate = useNavigate()
+  const [lang, setLang] = useState<'ru' | 'en'>('ru')
   const {
     user,
     theme,
@@ -44,6 +46,7 @@ export function Sidebar() {
     if (mainView === 'chatList') return 'chats'
     if (mainView === 'inspiration') return 'saved'
     if (mainView === 'saved') return 'saved'
+    if (mainView === 'game') return 'game'
     if (mainView === 'community') return 'community'
     if (mainView === 'placeByPhoto') return 'placeByPhoto'
     if (mainView === 'toursGlamping') return 'toursGlamping'
@@ -104,6 +107,9 @@ export function Sidebar() {
               } else if (item.id === 'saved') {
                 goHome()
                 setMainView('saved')
+              } else if (item.id === 'game') {
+                goHome()
+                setMainView('game')
               } else if (item.id === 'community') {
                 goHome()
                 setMainView('community')
@@ -178,6 +184,28 @@ export function Sidebar() {
             </div>
           </button>
         )}
+
+        {/* Language Toggle (RU/EN) */}
+        <div className={cn("border-t border-border", collapsed ? "p-2" : "px-3 py-2")}>
+          <button
+            onClick={() => { if (collapsed) setIsCollapsed(false); else setLang(prev => prev === 'ru' ? 'en' : 'ru') }}
+            title={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+            className={cn(
+              "flex items-center rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text transition-colors",
+              collapsed ? "w-full justify-center p-2" : "gap-3 px-3 py-2 w-full"
+            )}
+          >
+            <Languages className={cn("flex-shrink-0", collapsed ? "w-5 h-5" : "w-4 h-4")} />
+            {!collapsed && (
+              <span className="text-sm font-medium flex-1 text-left">{lang === 'ru' ? 'Русский' : 'English'}</span>
+            )}
+            {!collapsed && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted border border-border rounded-full px-1.5 py-0.5">
+                {lang === 'ru' ? 'EN' : 'RU'}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Theme Toggle */}
         <div className={cn("border-t border-border", collapsed ? "p-2" : "px-3 py-2")}>
