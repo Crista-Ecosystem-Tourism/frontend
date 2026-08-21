@@ -14,7 +14,7 @@ const ideas = [
     place: 'Мурманская область',
     season: 'Сентябрь - март',
     reason: 'Вы отмечали интерес к природе и ночным съёмкам',
-    image: 'https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1589802829985-817e51171b92?w=800&q=80',
   },
   {
     id: 'wine',
@@ -30,7 +30,7 @@ const ideas = [
     place: 'Санкт-Петербург',
     season: 'Июнь, белые ночи',
     reason: 'Вы закрыли здесь 6 точек и можете пройти город целиком',
-    image: 'https://images.unsplash.com/photo-1547448415-e9f5b28e570d?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1556610961-2fecc5927173?w=800&q=80',
   },
   {
     id: 'mountains',
@@ -38,7 +38,7 @@ const ideas = [
     place: 'Роза Хутор, Сочи',
     season: 'Май и октябрь',
     reason: 'Цены ниже втрое, а маршруты открыты',
-    image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=800&q=80',
   },
 ]
 

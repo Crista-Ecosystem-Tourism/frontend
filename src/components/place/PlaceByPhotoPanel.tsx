@@ -19,8 +19,8 @@ interface Guess {
 /** Разбор снимка имитируется: бэкенда нет, но поток и состояния настоящие */
 const mockGuesses: Guess[] = [
   {
-    name: 'Спас на Крови',
-    place: 'Канал Грибоедова, Санкт-Петербург',
+    name: 'Дворцовый мост',
+    place: 'Нева, Санкт-Петербург',
     confidence: 92,
     image: 'https://images.unsplash.com/photo-1556610961-2fecc5927173?w=400&q=80',
   },

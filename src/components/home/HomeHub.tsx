@@ -14,6 +14,8 @@ import { GlassPanel, IconButton, Chip, StatTile, ListRow, DisplayTitle } from '@
 import { Img } from '@/components/ui/Img'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
+import { useGameProgress } from '@/hooks/useGameProgress'
+import { gameCountries } from '@/mocks/game'
 
 interface HomeHubProps {
   onSend: (message: string) => void
@@ -32,25 +34,25 @@ const suggestions = [
 
 const nearby = [
   {
-    id: 'spb-hermitage',
-    title: 'Эрмитаж',
-    subtitle: 'Главный музей страны',
-    location: 'Дворцовая площадь',
-    imageUrl: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=200&q=80',
+    id: 'msk-red-square',
+    title: 'Красная площадь',
+    subtitle: 'Сердце города',
+    location: 'Москва',
+    imageUrl: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=200&q=80',
   },
   {
-    id: 'spb-spilled-blood',
-    title: 'Спас на Крови',
-    subtitle: 'Русская мозаика и купола',
-    location: 'Канал Грибоедова',
-    imageUrl: 'https://images.unsplash.com/photo-1556610961-2fecc5927173?w=200&q=80',
+    id: 'msk-kremlin',
+    title: 'Кремль',
+    subtitle: 'Стены и башни XV века',
+    location: 'Москва',
+    imageUrl: 'https://images.unsplash.com/photo-1547448415-e9f5b28e570d?w=200&q=80',
   },
   {
     id: 'spb-bridge',
     title: 'Дворцовый мост',
     subtitle: 'Развод в 01:10',
-    location: 'Нева',
-    imageUrl: 'https://images.unsplash.com/photo-1547448415-e9f5b28e570d?w=200&q=80',
+    location: 'Санкт-Петербург',
+    imageUrl: 'https://images.unsplash.com/photo-1556610961-2fecc5927173?w=200&q=80',
   },
 ]
 
@@ -63,18 +65,18 @@ const destinations = [
     imageUrl: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800&q=80',
   },
   {
-    id: 'norway',
-    title: 'Лофотены',
-    country: 'Норвегия',
-    tag: 'Природа',
-    imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&q=80',
+    id: 'rome',
+    title: 'Рим',
+    country: 'Италия',
+    tag: 'История',
+    imageUrl: 'https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=800&q=80',
   },
   {
     id: 'kyoto',
     title: 'Киото',
     country: 'Япония',
     tag: 'Традиции',
-    imageUrl: 'https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',
   },
   {
     id: 'cinque',
@@ -82,6 +84,13 @@ const destinations = [
     country: 'Италия',
     tag: 'Побережье',
     imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&q=80',
+  },
+  {
+    id: 'fuji',
+    title: 'Фудзи',
+    country: 'Япония',
+    tag: 'Природа',
+    imageUrl: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=800&q=80',
   },
 ]
 
@@ -204,6 +213,14 @@ function ProgressRing({ value, size = 56 }: { value: number; size?: number }) {
 
 export function HomeHub({ onSend }: HomeHubProps) {
   const { setMainView } = useApp()
+  const { countryProgress, stats } = useGameProgress()
+
+  // Фокус берём из игры: первая открытая страна, которую ещё не закрыли
+  const focus =
+    gameCountries.find((c) => c.opened && countryProgress(c.iso) < 100) ?? gameCountries[0]
+  const focusProgress = countryProgress(focus.iso)
+  const savings = focus.savings
+  const savedPercent = savings ? Math.round((savings.current / savings.target) * 100) : 0
 
   return (
     <div className="h-full overflow-y-auto scrollbar-hidden">
@@ -237,9 +254,17 @@ export function HomeHub({ onSend }: HomeHubProps) {
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-5">
-              <StatTile icon={<CloudSun />} value="12°C" label="Санкт-Петербург, облачно" />
-              <StatTile icon={<Compass />} value="34 страны" label="Открыто из 195" />
-              <StatTile icon={<Flame />} value="18 дней" label="Текущий стрик" />
+              <StatTile icon={<CloudSun />} value="12°C" label="Москва, облачно" />
+              <StatTile
+                icon={<Compass />}
+                value={`${stats.openedCountries} стран`}
+                label="Открыто из 195"
+              />
+              <StatTile
+                icon={<Flame />}
+                value={`${stats.doneQuests}`}
+                label={`Квестов закрыто из ${stats.totalQuests}`}
+              />
             </div>
           </div>
 
@@ -251,19 +276,22 @@ export function HomeHub({ onSend }: HomeHubProps) {
                   <p className="font-sans text-xs uppercase tracking-wide text-text-muted">
                     Фокус страны
                   </p>
-                  <p className="mt-1 truncate font-display text-2xl font-semibold text-text">
-                    Италия
+                  <p className="mt-1 flex items-center gap-2 truncate font-display text-2xl font-semibold text-text">
+                    <span aria-hidden="true">{focus.flag}</span>
+                    {focus.name}
                   </p>
                 </div>
                 <div className="relative shrink-0">
-                  <ProgressRing value={62} />
+                  <ProgressRing value={focusProgress} />
                   <span className="absolute inset-0 flex items-center justify-center font-sans text-xs font-semibold tabular text-text">
-                    62%
+                    {focusProgress}%
                   </span>
                 </div>
               </div>
               <p className="mt-3 font-sans text-sm leading-relaxed text-text-secondary">
-                Осталось 4 задания недели, чтобы закрыть кухню региона.
+                {focus.weekly
+                  ? `${focus.weekly.title}, урок ${focus.weekly.lesson} из ${focus.weekly.totalLessons}`
+                  : 'Откройте страну, чтобы получить задания недели'}
               </p>
               <Button
                 variant="secondary"
@@ -281,17 +309,23 @@ export function HomeHub({ onSend }: HomeHubProps) {
                   <PiggyBank className="h-[18px] w-[18px]" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-sans text-sm font-semibold text-text">Копилка на Рим</p>
-                  <p className="font-sans text-xs text-text-muted tabular">
-                    47 200 из 118 400 ₽
+                  <p className="truncate font-sans text-sm font-semibold text-text">
+                    Копилка: {savings?.destination ?? 'цель не выбрана'}
+                  </p>
+                  <p className="font-sans text-xs tabular text-text-muted">
+                    {savings
+                      ? `${savings.current.toLocaleString('ru')} из ${savings.target.toLocaleString('ru')} ₽`
+                      : 'Выберите направление в разделе Игра'}
                   </p>
                 </div>
               </div>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div className="h-full rounded-full bg-primary" style={{ width: '39.8%' }} />
+                <div className="h-full rounded-full bg-primary" style={{ width: `${savedPercent}%` }} />
               </div>
               <p className="mt-3 font-sans text-xs text-text-secondary">
-                Билеты подешевели на 6 300 ₽ за неделю.
+                {savings && savings.priceTrend < 0
+                  ? `Билеты подешевели на ${Math.abs(savings.priceTrend)}% за неделю.`
+                  : 'Следим за ценой билетов и сообщим о падении.'}
               </p>
             </GlassPanel>
 
