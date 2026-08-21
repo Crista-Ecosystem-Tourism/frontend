@@ -153,7 +153,7 @@ export function ProfilePage() {
             </GlassPanel>
 
             {/* Статистика */}
-            <GlassPanel className="grid grid-cols-2 gap-5 p-5 sm:grid-cols-3 lg:grid-cols-5">
+            <GlassPanel className="grid grid-cols-2 gap-x-4 gap-y-5 p-5 sm:grid-cols-3 lg:grid-cols-5">
               <StatTile icon={<Route />} value={`${totalKm} км`} label="пройдено" />
               <StatTile icon={<CalendarDays />} value={`${totalDays}`} label="дней в пути" />
               <StatTile icon={<MapPin />} value={`${savedRoutes.length}`} label="маршрутов" />

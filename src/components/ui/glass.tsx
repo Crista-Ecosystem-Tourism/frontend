@@ -139,10 +139,10 @@ export function StatTile({ icon, value, label, className }: StatTileProps) {
         {icon}
       </span>
       <span className="min-w-0">
-        <span className="block truncate font-sans text-lg font-semibold leading-tight text-text">
+        <span className="block font-sans text-lg font-semibold leading-tight text-text">
           {value}
         </span>
-        <span className="block truncate font-sans text-[11px] leading-tight text-text-muted">
+        <span className="block font-sans text-[11px] leading-tight text-text-muted">
           {label}
         </span>
       </span>

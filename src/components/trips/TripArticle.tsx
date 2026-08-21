@@ -84,19 +84,19 @@ export function TripArticle({ trip, onBack, onPrivacyChange }: TripArticleProps)
         </p>
 
         {/* Статистика */}
-        <GlassPanel className="mb-8 grid grid-cols-2 gap-5 p-5 sm:grid-cols-3 lg:grid-cols-6">
+        <GlassPanel className="mb-8 grid grid-cols-2 gap-x-4 gap-y-5 p-5 sm:grid-cols-3">
           <StatTile icon={<CalendarDays />} value={`${trip.stats.days}`} label="дней в пути" />
           <StatTile icon={<Route />} value={`${trip.stats.distanceKm} км`} label="пройдено" />
           <StatTile icon={<MapPin />} value={`${trip.stats.placesVisited}`} label="мест посещено" />
           <StatTile
             icon={<Wallet />}
-            value={`${(trip.stats.budget / 1000).toFixed(1)} тыс`}
-            label="бюджет, ₽"
+            value={`${trip.stats.budget.toLocaleString('ru')} ₽`}
+            label="бюджет поездки"
           />
           <StatTile
             icon={<PiggyBank />}
-            value={`${(trip.stats.saved / 1000).toFixed(1)} тыс`}
-            label="сэкономлено, ₽"
+            value={`${trip.stats.saved.toLocaleString('ru')} ₽`}
+            label="сэкономлено"
           />
           <StatTile icon={<Stamp />} value={`${trip.stats.stamps}`} label="штампов" />
         </GlassPanel>
