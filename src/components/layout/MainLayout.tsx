@@ -8,7 +8,7 @@ import { PlaceDetailPanel } from '@/components/map/PlaceDetailPanel'
 import { HomeHub } from '@/components/home/HomeHub'
 import { SavedRoutesPanel } from '@/components/routes/SavedRoutesPanel'
 import { DataPanel } from '@/components/data/DataPanel'
-import { SuitcasePanel } from '@/components/suitcase/SuitcasePanel'
+import { MyTripsPanel } from '@/components/trips/MyTripsPanel'
 import { InspirationPanel } from '@/components/inspiration/InspirationPanel'
 import { CommunityPanel } from '@/components/community/CommunityPanel'
 import { GamePanel } from '@/components/game/GamePanel'
@@ -151,7 +151,7 @@ export function MainLayout() {
                 transition={{ duration: 0.3 }}
                 className="w-full h-full"
               >
-                <SuitcasePanel onBack={() => setMainView('home')} />
+                <MyTripsPanel onBack={() => setMainView('home')} />
               </motion.div>
             ) : isHome ? (
               <motion.div

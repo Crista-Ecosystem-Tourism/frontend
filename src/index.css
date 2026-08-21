@@ -35,16 +35,17 @@
     --ease-bounce: cubic-bezier(.34,1.56,.64,1);
     --duration-fast: 150ms; --duration-base: 200ms; --duration-slow: 250ms; --duration-bounce: 500ms; --duration-pulse: 2400ms;
 
-    /* light theme (fallback) */
-    --color-bg: linear-gradient(180deg, #F6F5FB 0%, #EFEDF7 100%);
-    --color-bg-solid: #F6F5FB;
-    --color-surface: #FFFFFF;
-    --color-surface-raised: #FFFFFF;
-    --color-surface-hover: #F1EFFA;
-    --color-border: rgba(20,16,35,.08);
-    --color-border-strong: rgba(20,16,35,.14);
-    --color-text-primary: #1A1526;
-    --color-text-secondary: #544E6B;
+    /* Светлая тема: то же стекло, что и в тёмной, но по светлой стороне.
+       Поверхности полупрозрачные, фон тёплый лавандовый, а не плоский белый. */
+    --color-bg: radial-gradient(ellipse at 20% 0%, #E7E1F5 0%, #F2EEF9 45%, #EFE9F2 100%);
+    --color-bg-solid: #F2EEF9;
+    --color-surface: rgba(255,255,255,.42);
+    --color-surface-raised: rgba(255,255,255,.62);
+    --color-surface-hover: rgba(255,255,255,.78);
+    --color-border: rgba(255,255,255,.55);
+    --color-border-strong: rgba(90,74,140,.18);
+    --color-text-primary: #1F1830;
+    --color-text-secondary: #4A4263;
     /* 5.07:1 на светлом фоне: плейсхолдеры и подписи обязаны читаться */
     --color-text-muted: #6B6683;
     --color-accent: var(--brand-teal-500);
@@ -55,13 +56,13 @@
     --color-glow-soft: #D9D4FF;
     --color-success: var(--success-500); --color-warning: var(--warning-500); --color-danger: var(--danger-500);
 
-    --glass-bg: rgba(255,255,255,.55); --glass-bg-strong: rgba(255,255,255,.72);
-    --glass-blur: 24px; --glass-blur-reduced: 14px;
-    --glass-border: 1px solid rgba(20,16,35,.08); --glass-shadow: 0 8px 32px rgba(0,0,0,.08);
-    --shadow-sm: 0 2px 8px rgba(20,16,35,.06); --shadow-md: 0 8px 24px rgba(20,16,35,.08); --shadow-lg: 0 16px 48px rgba(20,16,35,.1);
+    --glass-bg: rgba(255,255,255,.38); --glass-bg-strong: rgba(255,255,255,.55);
+    --glass-blur: 28px; --glass-blur-reduced: 16px;
+    --glass-border: 1px solid rgba(255,255,255,.6); --glass-shadow: 0 12px 40px rgba(74,58,120,.14);
+    --shadow-sm: 0 2px 8px rgba(74,58,120,.08); --shadow-md: 0 8px 24px rgba(74,58,120,.12); --shadow-lg: 0 16px 48px rgba(74,58,120,.16);
     --glow-ring: 0 0 0 3px rgba(107,91,255,.35);
-    --glass-photo-bg: rgba(15,15,18,.32); --glass-photo-border: 1px solid rgba(255,255,255,.16);
-    --scrim-rgb: 246, 245, 251;
+    --glass-photo-bg: rgba(255,255,255,.24); --glass-photo-border: 1px solid rgba(255,255,255,.5);
+    --scrim-rgb: 242, 238, 249;
   }
 
   /* dark theme — flagship */

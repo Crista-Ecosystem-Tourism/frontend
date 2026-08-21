@@ -23,7 +23,7 @@ const menuItems = [
   { icon: Map, label: 'Мои маршруты', id: 'saved' },
   { icon: ImagePlus, label: 'Место по фото', id: 'placeByPhoto' },
   { icon: Tent, label: 'Туры и глемпинг', id: 'toursGlamping' },
-  { icon: Luggage, label: 'Мой чемодан', id: 'suitcase' },
+  { icon: Luggage, label: 'Мои путешествия', id: 'suitcase' },
 ] as const
 
 type MenuId = (typeof menuItems)[number]['id']
