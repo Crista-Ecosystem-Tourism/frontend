@@ -1,10 +1,15 @@
 import { useState } from 'react'
-import { ArrowLeft, MapPin, Clock, Users, Star, Tent, Compass } from 'lucide-react'
+import { ArrowLeft, ArrowRight, MapPin, Clock, Users, Star, Tent, Compass } from 'lucide-react'
 import { GlassPanel, IconButton, DisplayTitle } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
 import { Img } from '@/components/ui/Img'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
+
+const IMG_TOURS =
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80'
+const IMG_GLAMPING =
+  'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=1600&q=80'
 
 interface ToursGlampingPanelProps {
   onBack: () => void
@@ -145,9 +150,63 @@ function OfferCard({ offer, onPlan }: { offer: Offer; onPlan: () => void }) {
   )
 }
 
+/** Половина сплит-экрана: фото на всю высоту, серифный заголовок, вход в раздел */
+function SplitHalf({
+  title,
+  subtitle,
+  imageUrl,
+  overlayClass,
+  className,
+  onOpen,
+}: {
+  title: string
+  subtitle: string
+  imageUrl: string
+  overlayClass: string
+  className?: string
+  onOpen: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn(
+        'group relative min-h-[42vh] flex-1 overflow-hidden text-center md:min-h-0',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent',
+        className
+      )}
+    >
+      <span
+        className="absolute inset-0 bg-cover bg-center transition-transform duration-[900ms] ease-out will-change-transform group-hover:scale-105 motion-reduce:transform-none"
+        style={{ backgroundImage: `url(${imageUrl})` }}
+        aria-hidden="true"
+      />
+      <span className={cn('pointer-events-none absolute inset-0', overlayClass)} aria-hidden="true" />
+      {/* Затемнение под текстом: на светлых кадрах подпись иначе не читается */}
+      <span
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_38%_at_50%_50%,rgba(11,10,23,0.62),transparent_72%)]"
+        aria-hidden="true"
+      />
+
+      <span className="relative z-10 flex h-full min-h-[42vh] flex-col items-center justify-center px-8 py-10 md:min-h-0">
+        <span className="font-display text-4xl font-semibold tracking-tight text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] md:text-5xl">
+          {title}
+        </span>
+        <span className="mt-4 max-w-sm font-sans text-sm leading-snug text-white/90 drop-shadow-md md:text-[0.9375rem]">
+          {subtitle}
+        </span>
+        <span className="mt-8 inline-flex items-center gap-2 rounded-full border border-white/85 px-6 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/95 transition-colors group-hover:bg-white/15">
+          Смотреть
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+      </span>
+    </button>
+  )
+}
+
 export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
   const { newChat, sendMessage } = useApp()
-  const [tab, setTab] = useState<'tours' | 'glamping'>('tours')
+  const [tab, setTab] = useState<'tours' | 'glamping' | null>(null)
 
   const list = tab === 'tours' ? tours : glamping
 
@@ -156,14 +215,50 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
     setTimeout(() => sendMessage(`Расскажи подробнее: ${offer.title}, ${offer.place}`), 100)
   }
 
+  // Вход: сплит-экран из двух половин
+  if (tab === null) {
+    return (
+      <div className="flex h-full flex-col overflow-hidden">
+        <div className="shrink-0 border-b border-white/[0.07] bg-ink-950/85 px-5 py-3 backdrop-blur-md sm:px-6">
+          <div className="flex items-center gap-3">
+            <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft />
+            </IconButton>
+            <h1 className="font-display text-2xl font-semibold text-text">Туры и глемпинг</h1>
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          <SplitHalf
+            title="Туры"
+            subtitle="Готовые маршруты с гидом, трансфером и поддержкой Crista."
+            imageUrl={IMG_TOURS}
+            overlayClass="bg-gradient-to-br from-[#0E3A42]/60 via-ink-950/40 to-ink-950/70"
+            onOpen={() => setTab('tours')}
+          />
+          <SplitHalf
+            title="Глемпинг"
+            subtitle="Комфорт среди природы: палатки люкс, домики с панорамными окнами."
+            imageUrl={IMG_GLAMPING}
+            overlayClass="bg-gradient-to-br from-violet-800/60 via-ink-950/40 to-ink-950/70"
+            className="border-t border-white/10 md:border-l md:border-t-0"
+            onOpen={() => setTab('glamping')}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
-          <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
+          <IconButton label="К выбору раздела" variant="ghost" size="sm" onClick={() => setTab(null)}>
             <ArrowLeft />
           </IconButton>
-          <h1 className="font-display text-2xl font-semibold text-text">Туры и глемпинг</h1>
+          <h1 className="font-display text-2xl font-semibold text-text">
+            {tab === 'tours' ? 'Туры' : 'Глемпинг'}
+          </h1>
         </div>
       </div>
 
