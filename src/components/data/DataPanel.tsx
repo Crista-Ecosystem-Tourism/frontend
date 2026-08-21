@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft, BookOpen, Search, MapPin, Landmark, UtensilsCrossed, Sparkles,
+  ArrowLeft, Search, MapPin, Landmark, UtensilsCrossed, Sparkles,
   Wallet, Globe, Bus, HandHeart, MessageCircleQuestion, ShieldAlert, Pencil, ChevronRight,
 } from 'lucide-react'
+import { GlassPanel, Chip, IconButton, DisplayTitle } from '@/components/ui/glass'
+import { Img } from '@/components/ui/Img'
 import { cn } from '@/lib/utils'
 
 interface DataPanelProps {
@@ -28,9 +29,9 @@ const articles: CountryArticle[] = [
     name: 'Россия',
     flag: '🇷🇺',
     cover: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
-    summary: 'Самая большая страна мира — от Балтики до Тихого океана, с богатым культурным наследием и разнообразной кухней.',
+    summary: 'Самая большая страна мира, от Балтики до Тихого океана, с богатым культурным наследием и разнообразной кухней.',
     history: 'Тысячелетняя история от Киевской Руси до современной федерации: империя, революция 1917 года, советский период и переход к рыночной экономике в 1990-х.',
-    cuisine: 'Борщ, пельмени, блины, оливье, шашлык. Чаепитие — важная часть повседневной культуры.',
+    cuisine: 'Борщ, пельмени, блины, оливье, шашлык. Чаепитие остаётся важной частью повседневной культуры.',
     traditions: 'Гостеприимство, баня, Новый год как главный семейный праздник, широкая Масленица.',
     practical: [
       { label: 'Виза', value: 'Требуется для большинства стран', icon: Globe },
@@ -45,14 +46,14 @@ const articles: CountryArticle[] = [
     flag: '🇬🇪',
     cover: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=1200&q=80',
     summary: 'Гостеприимная страна на Кавказе с древними традициями виноделия и одной из самых узнаваемых кухонь мира.',
-    history: 'Одна из первых стран, принявших христианство (IV век). Богатая история царств и влияние Персии, Османской империи и России.',
-    cuisine: 'Хинкали, хачапури, вино из квеври, чурчхела. Тосты и застолье — «супра» — целый ритуал.',
+    history: 'Одна из первых стран, принявших христианство в IV веке. Богатая история царств и влияние Персии, Османской империи и России.',
+    cuisine: 'Хинкали, хачапури, вино из квеври, чурчхела. Застолье «супра» с тамадой это целый ритуал.',
     traditions: 'Многоголосое пение, тамада на застольях, культ гостеприимства.',
     practical: [
       { label: 'Виза', value: 'Безвизовый въезд для РФ до 1 года', icon: Globe },
       { label: 'Валюта', value: 'Лари (₾)', icon: Wallet },
       { label: 'Транспорт', value: 'Маршрутки, такси, канатные дороги', icon: Bus },
-      { label: 'Разговорник', value: '«Гамарджоба» — привет', icon: MessageCircleQuestion },
+      { label: 'Разговорник', value: '«Гамарджоба» это привет', icon: MessageCircleQuestion },
     ],
   },
   {
@@ -60,9 +61,9 @@ const articles: CountryArticle[] = [
     name: 'Япония',
     flag: '🇯🇵',
     cover: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80',
-    summary: 'Страна восходящего солнца — гармония многовековых традиций и передовых технологий.',
+    summary: 'Страна восходящего солнца: гармония многовековых традиций и передовых технологий.',
     history: 'Эпоха самураев и сёгунов, реставрация Мэйдзи, стремительная модернизация после Второй мировой войны.',
-    cuisine: 'Суши, рамен, темпура, кайсэки. Чайная церемония — искусство осознанности.',
+    cuisine: 'Суши, рамен, темпура, кайсэки. Чайная церемония это искусство осознанности.',
     traditions: 'Этикет поклонов, обувь снимается у входа, культ вежливости и порядка.',
     practical: [
       { label: 'Виза', value: 'Требуется для граждан РФ', icon: Globe },
@@ -79,162 +80,194 @@ const categories = [
   { key: 'traditions', label: 'Традиции', icon: Sparkles },
 ] as const
 
+function Header({ onBack, title }: { onBack: () => void; title: string }) {
+  return (
+    <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
+        <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft />
+        </IconButton>
+        <h1 className="font-display text-2xl font-semibold text-text">{title}</h1>
+      </div>
+    </div>
+  )
+}
+
 export function DataPanel({ onBack }: DataPanelProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [tab, setTab] = useState<'history' | 'cuisine' | 'traditions'>('history')
   const [query, setQuery] = useState('')
 
-  const active = articles.find(a => a.id === openId)
-  const filtered = articles.filter(a => a.name.toLowerCase().includes(query.toLowerCase()))
+  const active = articles.find((a) => a.id === openId)
+  const filtered = articles.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
+
+  /* ------------------------------------------------------------- статья */
 
   if (active) {
     return (
-      <div className="flex flex-col h-full bg-background overflow-y-auto">
-        <div className="flex-shrink-0 p-4 pb-3 border-b border-border sticky top-0 bg-background/90 backdrop-blur-md z-10">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setOpenId(null)}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 text-text-secondary" />
-            </button>
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary shrink-0" />
-              <h1 className="text-xl font-bold text-text">CristaWiki</h1>
+      <div className="h-full overflow-y-auto">
+        <Header onBack={() => setOpenId(null)} title="Crista Wiki" />
+
+        <article className="mx-auto w-full max-w-[820px] px-5 py-8 sm:px-6">
+          <div className="relative mb-6 aspect-[16/7] overflow-hidden rounded-lg">
+            <Img src={active.cover} alt={active.name} className="h-full w-full object-cover" />
+            <div className="photo-scrim absolute inset-0" />
+            <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 p-5">
+              <span className="text-3xl leading-none" aria-hidden="true">{active.flag}</span>
+              <DisplayTitle className="!text-4xl text-white">{active.name}</DisplayTitle>
             </div>
           </div>
-        </div>
 
-        <div className="max-w-3xl w-full mx-auto p-4 sm:p-6">
-          <div className="relative h-48 sm:h-64 rounded-3xl overflow-hidden mb-6">
-            <img src={active.cover} alt={active.name} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-            <div className="absolute bottom-4 left-5 flex items-center gap-2 text-white">
-              <span className="text-3xl">{active.flag}</span>
-              <h2 className="text-2xl sm:text-3xl font-bold">{active.name}</h2>
-            </div>
-            <span className="absolute top-4 right-4 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white bg-white/20 backdrop-blur-md rounded-full px-2.5 py-1">
-              <Pencil className="w-3 h-3" /> Редактируется сообществом
-            </span>
-          </div>
+          {/* Лид: акцентный шрифт, комфортная мера строки для чтения */}
+          <p className="mb-6 max-w-[68ch] font-accent text-xl leading-relaxed text-text-secondary">
+            {active.summary}
+          </p>
 
-          <p className="text-text-secondary leading-relaxed mb-6">{active.summary}</p>
-
-          <div className="flex gap-1.5 mb-5 bg-surface-light p-1 rounded-xl w-fit">
-            {categories.map(cat => (
+          <div className="mb-5 flex w-fit gap-1 rounded-md border border-white/[0.09] bg-white/[0.05] p-1">
+            {categories.map((cat) => (
               <button
                 key={cat.key}
                 onClick={() => setTab(cat.key)}
+                aria-pressed={tab === cat.key}
                 className={cn(
-                  'flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors',
-                  tab === cat.key ? 'bg-surface-hover text-text shadow-sm' : 'text-text-secondary hover:text-text'
+                  'flex items-center gap-1.5 rounded-sm px-3.5 py-2 font-sans text-sm font-medium transition-colors',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                  tab === cat.key
+                    ? 'bg-teal-700 text-white'
+                    : 'text-text-secondary hover:bg-white/[0.06] hover:text-text'
                 )}
               >
-                <cat.icon className="w-3.5 h-3.5" /> {cat.label}
+                <cat.icon className="h-3.5 w-3.5" aria-hidden="true" />
+                {cat.label}
               </button>
             ))}
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface-light/40 p-5 mb-6 leading-relaxed text-text-secondary">
-            {tab === 'history' && active.history}
-            {tab === 'cuisine' && active.cuisine}
-            {tab === 'traditions' && active.traditions}
-          </div>
+          <GlassPanel className="mb-8 p-5">
+            <p className="max-w-[68ch] font-sans leading-relaxed text-text-secondary">
+              {tab === 'history' && active.history}
+              {tab === 'cuisine' && active.cuisine}
+              {tab === 'traditions' && active.traditions}
+            </p>
+          </GlassPanel>
 
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-muted mb-3">Практическая информация</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {active.practical.map(item => (
-              <div key={item.label} className="flex items-center gap-3 rounded-xl border border-border bg-background p-3.5">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-text-muted">{item.label}</p>
-                  <p className="text-sm font-medium text-text">{item.value}</p>
-                </div>
+          <h2 className="mb-3 font-display text-xl font-semibold text-text">
+            Практическая информация
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {active.practical.map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center gap-3 rounded-md border border-white/[0.09] bg-white/[0.05] p-3.5"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-primary/15 text-primary">
+                  <item.icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-sans text-xs text-text-muted">{item.label}</span>
+                  <span className="block font-sans text-sm font-medium text-text">{item.value}</span>
+                </span>
               </div>
             ))}
           </div>
-        </div>
+
+          <p className="mt-8 flex items-center gap-2 font-sans text-xs text-text-muted">
+            <Pencil className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            Статья редактируется сообществом с модерацией
+          </p>
+        </article>
       </div>
     )
   }
 
-  return (
-    <div className="flex flex-col h-full bg-background overflow-y-auto">
-      <div className="flex-shrink-0 p-4 pb-3 border-b border-border sticky top-0 bg-background/90 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 text-text-secondary" />
-          </button>
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-primary shrink-0" />
-            <h1 className="text-xl font-bold text-text">CristaWiki</h1>
-          </div>
-        </div>
-      </div>
+  /* -------------------------------------------------------------- список */
 
-      <div className="max-w-4xl w-full mx-auto p-4 sm:p-6">
-        <p className="text-text-secondary mb-5">
-          Справочник по странам: история, кухня, традиции и практическая информация — единый источник контента для квестов, фокуса и маршрутов.
+  return (
+    <div className="h-full overflow-y-auto">
+      <Header onBack={onBack} title="Crista Wiki" />
+
+      <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
+        <p className="mb-6 max-w-[68ch] font-accent text-lg leading-relaxed text-text-secondary">
+          Справочник по странам: история, кухня, традиции и практическая информация.
+          Единый источник контента для квестов, фокуса и маршрутов.
         </p>
 
-        <div className="relative mb-6">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+        <div className="relative mb-6 max-w-md">
+          <Search
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+            aria-hidden="true"
+          />
+          <label htmlFor="wiki-search" className="sr-only">Поиск по странам</label>
           <input
+            id="wiki-search"
             value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Поиск по странам..."
-            className="w-full h-11 pl-10 pr-4 rounded-xl border border-border bg-surface-light text-sm text-text placeholder:text-text-muted outline-none focus:ring-2 focus:ring-primary/40"
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Поиск по странам"
+            className="h-11 w-full rounded-md border border-white/[0.09] bg-white/[0.05] pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
           />
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          <AnimatePresence>
-            {filtered.map((a, i) => (
-              <motion.button
+        {filtered.length === 0 ? (
+          <GlassPanel className="p-8 text-center">
+            <p className="font-sans text-sm text-text-secondary">
+              По запросу «{query}» ничего не нашлось.
+            </p>
+            <button
+              onClick={() => setQuery('')}
+              className="mt-2 font-sans text-sm text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Показать все страны
+            </button>
+          </GlassPanel>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((a) => (
+              <button
                 key={a.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                onClick={() => { setOpenId(a.id); setTab('history') }}
-                className="group text-left rounded-2xl border border-border bg-surface-light/40 overflow-hidden hover:border-primary/40 hover:shadow-lg transition-all"
+                onClick={() => {
+                  setOpenId(a.id)
+                  setTab('history')
+                }}
+                className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] text-left transition duration-base ease-standard hover:border-white/[0.16] hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
-                <div className="relative h-32">
-                  <img src={a.cover} alt={a.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <div className="absolute bottom-3 left-4 flex items-center gap-2 text-white">
-                    <span className="text-xl">{a.flag}</span>
-                    <span className="font-bold">{a.name}</span>
-                  </div>
+                <div className="relative aspect-[16/9] overflow-hidden">
+                  <Img
+                    src={a.cover}
+                    alt={a.name}
+                    className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
+                  />
+                  <div className="photo-scrim absolute inset-0" />
+                  <span className="absolute bottom-3 left-4 flex items-center gap-2">
+                    <span className="text-xl leading-none" aria-hidden="true">{a.flag}</span>
+                    <span className="font-display text-2xl font-semibold text-white">{a.name}</span>
+                  </span>
                 </div>
-                <div className="p-4">
-                  <p className="text-sm text-text-secondary line-clamp-2 mb-3">{a.summary}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-1.5">
-                      {categories.map(cat => (
-                        <span key={cat.key} className="text-[10px] font-semibold text-text-muted bg-surface rounded-full px-2 py-1">
-                          {cat.label}
-                        </span>
-                      ))}
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-                  </div>
-                </div>
-              </motion.button>
-            ))}
-          </AnimatePresence>
-        </div>
 
-        <div className="flex items-center gap-2 mt-6 rounded-xl border border-dashed border-border p-4 text-xs text-text-muted">
-          <MapPin className="w-4 h-4 flex-shrink-0" />
-          Открытые статьи индексируются поисковиками — дополнительный канал органического трафика. Частичное редактирование доступно сообществу с модерацией.
-        </div>
+                <div className="p-4">
+                  <p className="mb-3 line-clamp-2 font-sans text-sm leading-relaxed text-text-secondary">
+                    {a.summary}
+                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex gap-1.5">
+                      {categories.map((cat) => (
+                        <Chip key={cat.key} size="sm">{cat.label}</Chip>
+                      ))}
+                    </span>
+                    <ChevronRight
+                      className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-white/[0.12] p-4 font-sans text-xs leading-relaxed text-text-muted">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          Открытые статьи индексируются поисковиками. Частичное редактирование доступно сообществу с модерацией.
+        </p>
       </div>
     </div>
   )
