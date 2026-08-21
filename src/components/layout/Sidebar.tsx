@@ -218,8 +218,8 @@ export function Sidebar() {
 
       {/* Десктоп: рельс из круглых иконок */}
       {/* z-30: подсказки рельса должны рисоваться поверх основной области */}
-      <aside className="relative z-30 hidden h-full shrink-0 p-3 pr-0 lg:block">
-        <div className="glass flex h-full w-[68px] flex-col items-center rounded-xl py-4">
+      <aside className="relative z-30 hidden h-full shrink-0 p-3 lg:block">
+        <div className="glass glass-raised flex h-full w-[68px] flex-col items-center rounded-xl py-4">
           <Link to="/" onClick={goHome} aria-label="Crista, на главную" className="shrink-0">
             <Logo size={34} />
           </Link>

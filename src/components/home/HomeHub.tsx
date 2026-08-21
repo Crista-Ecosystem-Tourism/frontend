@@ -205,7 +205,15 @@ export function HomeHub({ onSend }: HomeHubProps) {
     <div className="h-full overflow-y-auto scrollbar-hidden">
       {/* Фотооснова: композиция стоит на снимке, а не на сером фоне.
           Затемнение многослойное, чтобы текст читался на любом кадре. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[620px] overflow-hidden">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[620px] overflow-hidden"
+        style={{
+          // Кадр и его затемнение уходят в прозрачность вместе: раньше блок
+          // обрывался непрозрачной кромкой и давал горизонтальный шов
+          maskImage: 'linear-gradient(to bottom, #000 0%, #000 52%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 52%, transparent 100%)',
+        }}
+      >
         <Img
           src={HERO_IMAGE}
           alt="Панорама города на воде"
