@@ -27,9 +27,9 @@ interface StampData {
 function Stamp({ stamp }: { stamp: StampData }) {
   if (!stamp.earned) {
     return (
-      <div className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-full border-2 border-dashed border-ink-950/15 p-3 text-center dark:border-white/[0.12]">
-        <Lock className="h-3.5 w-3.5 text-ink-950/30 dark:text-white/30" aria-hidden="true" />
-        <span className="font-sans text-[10px] leading-tight text-ink-950/40 dark:text-white/40">
+      <div className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-full border-2 border-dashed border-ink-950/30 p-3 text-center">
+        <Lock className="h-3.5 w-3.5 text-ink-950/50" aria-hidden="true" />
+        <span className="font-sans text-[10px] font-medium leading-tight text-ink-950/60">
           {stamp.title}
         </span>
       </div>
