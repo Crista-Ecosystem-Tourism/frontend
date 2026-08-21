@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import { GlassPanel, Chip, IconButton, StatTile, DisplayTitle } from '@/components/ui/glass'
 import { Img } from '@/components/ui/Img'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { AppBackdrop } from '@/components/layout/AppBackdrop'
 import { gameCountries } from '@/mocks/game'
 import { trips, formatTripDates } from '@/mocks/trips'
 import { getInitials, cn } from '@/lib/utils'
@@ -88,8 +87,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background font-sans text-text">
-      <AppBackdrop />
+    <div className="flex h-screen w-screen overflow-hidden font-sans text-text">
 
       <div className="relative z-10 flex h-full w-full">
         <Sidebar />

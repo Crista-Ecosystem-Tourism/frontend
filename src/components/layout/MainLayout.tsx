@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sidebar } from './Sidebar'
-import { AppBackdrop } from './AppBackdrop'
 import { MobileTabBar } from './MobileTabBar'
 import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatListPanel } from '@/components/chat/ChatListPanel'
@@ -43,9 +42,7 @@ export function MainLayout() {
   const isHome = !currentChatId
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background text-text font-sans selection:bg-primary/30">
-      {/* Размытый снимок под всем интерфейсом: стеклу нужно что-то преломлять */}
-      <AppBackdrop />
+    <div className="h-screen w-screen overflow-hidden text-text font-sans selection:bg-primary/30">
 
       {/* Sidebar */}
       <div className="flex h-full relative z-10">
