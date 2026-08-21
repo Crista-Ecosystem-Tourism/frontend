@@ -52,7 +52,7 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 bg-header/70 px-5 py-3 backdrop-blur-md sm:px-6">
+      <div className="shrink-0 px-5 pt-6 sm:px-6">
         <div className="mx-auto max-w-[900px]">
           <div className="mb-4 flex items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>

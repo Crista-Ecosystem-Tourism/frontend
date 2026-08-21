@@ -207,8 +207,8 @@ export function Sidebar() {
     <>
       {/* Десктоп: рельс из круглых иконок */}
       {/* z-30: подсказки рельса должны рисоваться поверх основной области */}
-      <aside className="relative z-20 hidden h-full shrink-0 py-3 pl-3 lg:block">
-        <div className="glass glass-raised flex h-full w-[68px] flex-col items-center rounded-xl py-4">
+      <aside className="relative z-20 hidden h-full shrink-0 lg:block">
+        <div className="flex h-full w-[72px] flex-col items-center py-4">
           <div className="shrink-0">
             <RailButton icon={Plus} label="Новый чат" onClick={newChat} />
           </div>

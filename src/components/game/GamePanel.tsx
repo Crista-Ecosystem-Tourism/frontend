@@ -100,8 +100,8 @@ export function GamePanel({ onBack }: GamePanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
+      <div className="relative z-10">
+        <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 pb-2 pt-6 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
               <ArrowLeft />
@@ -121,7 +121,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[1100px] space-y-8 px-5 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-[1100px] space-y-8 px-5 pb-8 pt-4 sm:px-6">
         {/* Карта мира */}
         <section>
           <div className="mb-4 flex items-baseline justify-between gap-4">

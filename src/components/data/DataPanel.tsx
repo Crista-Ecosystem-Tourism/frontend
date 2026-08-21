@@ -93,8 +93,8 @@ const categories = [
 
 function Header({ onBack, title }: { onBack: () => void; title: string }) {
   return (
-    <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
+    <div className="relative z-10">
+      <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 pb-2 pt-6 sm:px-6">
         <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
           <ArrowLeft />
         </IconButton>
@@ -161,7 +161,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
       <div className="h-full overflow-y-auto">
         <Header onBack={() => setOpenId(null)} title="Crista Wiki" />
 
-        <article className="mx-auto w-full max-w-[820px] px-5 py-8 sm:px-6">
+        <article className="mx-auto w-full max-w-[820px] px-5 pb-8 pt-4 sm:px-6">
           <div className="relative mb-6 aspect-[16/7] overflow-hidden rounded-lg">
             <Img src={active.cover} alt={active.name} className="h-full w-full object-cover" />
             <div className="photo-scrim absolute inset-0" />
@@ -254,7 +254,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
     <div className="h-full overflow-y-auto">
       <Header onBack={onBack} title="Crista Wiki" />
 
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pb-8 pt-4 sm:px-6">
         <div className="mb-6 flex flex-wrap items-center gap-3">
           <p className="max-w-[68ch] font-accent text-lg leading-relaxed text-text-secondary">
             Справочник по странам: история, кухня, традиции и практическая информация.

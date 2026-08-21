@@ -14,7 +14,7 @@ export function AppHeader() {
   const { user, newChat, goHome, setSidebarOpen, setMainView } = useApp()
 
   return (
-    <header className="relative z-30 flex h-16 shrink-0 items-center gap-3 border-b border-hairline px-3 sm:px-4">
+    <header className="relative z-30 flex h-16 shrink-0 items-center gap-3 px-3 sm:px-4">
       {/* Меню на мобильных */}
       <button
         onClick={() => setSidebarOpen(true)}

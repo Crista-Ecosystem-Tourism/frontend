@@ -130,8 +130,8 @@ export function TravelPassport({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[980px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
+      <div className="relative z-10">
+        <div className="mx-auto flex max-w-[980px] items-center justify-between gap-3 px-5 pb-2 pt-6 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Назад к карте" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
               <ArrowLeft />
@@ -147,7 +147,7 @@ export function TravelPassport({
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[980px] space-y-6 px-5 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-[980px] space-y-6 px-5 pb-8 pt-4 sm:px-6">
         {/* Разворот книги: тёмная обложка оборачивает две бумажные страницы */}
         <div className="rounded-xl bg-gradient-to-br from-[#123840] via-[#0E2A31] to-[#0B1F24] p-3 shadow-[0_28px_70px_rgba(0,0,0,0.55)] sm:p-4">
           <div className="relative grid overflow-hidden rounded-md md:grid-cols-2">

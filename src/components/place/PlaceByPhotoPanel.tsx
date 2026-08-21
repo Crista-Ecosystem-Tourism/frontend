@@ -61,8 +61,8 @@ export function PlaceByPhotoPanel({ onBack }: PlaceByPhotoPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[900px] items-center gap-3 px-5 py-3 sm:px-6">
+      <div className="relative z-10">
+        <div className="mx-auto flex max-w-[900px] items-center gap-3 px-5 pb-2 pt-6 sm:px-6">
           <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
             <ArrowLeft />
           </IconButton>
@@ -70,7 +70,7 @@ export function PlaceByPhotoPanel({ onBack }: PlaceByPhotoPanelProps) {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[900px] px-5 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-[900px] px-5 pb-8 pt-4 sm:px-6">
         <p className="mb-6 max-w-[68ch] font-accent text-lg leading-relaxed text-text-secondary">
           Загрузите снимок, и Crista подскажет, что на нём изображено и где это находится.
         </p>

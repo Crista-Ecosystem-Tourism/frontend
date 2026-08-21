@@ -39,7 +39,7 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 bg-header/70 px-5 py-3 backdrop-blur-md sm:px-6">
+      <div className="shrink-0 px-5 pt-6 sm:px-6">
         <div className="mx-auto max-w-[900px]">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">

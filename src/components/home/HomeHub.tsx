@@ -203,44 +203,42 @@ export function HomeHub({ onSend }: HomeHubProps) {
 
   return (
     <div className="h-full overflow-y-auto scrollbar-hidden">
-      {/* Фотооснова: композиция стоит на снимке, а не на сером фоне.
-          Затемнение многослойное, чтобы текст читался на любом кадре. */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[620px] overflow-hidden"
-        style={{
-          // Кадр и его затемнение уходят в прозрачность вместе: раньше блок
-          // обрывался непрозрачной кромкой и давал горизонтальный шов
-          maskImage: 'linear-gradient(to bottom, #000 0%, #000 52%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 52%, transparent 100%)',
-        }}
-      >
-        <Img
-          src={HERO_IMAGE}
-          alt="Панорама города на воде"
-          className="h-full w-full object-cover opacity-40"
-        />
-        <div className="photo-scrim-x absolute inset-0" />
-        <div className="absolute inset-0 photo-scrim" />
-      </div>
-
       <div className="relative mx-auto w-full max-w-[1320px] px-5 pb-16 pt-10 sm:px-8 lg:pt-16">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
-          {/* Левая колонка: главная работа продукта.
-              Контент виден сразу: движение здесь украшает, но ничего не открывает. */}
-          <div className="flex min-w-0 flex-col justify-center pt-4 lg:pt-10">
-            <DisplayTitle size="xl" className="max-w-[16ch]">
-              Куда отправимся?
-            </DisplayTitle>
-            <p className="mt-4 max-w-[52ch] font-accent text-lg leading-relaxed text-text-secondary sm:text-xl">
-              Опишите поездку словами. Crista соберёт маршрут, посчитает бюджет и откроет страну
-              на вашей карте мира.
-            </p>
+          {/* Фотокарточка героя: кадр это объект, а не обои под текстом */}
+          <div className="flex min-w-0 flex-col">
+            <div className="relative overflow-hidden rounded-xl border border-hairline-2 shadow-lg">
+              <Img
+                src={HERO_IMAGE}
+                alt="Панорама города на воде"
+                className="h-[380px] w-full object-cover sm:h-[440px]"
+              />
+              {/* Затемнение сжато к низу: верх кадра остаётся в полную силу,
+                  а зона текста гарантированно тёмная на любом снимке */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(to top, rgb(var(--scrim-rgb)) 0%, rgba(var(--scrim-rgb),0.9) 26%, rgba(var(--scrim-rgb),0.55) 46%, rgba(var(--scrim-rgb),0.12) 70%, transparent 100%)',
+                }}
+              />
 
-            <div className="mt-8 max-w-2xl">
+              <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
+                <DisplayTitle size="lg" className="max-w-[14ch] !text-white">
+                  Куда отправимся?
+                </DisplayTitle>
+                <p className="mt-3 max-w-[46ch] font-accent text-base leading-relaxed text-white/80 sm:text-lg">
+                  Опишите поездку словами. Crista соберёт маршрут, посчитает бюджет
+                  и откроет страну на вашей карте мира.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5">
               <Composer onSend={onSend} />
             </div>
 
-            <div className="mt-10 flex flex-wrap items-center gap-x-10 gap-y-5">
+            <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-5">
               <StatTile icon={<CloudSun />} value="12°C" label="Москва, облачно" />
               <StatTile
                 icon={<Compass />}

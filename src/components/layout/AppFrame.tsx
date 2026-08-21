@@ -26,7 +26,7 @@ export function AppFrame({ children, className }: AppFrameProps) {
       >
         {/* Блик по верхней кромке листа: край стекла должен читаться */}
         <span
-          className="pointer-events-none absolute inset-x-0 top-0 z-40 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 z-40 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
           aria-hidden="true"
         />
         <AppHeader />

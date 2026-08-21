@@ -65,8 +65,8 @@ const friends = [
 export function CommunityPanel({ onBack }: CommunityPanelProps) {
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
+      <div className="relative z-10">
+        <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 pb-2 pt-6 sm:px-6">
           <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
             <ArrowLeft />
           </IconButton>
@@ -74,7 +74,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pb-8 pt-4 sm:px-6">
         <Tabs defaultValue="routes" className="w-full">
           <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-md border border-hairline bg-panel p-1 sm:w-fit">
             <TabsTrigger value="routes" className="rounded-sm px-4 py-2">Маршруты звёзд и друзей</TabsTrigger>

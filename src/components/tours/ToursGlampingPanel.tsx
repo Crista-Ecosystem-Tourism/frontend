@@ -219,7 +219,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
   if (tab === null) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <div className="shrink-0 bg-header/70 px-5 py-3 backdrop-blur-md sm:px-6">
+        <div className="shrink-0 px-5 pt-6 sm:px-6">
           <div className="flex items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
               <ArrowLeft />
@@ -251,8 +251,8 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
+      <div className="relative z-10">
+        <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 pb-2 pt-6 sm:px-6">
           <IconButton label="К выбору раздела" variant="ghost" size="sm" onClick={() => setTab(null)}>
             <ArrowLeft />
           </IconButton>
@@ -262,7 +262,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
+      <div className="mx-auto w-full max-w-[1100px] px-5 pb-8 pt-4 sm:px-6">
         <p className="mb-6 max-w-[68ch] font-accent text-lg leading-relaxed text-text-secondary">
           Готовые маршруты с гидом и места для ночёвки, которые не похожи на отель.
           Всё подобрано под ваши прошлые поездки.
