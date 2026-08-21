@@ -155,10 +155,15 @@
     to { opacity: 1; transform: translate(-50%, -50%) scale(1) }
   }
 
-  /* Custom scrollbar */
+  /* Скроллбар: наложением, как в macOS. Полоса не должна резать стекло,
+     поэтому она прозрачна в покое и проявляется только при наведении. */
+  * {
+    scrollbar-width: none;
+  }
+
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
@@ -166,8 +171,15 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: var(--color-border-strong);
+    background-color: transparent;
+    border: 3px solid transparent;
     border-radius: var(--radius-full);
+    background-clip: content-box;
+  }
+
+  *:hover > ::-webkit-scrollbar-thumb,
+  *:focus-within > ::-webkit-scrollbar-thumb {
+    background-color: var(--hairline-3);
   }
 
   ::-webkit-scrollbar-thumb:hover {

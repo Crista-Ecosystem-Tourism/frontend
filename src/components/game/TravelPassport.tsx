@@ -130,10 +130,10 @@ export function TravelPassport({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
+      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-[980px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
-            <IconButton label="Назад к карте" variant="ghost" size="sm" onClick={onBack}>
+            <IconButton label="Назад к карте" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
               <ArrowLeft />
             </IconButton>
             <h1 className="truncate font-display text-2xl font-semibold text-text">

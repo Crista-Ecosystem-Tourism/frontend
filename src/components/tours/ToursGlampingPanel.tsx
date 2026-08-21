@@ -219,9 +219,9 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
   if (tab === null) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <div className="shrink-0 border-b border-hairline bg-header px-5 py-3 backdrop-blur-md sm:px-6">
+        <div className="shrink-0 bg-header/70 px-5 py-3 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-3">
-            <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
+            <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
               <ArrowLeft />
             </IconButton>
             <h1 className="font-display text-2xl font-semibold text-text">Туры и глемпинг</h1>
@@ -251,7 +251,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
+      <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
           <IconButton label="К выбору раздела" variant="ghost" size="sm" onClick={() => setTab(null)}>
             <ArrowLeft />

@@ -175,9 +175,9 @@ export function SettingsPage() {
         <Sidebar />
 
         <main className="h-full min-w-0 flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
+          <div className="sticky top-0 z-20 bg-header/70 backdrop-blur-md">
             <div className="mx-auto flex max-w-[760px] items-center gap-3 px-5 py-3 sm:px-6">
-              <IconButton label="Назад" variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={() => navigate(-1)}>
                 <ArrowLeft />
               </IconButton>
               <h1 className="font-display text-2xl font-semibold text-text">Настройки</h1>
