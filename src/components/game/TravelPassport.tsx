@@ -130,7 +130,7 @@ export function TravelPassport({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[980px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Назад к карте" variant="ghost" size="sm" onClick={onBack}>
@@ -262,7 +262,7 @@ export function TravelPassport({
           </div>
         </div>
 
-        <p className="flex items-start gap-2 rounded-lg border border-dashed border-white/[0.12] p-4 font-sans text-xs leading-relaxed text-text-muted">
+        <p className="flex items-start gap-2 rounded-lg border border-dashed border-hairline-2 p-4 font-sans text-xs leading-relaxed text-text-muted">
           <StampIcon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           Штамп за город выдаётся при закрытии всех его квестов, за страну при закрытии всех городов.
           Это документ Crista, он не имеет отношения к государственным паспортам.

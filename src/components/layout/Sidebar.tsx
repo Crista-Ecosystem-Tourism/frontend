@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Plus, X, Menu, Moon, Sun, MessageSquare, Search, Map, BookOpen, Luggage, User,
+  Plus, X, Moon, Sun, MessageSquare, Search, Map, BookOpen, Luggage, User,
   ChevronRight, Settings, HelpCircle, LogOut, Users, ImagePlus, Tent, Globe2, Languages,
 } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
@@ -163,7 +163,7 @@ export function Sidebar() {
               'flex w-full items-center gap-3 rounded-md px-3 py-2.5 font-sans text-sm font-medium transition-colors',
               activeMenuId === item.id
                 ? 'bg-teal-700 text-white'
-                : 'text-text-secondary hover:bg-white/[0.08] hover:text-text'
+                : 'text-text-secondary hover:bg-panel-2 hover:text-text'
             )}
           >
             <item.icon className="h-4 w-4 shrink-0" />
@@ -184,7 +184,7 @@ export function Sidebar() {
       <div className="space-y-1 border-t border-border p-3">
         <button
           onClick={() => setLang((p) => (p === 'ru' ? 'en' : 'ru'))}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 font-sans text-sm text-text-secondary transition-colors hover:bg-white/[0.08] hover:text-text"
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 font-sans text-sm text-text-secondary transition-colors hover:bg-panel-2 hover:text-text"
         >
           <Languages className="h-4 w-4" />
           <span className="flex-1 text-left">{lang === 'ru' ? 'Русский' : 'English'}</span>
@@ -194,7 +194,7 @@ export function Sidebar() {
         </button>
         <button
           onClick={toggleTheme}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 font-sans text-sm text-text-secondary transition-colors hover:bg-white/[0.08] hover:text-text"
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 font-sans text-sm text-text-secondary transition-colors hover:bg-panel-2 hover:text-text"
         >
           <ThemeIcon className="h-4 w-4" />
           {themeLabel}
@@ -205,32 +205,15 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Кнопка меню на мобильных */}
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Открыть меню"
-        className="fixed left-4 top-4 z-50 rounded-full border border-border bg-surface backdrop-blur-sm lg:hidden"
-        onClick={() => setSidebarOpen(true)}
-      >
-        <Menu className="h-5 w-5 text-text-secondary" />
-      </Button>
-
       {/* Десктоп: рельс из круглых иконок */}
       {/* z-30: подсказки рельса должны рисоваться поверх основной области */}
-      <aside className="relative z-30 hidden h-full shrink-0 p-3 lg:block">
+      <aside className="relative z-20 hidden h-full shrink-0 py-3 pl-3 lg:block">
         <div className="glass glass-raised flex h-full w-[68px] flex-col items-center rounded-xl py-4">
-          <Link to="/" onClick={goHome} aria-label="Crista, на главную" className="shrink-0">
-            <Logo size={34} />
-          </Link>
-
-          <div className="my-3 h-px w-8 shrink-0 bg-white/10" />
-
           <div className="shrink-0">
             <RailButton icon={Plus} label="Новый чат" onClick={newChat} />
           </div>
 
-          <div className="my-3 h-px w-8 shrink-0 bg-white/10" />
+          <div className="my-3 h-px w-8 shrink-0 bg-hairline-2" />
 
           {/* Разделов больше, чем в референсе: на низких экранах список
               прокручивается, а профиль и настройки остаются на виду. */}
@@ -246,7 +229,7 @@ export function Sidebar() {
             ))}
           </nav>
 
-          <div className="my-3 h-px w-8 shrink-0 bg-white/10" />
+          <div className="my-3 h-px w-8 shrink-0 bg-panel-2" />
 
           <div className="flex shrink-0 flex-col items-center gap-1.5">
             <RailButton
@@ -264,9 +247,9 @@ export function Sidebar() {
                     aria-label={`Профиль: ${user.name}`}
                     className="mt-1 rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
                   >
-                    <Avatar className="h-9 w-9 border border-white/15">
+                    <Avatar className="h-9 w-9 border border-hairline-2">
                       <AvatarImage src={user.avatar} />
-                      <AvatarFallback className="bg-white/10 text-xs text-text-secondary">
+                      <AvatarFallback className="bg-panel-2 text-xs text-text-secondary">
                         {getInitials(user.name)}
                       </AvatarFallback>
                     </Avatar>

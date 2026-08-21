@@ -100,7 +100,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
@@ -212,7 +212,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
               {weekly ? (
                 <>
                   <p className="mb-3 font-sans text-sm font-medium text-text">{weekly.title}</p>
-                  <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-panel-2">
                     <div className="h-full rounded-full bg-accent" style={{ width: `${weekly.percent}%` }} />
                   </div>
                   <p className="font-sans text-xs tabular text-text-muted">
@@ -237,7 +237,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
                 <span className="w-36 shrink-0 truncate font-sans text-xs text-text-secondary sm:w-44">
                   {questCategoryLabel[key]}
                 </span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel-2">
                   <div
                     className={cn('h-full rounded-full transition-[width] duration-slow ease-standard', categoryTint[key])}
                     style={{ width: `${categories[key]}%` }}
@@ -268,7 +268,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
               </span>
             </div>
 
-            <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-white/[0.08]">
+            <div className="mb-2 h-2.5 overflow-hidden rounded-full bg-panel-2">
               <div
                 className="h-full rounded-full bg-primary transition-[width] duration-slow ease-standard"
                 style={{ width: `${savedPercent}%` }}
@@ -302,7 +302,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
         <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={() => setShowPassport(true)}
-            className="group flex flex-1 items-center justify-between gap-4 rounded-lg border border-white/[0.09] bg-white/[0.05] p-4 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="group flex flex-1 items-center justify-between gap-4 rounded-lg border border-hairline bg-panel p-4 text-left transition-colors hover:bg-panel-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <span className="flex items-center gap-3">
               <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -318,7 +318,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
 
           <button
             onClick={resetProgress}
-            className="flex items-center gap-2 rounded-lg border border-white/[0.09] px-4 py-3 font-sans text-sm text-text-muted transition-colors hover:border-white/[0.16] hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex items-center gap-2 rounded-lg border border-hairline px-4 py-3 font-sans text-sm text-text-muted transition-colors hover:border-hairline-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Сбросить прогресс

@@ -90,7 +90,7 @@ const glamping: Offer[] = [
 
 function OfferCard({ offer, onPlan }: { offer: Offer; onPlan: () => void }) {
   return (
-    <article className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] transition duration-base ease-standard hover:-translate-y-0.5 hover:border-white/[0.16]">
+    <article className="group overflow-hidden rounded-lg border border-hairline bg-panel transition duration-base ease-standard hover:-translate-y-0.5 hover:border-hairline-2">
       <div className="relative aspect-[16/10] overflow-hidden">
         <Img
           src={offer.image}
@@ -219,7 +219,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
   if (tab === null) {
     return (
       <div className="flex h-full flex-col overflow-hidden">
-        <div className="shrink-0 border-b border-white/[0.07] bg-ink-950/85 px-5 py-3 backdrop-blur-md sm:px-6">
+        <div className="shrink-0 border-b border-hairline bg-header px-5 py-3 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
               <ArrowLeft />
@@ -241,7 +241,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
             subtitle="Комфорт среди природы: палатки люкс, домики с панорамными окнами."
             imageUrl={IMG_GLAMPING}
             overlayClass="bg-gradient-to-br from-violet-800/60 via-ink-950/40 to-ink-950/70"
-            className="border-t border-white/10 md:border-l md:border-t-0"
+            className="border-t border-hairline md:border-l md:border-t-0"
             onOpen={() => setTab('glamping')}
           />
         </div>
@@ -251,7 +251,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
           <IconButton label="К выбору раздела" variant="ghost" size="sm" onClick={() => setTab(null)}>
             <ArrowLeft />
@@ -282,7 +282,7 @@ export function ToursGlampingPanel({ onBack }: ToursGlampingPanelProps) {
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                 tab === t.key
                   ? 'bg-teal-700 text-white'
-                  : 'text-text-secondary hover:bg-white/[0.08] hover:text-text'
+                  : 'text-text-secondary hover:bg-panel-2 hover:text-text'
               )}
             >
               <t.icon className="h-4 w-4" aria-hidden="true" />

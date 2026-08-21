@@ -21,7 +21,7 @@ const glassPanelVariants = cva(
         /** Прямо поверх снимка: сильнее размытие, ярче кромка. */
         photo: 'glass-on-photo before:via-white/40',
         /** Внутри другой панели: стекло в стекло не вкладывается. */
-        flat: 'bg-white/[0.05] border border-white/[0.07] before:via-white/10',
+        flat: 'bg-panel border border-hairline before:via-white/10',
       },
       radius: {
         md: 'rounded-md',
@@ -53,9 +53,9 @@ const iconButtonVariants = cva(
   {
     variants: {
       variant: {
-        glass: 'bg-white/10 text-text hover:bg-white/[0.18] active:bg-white/[0.22]',
+        glass: 'bg-panel-2 text-text hover:bg-panel-3 active:bg-panel-3',
         solid: 'bg-primary text-ink-950 hover:bg-primary-hover',
-        ghost: 'text-text-secondary hover:bg-white/10 hover:text-text',
+        ghost: 'text-text-secondary hover:bg-panel-2 hover:text-text',
       },
       size: {
         sm: 'h-8 w-8 [&_svg]:h-4 [&_svg]:w-4',
@@ -97,7 +97,7 @@ const chipVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-white/[0.07] text-text-secondary border border-white/[0.09]',
+        default: 'bg-panel-2 text-text-secondary border border-hairline',
         active: 'bg-primary/15 text-primary border border-primary/30',
         accent: 'bg-accent/15 text-accent-soft border border-accent/25',
       },
@@ -106,7 +106,7 @@ const chipVariants = cva(
         md: 'h-8 px-3.5 text-xs',
       },
       interactive: {
-        true: 'cursor-pointer hover:bg-white/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        true: 'cursor-pointer hover:bg-panel-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
         false: '',
       },
     },
@@ -135,7 +135,7 @@ interface StatTileProps {
 export function StatTile({ icon, value, label, className }: StatTileProps) {
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/[0.07] text-primary [&_svg]:h-[18px] [&_svg]:w-[18px]">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-panel-2 text-primary [&_svg]:h-[18px] [&_svg]:w-[18px]">
         {icon}
       </span>
       <span className="min-w-0">
@@ -196,7 +196,7 @@ export function ListRow({
       className={cn(
         'group flex items-center gap-3.5 rounded-lg p-2.5 transition duration-base ease-standard',
         interactive &&
-          'cursor-pointer hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+          'cursor-pointer hover:bg-panel-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
         className
       )}
     >

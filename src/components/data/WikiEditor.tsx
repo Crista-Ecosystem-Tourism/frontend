@@ -59,7 +59,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={over}
-        className="w-full resize-y rounded-md border border-white/[0.09] bg-white/[0.05] p-3 font-sans text-sm leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+        className="w-full resize-y rounded-md border border-hairline bg-panel p-3 font-sans text-sm leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
       />
       <p
         className={`mt-1 text-right font-sans text-xs tabular ${
@@ -125,7 +125,7 @@ export function WikiEditor({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[820px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Отменить редактирование" variant="ghost" size="sm" onClick={onCancel}>
@@ -210,7 +210,7 @@ export function WikiEditor({
                         value={row.label}
                         onChange={(e) => updateRow(i, { label: e.target.value })}
                         placeholder="Виза"
-                        className="h-11 w-full rounded-md border border-white/[0.09] bg-white/[0.05] px-3 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+                        className="h-11 w-full rounded-md border border-hairline bg-panel px-3 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
                       />
                     </div>
                     <div>
@@ -222,7 +222,7 @@ export function WikiEditor({
                         value={row.value}
                         onChange={(e) => updateRow(i, { value: e.target.value })}
                         placeholder="Требуется для граждан РФ"
-                        className="h-11 w-full rounded-md border border-white/[0.09] bg-white/[0.05] px-3 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+                        className="h-11 w-full rounded-md border border-hairline bg-panel px-3 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
                       />
                     </div>
                   </div>
@@ -250,7 +250,7 @@ export function WikiEditor({
         </div>
 
         {/* Действия */}
-        <div className="flex flex-wrap items-center gap-3 border-t border-white/[0.07] pt-5">
+        <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-5">
           <Button onClick={handleSave} disabled={!changed || tooLong || empty}>
             <Save />
             Отправить на модерацию

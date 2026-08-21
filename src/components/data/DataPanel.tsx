@@ -93,7 +93,7 @@ const categories = [
 
 function Header({ onBack, title }: { onBack: () => void; title: string }) {
   return (
-    <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+    <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
       <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
         <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft />
@@ -176,7 +176,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
             {active.summary}
           </p>
 
-          <div className="mb-5 flex w-fit gap-1 rounded-md border border-white/[0.09] bg-white/[0.05] p-1">
+          <div className="mb-5 flex w-fit gap-1 rounded-md border border-hairline bg-panel p-1">
             {categories.map((cat) => (
               <button
                 key={cat.key}
@@ -187,7 +187,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                   tab === cat.key
                     ? 'bg-teal-700 text-white'
-                    : 'text-text-secondary hover:bg-white/[0.06] hover:text-text'
+                    : 'text-text-secondary hover:bg-panel-2 hover:text-text'
                 )}
               >
                 <cat.icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -211,7 +211,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
             {active.practical.map((item) => (
               <div
                 key={item.label}
-                className="flex items-center gap-3 rounded-md border border-white/[0.09] bg-white/[0.05] p-3.5"
+                className="flex items-center gap-3 rounded-md border border-hairline bg-panel p-3.5"
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-primary/15 text-primary">
                   <item.icon className="h-4 w-4" aria-hidden="true" />
@@ -230,7 +230,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
             </div>
           )}
 
-          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-white/[0.07] pt-6">
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-hairline pt-6">
             <Button variant="secondary" onClick={() => setEditing(true)}>
               <Pencil />
               Редактировать или добавить информацию
@@ -278,7 +278,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Поиск по странам"
-            className="h-11 w-full rounded-md border border-white/[0.09] bg-white/[0.05] pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+            className="h-11 w-full rounded-md border border-hairline bg-panel pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
           />
         </div>
 
@@ -289,7 +289,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
             </p>
             <button
               onClick={() => setQuery('')}
-              className="mt-2 font-sans text-sm text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="mt-2 font-sans text-sm text-link hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Показать все страны
             </button>
@@ -311,7 +311,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
           />
         )}
 
-        <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-white/[0.12] p-4 font-sans text-xs leading-relaxed text-text-muted">
+        <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-hairline-2 p-4 font-sans text-xs leading-relaxed text-text-muted">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           Открытые статьи индексируются поисковиками. Частичное редактирование доступно сообществу с модерацией.
         </p>

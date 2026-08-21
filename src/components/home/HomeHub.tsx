@@ -292,7 +292,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
 
             <GlassPanel variant="photo" className="p-5">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-white/[0.07] text-primary">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-panel-2 text-primary">
                   <PiggyBank className="h-[18px] w-[18px]" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -306,7 +306,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-panel-2">
                 <div className="h-full rounded-full bg-primary" style={{ width: `${savedPercent}%` }} />
               </div>
               <p className="mt-3 font-sans text-xs text-text-secondary">
@@ -324,7 +324,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
                 </p>
                 <button
                   onClick={() => setMainView('game')}
-                  className="shrink-0 font-sans text-xs text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="shrink-0 font-sans text-xs text-link transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Все вопросы
                 </button>
@@ -359,7 +359,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
             </h2>
             <button
               onClick={() => setMainView('inspiration')}
-              className="shrink-0 font-sans text-sm text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="shrink-0 font-sans text-sm text-link transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Смотреть все
             </button>

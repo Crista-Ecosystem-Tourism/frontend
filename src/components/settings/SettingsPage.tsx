@@ -8,6 +8,7 @@ import { useApp } from '@/context/AppContext'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { AppFrame } from '@/components/layout/AppFrame'
 import { GlassPanel, IconButton, DisplayTitle } from '@/components/ui/glass'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -33,7 +34,7 @@ function SettingsSection({
           {title}
         </h2>
       </div>
-      <GlassPanel className="divide-y divide-white/[0.07] overflow-hidden p-0">
+      <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
         {children}
       </GlassPanel>
     </section>
@@ -83,7 +84,7 @@ function SettingsRow({
     return (
       <button
         onClick={onClick}
-        className="group flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+        className="group flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
       >
         {content}
       </button>
@@ -115,7 +116,7 @@ function DeleteDialog({
       aria-labelledby="delete-title"
     >
       <div
-        className="w-full max-w-sm rounded-xl border border-white/[0.1] bg-ink-850 p-6 shadow-lg [animation:dialog-in_220ms_var(--ease-out)]"
+        className="w-full max-w-sm rounded-xl border border-hairline bg-ink-850 p-6 shadow-lg [animation:dialog-in_220ms_var(--ease-out)]"
         onClick={(e) => e.stopPropagation()}
         style={{ transform: 'none' }}
       >
@@ -170,11 +171,11 @@ export function SettingsPage() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden font-sans text-text">
-      <div className="relative z-10 flex h-full w-full">
+      <AppFrame>
         <Sidebar />
 
         <main className="h-full min-w-0 flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+          <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
             <div className="mx-auto flex max-w-[760px] items-center gap-3 px-5 py-3 sm:px-6">
               <IconButton label="Назад" variant="ghost" size="sm" onClick={() => navigate(-1)}>
                 <ArrowLeft />
@@ -208,14 +209,14 @@ export function SettingsPage() {
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                         active
                           ? 'border-primary/45 bg-primary/[0.09]'
-                          : 'border-white/[0.09] bg-white/[0.03] hover:bg-white/[0.07]'
+                          : 'border-hairline bg-panel hover:bg-panel-2'
                       )}
                     >
                       <span className="mb-3 flex items-center justify-between">
                         <span
                           className={cn(
                             'flex h-9 w-9 items-center justify-center rounded-md',
-                            active ? 'bg-primary/20 text-primary' : 'bg-white/[0.07] text-text-muted'
+                            active ? 'bg-primary/20 text-primary' : 'bg-panel-2 text-text-muted'
                           )}
                         >
                           <opt.icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -235,7 +236,7 @@ export function SettingsPage() {
 
               <SettingsRow label="Язык интерфейса" description="Применится ко всем разделам">
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="h-10 w-40 rounded-md border-white/[0.12] bg-white/[0.05] font-sans text-sm">
+                  <SelectTrigger className="h-10 w-40 rounded-md border-hairline-2 bg-panel font-sans text-sm">
                     <Globe className="mr-2 h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
                     <SelectValue />
                   </SelectTrigger>
@@ -296,10 +297,10 @@ export function SettingsPage() {
                   Аккаунт
                 </h2>
               </div>
-              <GlassPanel className="divide-y divide-white/[0.07] overflow-hidden p-0">
+              <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
                 <button
                   onClick={handleLogout}
-                  className="group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+                  className="group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                 >
                   <LogOut className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
                   <span className="font-sans text-sm font-medium text-text">Выйти из аккаунта</span>
@@ -326,7 +327,7 @@ export function SettingsPage() {
             </DisplayTitle>
           </div>
         </main>
-      </div>
+      </AppFrame>
 
       <DeleteDialog
         isOpen={showDeleteDialog}

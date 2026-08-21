@@ -40,7 +40,7 @@ function QuestRow({
       className={cn(
         'flex w-full items-start gap-3 rounded-md p-3 text-left transition duration-base ease-standard',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-        done ? 'bg-primary/[0.08]' : 'hover:bg-white/[0.06]'
+        done ? 'bg-primary/[0.08]' : 'hover:bg-panel-2'
       )}
     >
       {done ? (
@@ -106,7 +106,7 @@ export function CountryQuests({
 
   return (
     <GlassPanel className="overflow-hidden p-0">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hairline p-5">
         <div className="flex items-center gap-3">
           <span className="text-3xl leading-none" aria-hidden="true">{country.flag}</span>
           <span>
@@ -127,7 +127,7 @@ export function CountryQuests({
       </div>
 
       {/* Города */}
-      <div className="flex flex-wrap gap-1.5 border-b border-white/[0.07] p-3">
+      <div className="flex flex-wrap gap-1.5 border-b border-hairline p-3">
         {country.cities.map((c) => {
           const p = cityProgress(country, c.id)
           const active = c.id === activeCityId
@@ -141,7 +141,7 @@ export function CountryQuests({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                 active
                   ? 'bg-teal-700 text-white'
-                  : 'text-text-secondary hover:bg-white/[0.08] hover:text-text'
+                  : 'text-text-secondary hover:bg-panel-2 hover:text-text'
               )}
             >
               {c.name}
@@ -167,7 +167,7 @@ export function CountryQuests({
         </div>
       )}
 
-      <p className="flex items-center gap-2 border-t border-white/[0.07] px-5 py-3 font-sans text-xs text-text-muted">
+      <p className="flex items-center gap-2 border-t border-hairline px-5 py-3 font-sans text-xs text-text-muted">
         <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         Категории: {Object.values(questCategoryLabel).join(', ')}
       </p>

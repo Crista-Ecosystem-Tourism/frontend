@@ -146,7 +146,7 @@ export function SupportPage() {
 
         <main className="flex-1 relative h-full min-w-0 overflow-auto">
           {/* Header */}
-          <div className="sticky top-0 z-10 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+          <div className="sticky top-0 z-10 border-b border-hairline bg-header backdrop-blur-md">
             <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}

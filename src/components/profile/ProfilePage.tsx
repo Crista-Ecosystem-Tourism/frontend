@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { GlassPanel, Chip, IconButton, StatTile, DisplayTitle } from '@/components/ui/glass'
 import { Img } from '@/components/ui/Img'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { AppFrame } from '@/components/layout/AppFrame'
 import { gameCountries } from '@/mocks/game'
 import { trips, formatTripDates } from '@/mocks/trips'
 import { getInitials, cn, pluralize } from '@/lib/utils'
@@ -89,11 +90,11 @@ export function ProfilePage() {
   return (
     <div className="flex h-screen w-screen overflow-hidden font-sans text-text">
 
-      <div className="relative z-10 flex h-full w-full">
+      <AppFrame>
         <Sidebar />
 
         <main className="h-full min-w-0 flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+          <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
             <div className="mx-auto flex max-w-[1000px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
               <div className="flex min-w-0 items-center gap-3">
                 <IconButton label="Назад" variant="ghost" size="sm" onClick={() => navigate('/')}>
@@ -116,9 +117,9 @@ export function ProfilePage() {
             {/* Карточка пользователя */}
             <GlassPanel className="p-6">
               <div className="flex flex-wrap items-center gap-5">
-                <Avatar className="h-20 w-20 border border-white/15">
+                <Avatar className="h-20 w-20 border border-hairline-2">
                   <AvatarImage src={user.avatar} />
-                  <AvatarFallback className="bg-white/[0.07] text-xl text-text-secondary">
+                  <AvatarFallback className="bg-panel-2 text-xl text-text-secondary">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -180,7 +181,7 @@ export function ProfilePage() {
                         'flex items-center gap-3 rounded-md border p-3',
                         done
                           ? 'border-primary/40 bg-primary/[0.08]'
-                          : 'border-white/[0.07] bg-white/[0.03]'
+                          : 'border-hairline bg-panel'
                       )}
                     >
                       <span
@@ -220,7 +221,7 @@ export function ProfilePage() {
                     <span
                       className={cn(
                         'mb-3 flex h-10 w-10 items-center justify-center rounded-md',
-                        a.unlocked ? 'bg-primary/15 text-primary' : 'bg-white/[0.06] text-text-muted'
+                        a.unlocked ? 'bg-primary/15 text-primary' : 'bg-panel-2 text-text-muted'
                       )}
                     >
                       <a.icon className="h-5 w-5" aria-hidden="true" />
@@ -250,7 +251,7 @@ export function ProfilePage() {
                 {trips.map((trip) => (
                   <article
                     key={trip.id}
-                    className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] transition duration-base hover:border-white/[0.16]"
+                    className="group overflow-hidden rounded-lg border border-hairline bg-panel transition duration-base hover:border-hairline-2"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <Img
@@ -276,7 +277,7 @@ export function ProfilePage() {
             </section>
 
             {/* Переходы */}
-            <GlassPanel className="divide-y divide-white/[0.07] overflow-hidden p-0">
+            <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
               {[
                 { label: 'Настройки аккаунта', to: '/settings' },
                 { label: 'Поддержка', to: '/support' },
@@ -284,7 +285,7 @@ export function ProfilePage() {
                 <button
                   key={row.to}
                   onClick={() => navigate(row.to)}
-                  className="group flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="group flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-panel focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <span className="font-sans text-sm text-text">{row.label}</span>
                   <ChevronRight
@@ -296,7 +297,7 @@ export function ProfilePage() {
             </GlassPanel>
           </div>
         </main>
-      </div>
+      </AppFrame>
     </div>
   )
 }

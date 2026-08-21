@@ -13,7 +13,7 @@ function InspirationCard({ onOpen }: { onOpen: () => void }) {
     <button
       type="button"
       onClick={onOpen}
-      className="group relative w-full overflow-hidden rounded-lg border border-white/[0.12] bg-gradient-to-br from-primary/20 via-accent/15 to-transparent p-4 text-left transition duration-base ease-standard hover:-translate-y-0.5 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:p-5"
+      className="group relative w-full overflow-hidden rounded-lg border border-hairline-2 bg-gradient-to-br from-primary/20 via-accent/15 to-transparent p-4 text-left transition duration-base ease-standard hover:-translate-y-0.5 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:p-5"
     >
       <div className="flex items-center gap-4">
         <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-ink-950/35 ring-1 ring-white/15 transition-colors group-hover:bg-primary/15">
@@ -52,7 +52,7 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-white/[0.07] bg-ink-950/85 px-5 py-3 backdrop-blur-md sm:px-6">
+      <div className="shrink-0 border-b border-hairline bg-header px-5 py-3 backdrop-blur-md sm:px-6">
         <div className="mx-auto max-w-[900px]">
           <div className="mb-4 flex items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
@@ -77,7 +77,7 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
                 placeholder="Поиск по маршрутам"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-11 w-full rounded-md border border-white/[0.09] bg-white/[0.05] pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+                className="h-11 w-full rounded-md border border-hairline bg-panel pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
               />
             </div>
           )}
@@ -93,10 +93,10 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
                   key={route.id}
                   type="button"
                   onClick={() => loadSavedRoute(route.id)}
-                  className="group w-full rounded-lg border border-white/[0.07] bg-white/[0.03] p-3.5 text-left transition duration-base ease-standard hover:border-white/[0.14] hover:bg-white/[0.07] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="group w-full rounded-lg border border-hairline bg-panel p-3.5 text-left transition duration-base ease-standard hover:border-hairline-2 hover:bg-panel-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/[0.07] text-text-muted transition-colors group-hover:bg-primary/15 group-hover:text-primary">
+                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-panel-2 text-text-muted transition-colors group-hover:bg-primary/15 group-hover:text-primary">
                       <Map className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -132,7 +132,7 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
                   </p>
                   <button
                     onClick={() => setSearch('')}
-                    className="mt-2 font-sans text-sm text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="mt-2 font-sans text-sm text-link transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     Показать все маршруты
                   </button>

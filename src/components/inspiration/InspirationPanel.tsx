@@ -52,7 +52,7 @@ export function InspirationPanel({ onBack }: InspirationPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
           <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft />
@@ -76,7 +76,7 @@ export function InspirationPanel({ onBack }: InspirationPanelProps) {
           {ideas.map((idea) => (
             <article
               key={idea.id}
-              className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] transition duration-base ease-standard hover:-translate-y-0.5 hover:border-white/[0.16]"
+              className="group overflow-hidden rounded-lg border border-hairline bg-panel transition duration-base ease-standard hover:-translate-y-0.5 hover:border-hairline-2"
             >
               <div className="relative aspect-[16/9] overflow-hidden">
                 <Img
@@ -103,7 +103,7 @@ export function InspirationPanel({ onBack }: InspirationPanelProps) {
                 </p>
                 <button
                   onClick={() => plan(`Собери маршрут: ${idea.title}, ${idea.place}`)}
-                  className="flex items-center gap-1.5 font-sans text-sm font-medium text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex items-center gap-1.5 font-sans text-sm font-medium text-link transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Собрать маршрут
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />

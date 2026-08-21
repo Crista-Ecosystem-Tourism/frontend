@@ -68,7 +68,7 @@ export function MyTripsPanel({ onBack }: MyTripsPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
@@ -116,21 +116,21 @@ export function MyTripsPanel({ onBack }: MyTripsPanelProps) {
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                 status === s
                   ? 'bg-teal-700 text-white'
-                  : 'text-text-secondary hover:bg-white/[0.08] hover:text-text'
+                  : 'text-text-secondary hover:bg-panel-2 hover:text-text'
               )}
             >
               {s === 'all' ? 'Все' : s === 'completed' ? 'Завершённые' : 'В процессе'}
             </button>
           ))}
 
-          <span className="mx-1 h-5 w-px bg-white/[0.12]" aria-hidden="true" />
+          <span className="mx-1 h-5 w-px bg-panel-3" aria-hidden="true" />
 
           <label htmlFor="trip-country" className="sr-only">Фильтр по стране</label>
           <select
             id="trip-country"
             value={country}
             onChange={(e) => setCountry(e.target.value)}
-            className="h-10 rounded-full border border-white/[0.09] bg-white/[0.05] px-3.5 font-sans text-sm text-text outline-none focus:border-primary/40 focus:ring-2 focus:ring-accent"
+            className="h-10 rounded-full border border-hairline bg-panel px-3.5 font-sans text-sm text-text outline-none focus:border-primary/40 focus:ring-2 focus:ring-accent"
           >
             {countries.map((c) => (
               <option key={c} value={c} className="bg-ink-850">
@@ -152,7 +152,7 @@ export function MyTripsPanel({ onBack }: MyTripsPanelProps) {
                 setStatus('all')
                 setCountry('all')
               }}
-              className="mt-2 font-sans text-sm text-primary hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="mt-2 font-sans text-sm text-link hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
               Сбросить фильтры
             </button>
@@ -165,7 +165,7 @@ export function MyTripsPanel({ onBack }: MyTripsPanelProps) {
                 <button
                   key={trip.id}
                   onClick={() => setOpenId(trip.id)}
-                  className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] text-left transition duration-base ease-standard hover:-translate-y-0.5 hover:border-white/[0.16] hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="group overflow-hidden rounded-lg border border-hairline bg-panel text-left transition duration-base ease-standard hover:-translate-y-0.5 hover:border-hairline-2 hover:bg-panel-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <Img

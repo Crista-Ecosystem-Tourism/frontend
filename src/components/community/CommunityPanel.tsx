@@ -65,7 +65,7 @@ const friends = [
 export function CommunityPanel({ onBack }: CommunityPanelProps) {
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
           <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft />
@@ -76,7 +76,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
 
       <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
         <Tabs defaultValue="routes" className="w-full">
-          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-md border border-white/[0.09] bg-white/[0.05] p-1 sm:w-fit">
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-md border border-hairline bg-panel p-1 sm:w-fit">
             <TabsTrigger value="routes" className="rounded-sm px-4 py-2">Маршруты звёзд и друзей</TabsTrigger>
             <TabsTrigger value="leaderboard" className="rounded-sm px-4 py-2">Лидерборд</TabsTrigger>
             <TabsTrigger value="friends" className="rounded-sm px-4 py-2">Друзья</TabsTrigger>
@@ -88,7 +88,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
               {starRoutes.map((route) => (
                 <article
                   key={route.id}
-                  className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] transition duration-base ease-standard hover:border-white/[0.16] hover:bg-white/[0.08]"
+                  className="group overflow-hidden rounded-lg border border-hairline bg-panel transition duration-base ease-standard hover:border-hairline-2 hover:bg-panel-2"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">
                     <Img
@@ -131,7 +131,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
 
           {/* Лидерборд */}
           <TabsContent value="leaderboard" className="mt-6 outline-none">
-            <GlassPanel className="divide-y divide-white/[0.07] overflow-hidden p-0">
+            <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
               {leaderboard.map((row) => (
                 <div
                   key={row.rank}
@@ -140,14 +140,14 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
                   <span
                     className={cn(
                       'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold tabular',
-                      row.rank <= 3 ? 'bg-primary/15 text-primary' : 'bg-white/[0.07] text-text-muted'
+                      row.rank <= 3 ? 'bg-primary/15 text-primary' : 'bg-panel-2 text-text-muted'
                     )}
                   >
                     {row.rank <= 3 ? <Medal className="h-3.5 w-3.5" aria-hidden="true" /> : row.rank}
                   </span>
-                  <Avatar className="h-9 w-9 border border-white/10">
+                  <Avatar className="h-9 w-9 border border-hairline">
                     <AvatarImage src={row.avatar} />
-                    <AvatarFallback className="bg-white/[0.07] text-xs text-text-secondary">
+                    <AvatarFallback className="bg-panel-2 text-xs text-text-secondary">
                       {row.name.slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
@@ -170,8 +170,8 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
             <div className="space-y-3">
               {friends.map((friend) => (
                 <GlassPanel key={friend.name} className="flex items-center gap-4 p-4">
-                  <Avatar className="h-10 w-10 border border-white/10">
-                    <AvatarFallback className="bg-white/[0.07] text-sm text-text-secondary">
+                  <Avatar className="h-10 w-10 border border-hairline">
+                    <AvatarFallback className="bg-panel-2 text-sm text-text-secondary">
                       {friend.name.slice(0, 2)}
                     </AvatarFallback>
                   </Avatar>
@@ -184,7 +184,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
                         </span>
                       )}
                     </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-panel-2">
                       <div className="h-full rounded-full bg-primary" style={{ width: `${friend.progress}%` }} />
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
                 </GlassPanel>
               ))}
 
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/[0.14] p-4 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-hairline-2 p-4 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
                 <UserPlus className="h-4 w-4" aria-hidden="true" />
                 Пригласить друга и открыть страну вместе
               </button>
@@ -202,7 +202,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
           </TabsContent>
         </Tabs>
 
-        <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-white/[0.12] p-4 font-sans text-xs leading-relaxed text-text-muted">
+        <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-hairline-2 p-4 font-sans text-xs leading-relaxed text-text-muted">
           <Trophy className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           Публикуйте собственные маршруты как шаблоны. Они попадают в общую ленту наравне с маршрутами звёзд.
         </p>

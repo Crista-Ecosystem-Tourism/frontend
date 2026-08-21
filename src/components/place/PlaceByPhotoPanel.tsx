@@ -61,7 +61,7 @@ export function PlaceByPhotoPanel({ onBack }: PlaceByPhotoPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[900px] items-center gap-3 px-5 py-3 sm:px-6">
           <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft />
@@ -90,7 +90,7 @@ export function PlaceByPhotoPanel({ onBack }: PlaceByPhotoPanelProps) {
             className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-16 text-center transition-colors ${
               dragging
                 ? 'border-primary/60 bg-primary/[0.06]'
-                : 'border-white/[0.14] hover:border-white/25 hover:bg-white/[0.03]'
+                : 'border-hairline-2 hover:border-hairline-3 hover:bg-panel'
             }`}
           >
             <input

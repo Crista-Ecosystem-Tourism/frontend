@@ -59,12 +59,12 @@ export function ChatPanel() {
   return (
     <div className="glass flex h-full flex-col overflow-hidden rounded-xl">
       {/* Шапка чата */}
-      <div className="shrink-0 border-b border-white/[0.08] px-4 py-3">
+      <div className="shrink-0 border-b border-hairline px-4 py-3">
         <div className="flex items-center gap-3">
           <button
             onClick={goHome}
             aria-label="На главную"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-white/[0.08] hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-panel-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ArrowLeft className="h-4 w-4" />
           </button>
@@ -92,7 +92,7 @@ export function ChatPanel() {
       </div>
 
       {/* Preference chips + Ticket button + Quick replies + Input */}
-      <div className="shrink-0 border-t border-white/[0.08] p-3">
+      <div className="shrink-0 border-t border-hairline p-3">
         <PreferenceChips preferences={preferences} />
 
         {/* Ticket button or hint */}

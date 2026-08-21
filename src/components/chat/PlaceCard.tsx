@@ -67,8 +67,8 @@ export function PlaceCard({ place, dragRef }: PlaceCardProps) {
         role="button"
         tabIndex={0}
         className={cn(
-          'group cursor-pointer overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05]',
-          'transition duration-base ease-standard hover:border-white/[0.16] hover:bg-white/[0.08]',
+          'group cursor-pointer overflow-hidden rounded-lg border border-hairline bg-panel',
+          'transition duration-base ease-standard hover:border-hairline-2 hover:bg-panel-2',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
           place.selected && 'border-primary/50 bg-primary/[0.08]'
         )}

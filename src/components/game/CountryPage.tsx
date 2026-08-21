@@ -46,7 +46,7 @@ export function CountryPage({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="К карте мира" variant="ghost" size="sm" onClick={onBack}>
@@ -131,7 +131,7 @@ export function CountryPage({
                 <span className="w-36 shrink-0 truncate font-sans text-xs text-text-secondary sm:w-44">
                   {questCategoryLabel[key]}
                 </span>
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel-2">
                   <div
                     className={cn('h-full rounded-full transition-[width] duration-slow ease-standard', categoryTint[key])}
                     style={{ width: `${categories[key]}%` }}

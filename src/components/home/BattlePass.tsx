@@ -46,7 +46,7 @@ function RewardCell({
           ? premium
             ? 'border-accent/40 bg-accent/[0.09]'
             : 'border-primary/40 bg-primary/[0.09]'
-          : 'border-white/[0.07] bg-white/[0.03]'
+          : 'border-hairline bg-panel'
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -57,7 +57,7 @@ function RewardCell({
               ? premium
                 ? 'bg-accent/20 text-accent-soft'
                 : 'bg-primary/20 text-primary'
-              : 'bg-white/[0.06] text-text-muted'
+              : 'bg-panel-2 text-text-muted'
           )}
         >
           <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
@@ -114,7 +114,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
   return (
     <GlassPanel className="overflow-hidden p-0">
       {/* Шапка сезона */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/[0.07] p-5">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline p-5">
         <div className="min-w-0">
           <h2 className="font-display text-3xl font-semibold leading-tight text-text">
             {pass.name}
@@ -142,7 +142,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
       </div>
 
       {/* Прогресс */}
-      <div className="border-b border-white/[0.07] px-5 py-4">
+      <div className="border-b border-hairline px-5 py-4">
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
           <p className="font-sans text-sm text-text">
             Уровень <span className="font-semibold tabular text-primary">{currentLevel}</span>
@@ -156,7 +156,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
         </div>
 
         <div
-          className="relative h-2 overflow-hidden rounded-full bg-white/[0.08]"
+          className="relative h-2 overflow-hidden rounded-full bg-panel-2"
           role="progressbar"
           aria-valuenow={points}
           aria-valuemin={0}
@@ -191,17 +191,17 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
                 className={cn(
                   'w-[190px] shrink-0 rounded-lg border p-3 transition duration-base',
                   reached
-                    ? 'border-primary/30 bg-white/[0.05]'
+                    ? 'border-primary/30 bg-panel'
                     : isCurrent
-                      ? 'border-white/25 bg-white/[0.05]'
-                      : 'border-white/[0.07] bg-white/[0.02]'
+                      ? 'border-hairline-3 bg-panel'
+                      : 'border-hairline bg-panel'
                 )}
               >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <span
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-full font-sans text-sm font-bold tabular',
-                      reached ? 'bg-primary text-ink-950' : 'bg-white/[0.08] text-text-muted'
+                      reached ? 'bg-primary text-ink-950' : 'bg-panel-2 text-text-muted'
                     )}
                   >
                     {tier.level}
@@ -249,7 +249,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
       </div>
 
       {/* Легенда дорожек */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/[0.07] px-5 py-3 font-sans text-xs text-text-muted">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-hairline px-5 py-3 font-sans text-xs text-text-muted">
         <span className="flex items-center gap-2">
           <span className="h-2.5 w-4 rounded-sm bg-primary/60" />
           Бесплатная дорожка

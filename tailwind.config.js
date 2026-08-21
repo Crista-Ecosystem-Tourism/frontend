@@ -40,9 +40,23 @@ export default {
           700: '#146B7A',
         },
         ink: {
-          850: '#181229',
-          900: '#14101F',
-          950: '#0B0A17',
+          850: '#1B1F27',
+          900: '#14171D',
+          950: '#0E1015',
+        },
+        // Поверхности поверх стекла. Меняются по теме: белый тинт на светлом фоне
+        // невидим, поэтому там тонируем чернилами.
+        header: 'var(--header-bg)',
+        link: 'var(--color-link)',
+        panel: {
+          DEFAULT: 'var(--panel-1)',
+          2: 'var(--panel-2)',
+          3: 'var(--panel-3)',
+        },
+        hairline: {
+          DEFAULT: 'var(--hairline-1)',
+          2: 'var(--hairline-2)',
+          3: 'var(--hairline-3)',
         },
         violet: {
           600: '#2E2650',

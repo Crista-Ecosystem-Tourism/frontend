@@ -39,7 +39,7 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-white/[0.07] bg-ink-950/85 px-5 py-3 backdrop-blur-md sm:px-6">
+      <div className="shrink-0 border-b border-hairline bg-header px-5 py-3 backdrop-blur-md sm:px-6">
         <div className="mx-auto max-w-[900px]">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -67,7 +67,7 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
               placeholder="Поиск по чатам"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-11 w-full rounded-md border border-white/[0.09] bg-white/[0.05] pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+              className="h-11 w-full rounded-md border border-hairline bg-panel pl-10 pr-4 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
@@ -88,7 +88,7 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                       active
                         ? 'border-primary/40 bg-primary/[0.09]'
-                        : 'border-white/[0.07] bg-white/[0.03] hover:border-white/[0.14] hover:bg-white/[0.07]'
+                        : 'border-hairline bg-panel hover:border-hairline-2 hover:bg-panel-2'
                     )}
                   >
                     <div className="flex items-start gap-3.5">
@@ -97,7 +97,7 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
                           'mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors',
                           active
                             ? 'bg-primary/20 text-primary'
-                            : 'bg-white/[0.07] text-text-muted group-hover:text-text-secondary'
+                            : 'bg-panel-2 text-text-muted group-hover:text-text-secondary'
                         )}
                       >
                         <MessageSquare className="h-5 w-5" aria-hidden="true" />
@@ -144,7 +144,7 @@ export function ChatListPanel({ onBack }: ChatListPanelProps) {
                   </p>
                   <button
                     onClick={() => setSearch('')}
-                    className="mt-2 font-sans text-sm text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    className="mt-2 font-sans text-sm text-link transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     Показать все чаты
                   </button>

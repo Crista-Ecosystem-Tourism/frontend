@@ -43,7 +43,7 @@ export function TripArticle({ trip, onBack, onPrivacyChange }: TripArticleProps)
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 border-b border-hairline bg-header backdrop-blur-md">
         <div className="mx-auto flex max-w-[880px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <IconButton label="Ко всем поездкам" variant="ghost" size="sm" onClick={onBack}>
@@ -110,7 +110,7 @@ export function TripArticle({ trip, onBack, onPrivacyChange }: TripArticleProps)
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 font-sans text-xs font-bold tabular text-primary">
                   {day}
                 </span>
-                <span className="mt-2 w-px flex-1 bg-white/[0.09]" aria-hidden="true" />
+                <span className="mt-2 w-px flex-1 bg-panel-2" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1 space-y-3 pb-2">
                 <p className="font-sans text-xs uppercase tracking-wide text-text-muted">
@@ -170,7 +170,7 @@ export function TripArticle({ trip, onBack, onPrivacyChange }: TripArticleProps)
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                     active
                       ? 'bg-teal-700 text-white'
-                      : 'text-text-secondary hover:bg-white/[0.08] hover:text-text'
+                      : 'text-text-secondary hover:bg-panel-2 hover:text-text'
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -180,7 +180,7 @@ export function TripArticle({ trip, onBack, onPrivacyChange }: TripArticleProps)
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 rounded-md border border-white/[0.09] bg-white/[0.04] p-3">
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-hairline bg-panel p-3">
             <Link2 className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
             <code className="min-w-0 flex-1 truncate font-mono text-xs text-text-secondary">
               {shareUrl}

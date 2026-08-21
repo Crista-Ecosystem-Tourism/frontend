@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sidebar } from './Sidebar'
+import { AppFrame } from './AppFrame'
 import { MobileTabBar } from './MobileTabBar'
 import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatListPanel } from '@/components/chat/ChatListPanel'
@@ -44,8 +45,7 @@ export function MainLayout() {
   return (
     <div className="h-screen w-screen overflow-hidden text-text font-sans selection:bg-primary/30">
 
-      {/* Sidebar */}
-      <div className="flex h-full relative z-10">
+      <AppFrame>
         <Sidebar />
 
         {/* Main Content Area */}
@@ -144,8 +144,8 @@ export function MainLayout() {
                     <div className="w-[55%] h-full flex-shrink-0 flex flex-col">
                       <ChatPanel />
                     </div>
-                    <div className="w-[45%] h-full relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                      <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl ring-1 ring-inset ring-white/10" />
+                    <div className="w-[45%] h-full relative rounded-2xl overflow-hidden border border-hairline shadow-2xl">
+                      <div className="absolute inset-0 pointer-events-none z-10 rounded-2xl ring-1 ring-inset ring-hairline" />
                       <TravelMap />
                     </div>
                   </div>
@@ -182,8 +182,8 @@ export function MainLayout() {
                     </div>
 
                     {/* Map */}
-                    <div className="flex-1 h-full relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                      <div className="absolute inset-0 pointer-events-none z-10 rounded-3xl ring-1 ring-inset ring-white/10" />
+                    <div className="flex-1 h-full relative rounded-3xl overflow-hidden border border-hairline shadow-2xl">
+                      <div className="absolute inset-0 pointer-events-none z-10 rounded-3xl ring-1 ring-inset ring-hairline" />
                       <TravelMap />
                     </div>
                   </div>
@@ -191,7 +191,7 @@ export function MainLayout() {
               </div>
             )}
         </main>
-      </div>
+      </AppFrame>
 
       {/* Modals */}
       <AuthModal />

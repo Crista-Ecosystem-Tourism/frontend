@@ -76,8 +76,8 @@ export function CountryCarousel({ items, onOpen }: CountryCarouselProps) {
                 'absolute h-[380px] w-[290px] overflow-hidden rounded-xl border text-left',
                 'transition-all duration-[600ms] ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
                 isActive
-                  ? 'z-20 border-white/25 shadow-lg'
-                  : 'z-10 border-white/[0.12] hover:border-white/25',
+                  ? 'z-20 border-hairline-3 shadow-lg'
+                  : 'z-10 border-hairline-2 hover:border-hairline-3',
                 'sm:h-[440px] sm:w-[340px]'
               )}
               style={{
@@ -129,7 +129,7 @@ export function CountryCarousel({ items, onOpen }: CountryCarouselProps) {
           <button
             onClick={() => go(-1)}
             aria-label="Предыдущая страна"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-white/[0.1] hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-panel-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -151,7 +151,7 @@ export function CountryCarousel({ items, onOpen }: CountryCarouselProps) {
           <button
             onClick={() => go(1)}
             aria-label="Следующая страна"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-white/[0.1] hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-panel-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

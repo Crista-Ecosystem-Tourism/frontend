@@ -8,7 +8,7 @@
     /* brand */
     --brand-teal-300: #7ED3E0; --brand-teal-400: #5BC4F7; --brand-teal-500: #3BA8B8;
     --brand-teal-600: #1A8A9C; --brand-teal-700: #146B7A;
-    --ink-950: #0B0A17; --ink-900: #14101F; --ink-850: #181229;
+    --ink-950: #0E1015; --ink-900: #14171D; --ink-850: #1B1F27;
     --violet-800: #1C1730; --violet-700: #241D3D; --violet-600: #2E2650;
     --violet-glow-500: #6B5BFF; --violet-glow-400: #8B7CFF; --violet-glow-300: #ACA1FF;
     --white-08: rgba(255,255,255,.08); --white-12: rgba(255,255,255,.12);
@@ -52,6 +52,7 @@
     --color-accent-hover: var(--brand-teal-400);
     --color-accent-active: var(--brand-teal-600);
     --color-accent-gradient: linear-gradient(135deg, var(--brand-teal-400) 0%, var(--brand-teal-500) 55%, var(--brand-teal-600) 100%);
+    --color-link: var(--brand-teal-700);
     --color-glow: var(--violet-glow-500);
     --color-glow-soft: #D9D4FF;
     --color-success: var(--success-500); --color-warning: var(--warning-500); --color-danger: var(--danger-500);
@@ -64,6 +65,10 @@
     --glass-photo-bg: rgba(255,255,255,.24); --glass-photo-border: 1px solid rgba(255,255,255,.5);
     --glass-sheen: rgba(255,255,255,.85); --glass-sheen-strong: rgba(255,255,255,.95);
     --glass-underline: rgba(90,74,140,.1);
+    --frame-bg: rgba(255,255,255,.66); --frame-border: rgba(255,255,255,.7);
+    --header-bg: rgba(246,244,252,.82);
+    --panel-1: rgba(31,24,48,.045); --panel-2: rgba(31,24,48,.075); --panel-3: rgba(31,24,48,.12);
+    --hairline-1: rgba(31,24,48,.1); --hairline-2: rgba(31,24,48,.17); --hairline-3: rgba(31,24,48,.26);
     --scrim-rgb: 242, 238, 249;
   }
 
@@ -76,27 +81,33 @@
     --color-surface-hover: rgba(255,255,255,.14);
     --color-border: var(--white-08);
     --color-border-strong: var(--white-12);
-    --color-text-primary: #F4F2FB;
-    --color-text-secondary: #B8B3CC;
+    --color-text-primary: #F2F4F7;
+    --color-text-secondary: #B6BCC6;
     /* 5.6:1 на ink-950. Прежний #7A7593 давал 4.48 и не проходил WCAG AA */
-    --color-text-muted: #8B85A3;
+    --color-text-muted: #A8AEBA;
     --color-accent: var(--brand-teal-500);
     --color-accent-hover: var(--brand-teal-400);
     --color-accent-active: var(--brand-teal-600);
     --color-accent-gradient: linear-gradient(135deg, var(--brand-teal-400) 0%, var(--brand-teal-500) 55%, var(--brand-teal-600) 100%);
+    /* Тил на стекле: 6:1 против 3.7 у teal-500 */
+    --color-link: var(--brand-teal-300);
     --color-glow: var(--violet-glow-500);
     --color-glow-soft: var(--violet-glow-400);
     --color-success: var(--success-500); --color-warning: var(--warning-500); --color-danger: var(--danger-500);
 
-    --glass-bg: rgba(20,20,24,.5); --glass-bg-strong: rgba(20,20,24,.65);
+    --glass-bg: rgba(255,255,255,.055); --glass-bg-strong: rgba(255,255,255,.09);
     --glass-blur: 24px; --glass-blur-reduced: 14px;
-    --glass-border: 1px solid rgba(255,255,255,.1); --glass-shadow: 0 8px 32px rgba(0,0,0,.35);
+    --glass-border: 1px solid rgba(255,255,255,.14); --glass-shadow: 0 8px 32px rgba(0,0,0,.28);
     --shadow-sm: 0 2px 8px rgba(11,10,23,.3); --shadow-md: 0 8px 24px rgba(11,10,23,.4); --shadow-lg: 0 16px 48px rgba(11,10,23,.5);
     --glow-ring: 0 0 0 3px rgba(107,91,255,.35);
-    --glass-photo-bg: rgba(15,15,18,.32); --glass-photo-border: 1px solid rgba(255,255,255,.16);
+    --glass-photo-bg: rgba(255,255,255,.07); --glass-photo-border: 1px solid rgba(255,255,255,.2);
     --glass-sheen: rgba(255,255,255,.14); --glass-sheen-strong: rgba(255,255,255,.24);
     --glass-underline: rgba(0,0,0,.35);
-    --scrim-rgb: 11, 10, 23;
+    --frame-bg: rgba(28,32,40,.55); --frame-border: rgba(255,255,255,.16);
+    --header-bg: rgba(24,28,35,.6);
+    --panel-1: rgba(255,255,255,.06); --panel-2: rgba(255,255,255,.1); --panel-3: rgba(255,255,255,.17);
+    --hairline-1: rgba(255,255,255,.1); --hairline-2: rgba(255,255,255,.18); --hairline-3: rgba(255,255,255,.28);
+    --scrim-rgb: 14, 16, 21;
   }
 
   * {
@@ -246,6 +257,19 @@
     border: var(--glass-photo-border);
     box-shadow:
       0 20px 60px rgba(0, 0, 0, .42),
+      inset 0 1px 0 var(--glass-sheen-strong),
+      inset 0 -1px 0 var(--glass-underline);
+  }
+
+  /* Лист приложения: стекло с ощутимой толщиной края и тенью на сцене */
+  .app-frame {
+    background: var(--frame-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.5) brightness(1.03);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.5) brightness(1.03);
+    border: 1px solid var(--frame-border);
+    box-shadow:
+      0 40px 90px rgba(0, 0, 0, .5),
+      0 8px 24px rgba(0, 0, 0, .3),
       inset 0 1px 0 var(--glass-sheen-strong),
       inset 0 -1px 0 var(--glass-underline);
   }

@@ -10,9 +10,9 @@ const buttonVariants = cva(
       variant: {
         // Тил светлый: тёмный текст даёт 7:1, белый провалил бы 2.8:1.
         default: 'bg-primary text-ink-950 hover:bg-primary-hover active:bg-primary-active',
-        secondary: 'bg-white/[0.08] text-text hover:bg-white/[0.14] border border-white/[0.09]',
-        ghost: 'text-text-secondary hover:bg-white/[0.08] hover:text-text',
-        outline: 'border border-border-light bg-transparent text-text hover:bg-white/[0.06]',
+        secondary: 'bg-panel-3 text-text hover:bg-panel-3 border border-hairline-2',
+        ghost: 'text-text-secondary hover:bg-panel-2 hover:text-text',
+        outline: 'border border-border-light bg-transparent text-text hover:bg-panel-2',
         danger: 'bg-error text-white hover:opacity-90',
       },
       size: {

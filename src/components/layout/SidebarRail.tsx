@@ -27,8 +27,8 @@ export function RailButton({ icon: Icon, label, active, onClick, muted }: RailBu
           active
             ? 'bg-teal-700 text-white shadow-md'
             : muted
-              ? 'text-text-muted hover:bg-white/[0.08] hover:text-text'
-              : 'text-text-secondary hover:bg-white/[0.08] hover:text-text'
+              ? 'text-text-muted hover:bg-panel-2 hover:text-text'
+              : 'text-text-secondary hover:bg-panel-2 hover:text-text'
         )}
       >
         <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.2 : 1.8} />
@@ -40,7 +40,7 @@ export function RailButton({ icon: Icon, label, active, onClick, muted }: RailBu
         className={cn(
           'pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap',
           // Тёмная плашка в обеих темах: подсказка не должна зависеть от фона под ней
-          'rounded-md border border-white/10 bg-ink-850 px-2.5 py-1.5 font-sans text-xs text-white shadow-lg',
+          'rounded-md border border-hairline bg-ink-850 px-2.5 py-1.5 font-sans text-xs text-white shadow-lg',
           'opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100'
         )}
       >

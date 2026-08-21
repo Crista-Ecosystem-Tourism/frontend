@@ -41,20 +41,19 @@ export function AppBackdrop({ countryIso }: AppBackdropProps) {
         className="absolute inset-[-8%] bg-cover bg-center transition-opacity duration-[900ms] ease-out"
         style={{
           backgroundImage: `url(${src})`,
-          filter: 'blur(64px) saturate(1.15)',
-          opacity: loaded ? 0.42 : 0,
+          filter: 'blur(52px) saturate(1.08)',
+          opacity: loaded ? 0.8 : 0,
         }}
       />
 
-      {/* Плотность у краёв, чтобы центр оставался светлее и стекло играло */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_75%_60%_at_50%_40%,transparent_0%,rgb(var(--scrim-rgb))_100%)]" />
+      {/* Плотность у краёв: сцена ярче в центре, темнее по углам */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_70%_at_50%_40%,transparent_0%,rgba(var(--scrim-rgb),0.75)_100%)]" />
 
-      {/* Фирменная атмосфера поверх снимка */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(107,91,255,0.16),transparent_55%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(59,168,184,0.1),transparent_55%)]" />
+      {/* Нейтральный свет вместо цветных пятен: цвет должен давать сам кадр */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.07),transparent_58%)]" />
 
-      {/* Ровная подложка: гарантирует контраст текста на любом кадре */}
-      <div className="absolute inset-0 bg-[rgb(var(--scrim-rgb))] opacity-[0.55]" />
+      {/* Лёгкая подложка: основную плотность даёт стекло самого листа */}
+      <div className="absolute inset-0 bg-[rgb(var(--scrim-rgb))] opacity-[0.22]" />
     </div>
   )
 }

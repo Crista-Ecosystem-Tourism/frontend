@@ -134,10 +134,10 @@ export function DailyQuiz({
               className={cn(
                 'flex w-full items-center gap-3 rounded-md border p-3 text-left font-sans text-sm transition duration-base',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-                picked === null && 'border-white/[0.09] text-text-secondary hover:border-white/[0.18] hover:bg-white/[0.06] hover:text-text',
+                picked === null && 'border-hairline text-text-secondary hover:border-hairline-2 hover:bg-panel-2 hover:text-text',
                 picked !== null && isRight && 'border-primary/50 bg-primary/[0.1] text-text',
                 picked !== null && isPicked && !isRight && 'border-error/50 bg-error/[0.1] text-text',
-                picked !== null && !isRight && !isPicked && 'border-white/[0.06] text-text-muted'
+                picked !== null && !isRight && !isPicked && 'border-hairline text-text-muted'
               )}
             >
               <span
@@ -145,7 +145,7 @@ export function DailyQuiz({
                   'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
                   picked !== null && isRight && 'border-primary bg-primary text-ink-950',
                   picked !== null && isPicked && !isRight && 'border-error bg-error text-white',
-                  (picked === null || (!isRight && !isPicked)) && 'border-white/20'
+                  (picked === null || (!isRight && !isPicked)) && 'border-hairline-3'
                 )}
               >
                 {picked !== null && isRight && <Check className="h-3 w-3" aria-hidden="true" />}
@@ -158,7 +158,7 @@ export function DailyQuiz({
       </div>
 
       {answered && (
-        <div className="mt-3 rounded-md border border-white/[0.09] bg-white/[0.04] p-3">
+        <div className="mt-3 rounded-md border border-hairline bg-panel p-3">
           <p className="mb-1.5 flex items-center gap-2 font-sans text-sm font-semibold">
             {isCorrect ? (
               <>

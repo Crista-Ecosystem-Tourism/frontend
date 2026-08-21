@@ -73,7 +73,7 @@ function FileDrop({
           'flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-8 text-center transition-colors',
           dragging
             ? 'border-primary/60 bg-primary/[0.06]'
-            : 'border-white/[0.14] hover:border-white/25 hover:bg-white/[0.03]'
+            : 'border-hairline-2 hover:border-hairline-3 hover:bg-panel'
         )}
       >
         <input
@@ -106,7 +106,7 @@ function Field({
   rows?: number
 }) {
   const base =
-    'w-full rounded-md border border-white/[0.09] bg-white/[0.05] px-3 py-2.5 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent'
+    'w-full rounded-md border border-hairline bg-panel px-3 py-2.5 font-sans text-sm text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent'
 
   return rows ? (
     <textarea
@@ -322,7 +322,7 @@ function BlockBody({
             value={block.lines.join('\n')}
             onChange={(e) => update({ lines: e.target.value.split('\n') } as Partial<ArticleBlock>)}
             placeholder={'Гамарджоба - здравствуйте\nМадлоба - спасибо'}
-            className="w-full resize-y rounded-md border border-white/[0.09] bg-white/[0.05] px-3 py-2.5 font-mono text-sm leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
+            className="w-full resize-y rounded-md border border-hairline bg-panel px-3 py-2.5 font-mono text-sm leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary/40 focus:ring-2 focus:ring-accent"
           />
           <p className="font-sans text-xs text-text-muted">
             Каждая строка отдельным пунктом. Моноширинный шрифт держит колонки ровными.
@@ -420,9 +420,9 @@ export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
                 <button
                   key={type}
                   onClick={() => add(type)}
-                  className="flex items-start gap-3 rounded-md border border-white/[0.09] p-3 text-left transition-colors hover:border-white/[0.18] hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="flex items-start gap-3 rounded-md border border-hairline p-3 text-left transition-colors hover:border-hairline-2 hover:bg-panel-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-white/[0.07] text-text-secondary">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-panel-2 text-text-secondary">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
