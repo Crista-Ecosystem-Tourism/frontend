@@ -53,126 +53,48 @@ export function MainLayout() {
 
         {/* Main Content Area */}
         <main className="flex-1 relative h-full min-w-0">
-          <AnimatePresence mode="wait">
             {isHome && mainView === 'chatList' ? (
-              <motion.div
-                key="chat-list"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <ChatListPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'inspiration' ? (
-              <motion.div
-                key="inspiration"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <InspirationPanel onBack={() => setMainView('saved')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'data' ? (
-              <motion.div
-                key="data"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <DataPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'game' ? (
-              <motion.div
-                key="game"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <GamePanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'community' ? (
-              <motion.div
-                key="community"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <CommunityPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'placeByPhoto' ? (
-              <motion.div
-                key="place-by-photo"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <PlaceByPhotoPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'toursGlamping' ? (
-              <motion.div
-                key="tours-glamping"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <ToursGlampingPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'saved' ? (
-              <motion.div
-                key="saved-routes"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <SavedRoutesPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome && mainView === 'suitcase' ? (
-              <motion.div
-                key="suitcase"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full h-full"
-              >
+              <div className="w-full h-full crista-view">
                 <MyTripsPanel onBack={() => setMainView('home')} />
-              </motion.div>
+              </div>
             ) : isHome ? (
-              <motion.div
-                key="home"
-                initial={false}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
-                transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-                className="w-full h-full relative z-0"
-              >
+<div className="w-full h-full relative z-0 crista-view">
                 <HomeHub onSend={handleHomeInput} />
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
-                key="chat-layout"
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-                className="w-full h-full"
-              >
+<div className="w-full h-full crista-view">
                 {/* Mobile layout */}
                 {breakpoint === 'mobile' && (
                   <div className="flex flex-col w-full h-full">
@@ -269,9 +191,8 @@ export function MainLayout() {
                     </div>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </main>
       </div>
 

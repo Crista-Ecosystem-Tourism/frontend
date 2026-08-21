@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, X, Flame, Sparkles, ArrowRight, RotateCcw } from 'lucide-react'
 import { GlassPanel, Chip } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
@@ -27,21 +27,33 @@ export function DailyQuiz({
   streak,
 }: DailyQuizProps) {
   const [picked, setPicked] = useState<number | null>(null)
+  // Отвеченный вопрос удерживаем на экране: без этого список сразу
+  // подставлял следующий, унаследовав отметку от предыдущего ответа
+  const [heldId, setHeldId] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPicked(null)
+    setHeldId(null)
+  }, [countryIso])
 
   const all = useMemo(() => questionsForCountry(countryIso), [countryIso])
-  const remaining = all.filter((q) => !answeredIds.has(q.id))
+  const remaining = all.filter((q) => !answeredIds.has(q.id) || q.id === heldId)
   const current = remaining[0]
 
-  const answered = picked !== null && current
+  const answered = picked !== null && current !== undefined && current.id === heldId
   const isCorrect = answered ? picked === current.correct : false
 
   const submit = (index: number) => {
     if (picked !== null || !current) return
     setPicked(index)
+    setHeldId(current.id)
     onAnswer(current.id, index === current.correct)
   }
 
-  const next = () => setPicked(null)
+  const next = () => {
+    setPicked(null)
+    setHeldId(null)
+  }
 
   if (all.length === 0) {
     return (
@@ -71,7 +83,14 @@ export function DailyQuiz({
         <p className="mb-3 font-sans text-xs text-text-muted">
           Вы ответили на все {all.length}. Новые появятся завтра.
         </p>
-        <Button variant="ghost" size="sm" onClick={onReset}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            next()
+            onReset()
+          }}
+        >
           <RotateCcw />
           Пройти заново
         </Button>
@@ -88,7 +107,7 @@ export function DailyQuiz({
         <span className="flex items-center gap-2">
           <Chip size="sm">
             <span className="tabular">
-              {all.length - remaining.length + 1} из {all.length}
+              {all.filter((q) => answeredIds.has(q.id)).length + (answered ? 0 : 1)} из {all.length}
             </span>
           </Chip>
           <Chip size="sm" variant="active">
@@ -153,12 +172,10 @@ export function DailyQuiz({
           <p className="font-sans text-xs leading-relaxed text-text-secondary">
             {current.explanation}
           </p>
-          {remaining.length > 1 && (
-            <Button variant="secondary" size="sm" className="mt-3" onClick={next}>
-              Следующий вопрос
-              <ArrowRight />
-            </Button>
-          )}
+          <Button variant="secondary" size="sm" className="mt-3" onClick={next}>
+            {remaining.length > 1 ? 'Следующий вопрос' : 'Завершить'}
+            <ArrowRight />
+          </Button>
         </div>
       )}
     </GlassPanel>

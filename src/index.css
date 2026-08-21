@@ -236,6 +236,20 @@
   }
 }
 
+@layer components {
+  /* Появление экрана. На CSS, а не на AnimatePresence: раньше застрявшая
+     анимация выхода блокировала монтирование следующего экрана и вешала
+     навигацию. Контент виден сразу, анимация только украшает. */
+  .crista-view {
+    animation: view-in 260ms var(--ease-out);
+  }
+
+  @keyframes view-in {
+    from { opacity: 0; transform: translateY(6px) }
+    to { opacity: 1; transform: none }
+  }
+}
+
 @layer utilities {
   .scrollbar-hidden {
     -ms-overflow-style: none;
