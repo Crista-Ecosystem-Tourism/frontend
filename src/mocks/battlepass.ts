@@ -1,6 +1,7 @@
 /**
- * Сезонный пропуск. Ядро удержания: очки капают со всего игрового слоя
- * (точки квестов, вопросы дня, закрытые города), уровни выдают награды.
+ * Пропуск путешественника. Постоянный, а не сезонный: прогресс никуда
+ * не сгорает, уровни открываются по мере игры. Очки капают со всего
+ * игрового слоя (точки квестов, вопросы дня, закрытые города).
  * Верхняя дорожка доступна всем, нижняя открывается подпиской.
  */
 
@@ -21,11 +22,10 @@ export interface PassTier {
   premium: Reward
 }
 
-export interface Season {
+export interface Pass {
   id: string
   name: string
   subtitle: string
-  endsAt: string
   tiers: PassTier[]
 }
 
@@ -39,11 +39,10 @@ export const rewardLabel: Record<RewardKind, string> = {
   title: 'Звание',
 }
 
-export const season: Season = {
-  id: 'season-1',
-  name: 'Сезон 1: Северная навигация',
-  subtitle: 'Белые ночи, разводные мосты и первые штампы',
-  endsAt: '2026-09-30',
+export const pass: Pass = {
+  id: 'traveller-pass',
+  name: 'Пропуск путешественника',
+  subtitle: 'Уровни открываются по мере игры и остаются с вами навсегда',
   tiers: [
     {
       level: 1,
@@ -79,12 +78,7 @@ export const season: Season = {
       level: 6,
       threshold: 420,
       free: { kind: 'title', title: 'Звание «Хранитель маршрутов»', detail: 'Видно в профиле и на мини-сайтах' },
-      premium: { kind: 'stamp', title: 'Золотая печать сезона', detail: 'Крупная печать на развороте паспорта' },
+      premium: { kind: 'stamp', title: 'Золотая печать', detail: 'Крупная печать на развороте паспорта' },
     },
   ],
-}
-
-export function seasonDaysLeft(from: Date = new Date()): number {
-  const end = new Date(season.endsAt)
-  return Math.max(0, Math.ceil((end.getTime() - from.getTime()) / 86_400_000))
 }

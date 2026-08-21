@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { GlassPanel, Chip, IconButton, StatTile, DisplayTitle } from '@/components/ui/glass'
 import { Img } from '@/components/ui/Img'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { AppBackdrop } from '@/components/layout/AppBackdrop'
 import { gameCountries } from '@/mocks/game'
 import { trips, formatTripDates } from '@/mocks/trips'
 import { getInitials, cn } from '@/lib/utils'
@@ -88,7 +89,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background font-sans text-text">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/[0.13] via-background to-background" />
+      <AppBackdrop />
 
       <div className="relative z-10 flex h-full w-full">
         <Sidebar />

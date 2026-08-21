@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sidebar } from './Sidebar'
+import { AppBackdrop } from './AppBackdrop'
 import { MobileTabBar } from './MobileTabBar'
 import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatListPanel } from '@/components/chat/ChatListPanel'
@@ -43,9 +44,8 @@ export function MainLayout() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-text font-sans selection:bg-primary/30">
-      {/* Атмосфера: фиолетовый воздух, тил остаётся редким акцентом */}
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/[0.13] via-background to-background pointer-events-none" />
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-violet-600/25 via-background to-background pointer-events-none" />
+      {/* Размытый снимок под всем интерфейсом: стеклу нужно что-то преломлять */}
+      <AppBackdrop />
 
       {/* Sidebar */}
       <div className="flex h-full relative z-10">

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import {
   Lock, Check, Crown, Stamp, Frame, Snowflake, Compass, HardDrive, Percent, Award,
-  ChevronLeft, ChevronRight, CalendarClock,
+  ChevronLeft, ChevronRight, Infinity as InfinityIcon,
 } from 'lucide-react'
 import { GlassPanel, Chip, IconButton } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
-import { season, seasonDaysLeft, rewardLabel, type Reward, type RewardKind } from '@/mocks/battlepass'
+import { pass, rewardLabel, type Reward, type RewardKind } from '@/mocks/battlepass'
 import { cn } from '@/lib/utils'
 
 interface BattlePassProps {
@@ -93,11 +93,10 @@ function RewardCell({
 export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const tiers = season.tiers
+  const tiers = pass.tiers
   const maxThreshold = tiers[tiers.length - 1].threshold
   const currentLevel = tiers.filter((t) => points >= t.threshold).length
   const nextTier = tiers.find((t) => points < t.threshold)
-  const daysLeft = seasonDaysLeft()
 
   // Прокручиваем к текущему уровню, чтобы не искать его глазами
   useEffect(() => {
@@ -117,19 +116,16 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
       {/* Шапка сезона */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-white/[0.07] p-5">
         <div className="min-w-0">
-          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">
-            Сезонный пропуск
-          </p>
-          <h2 className="mt-1 font-display text-3xl font-semibold leading-tight text-text">
-            {season.name}
+          <h2 className="font-display text-3xl font-semibold leading-tight text-text">
+            {pass.name}
           </h2>
-          <p className="mt-1 font-sans text-sm text-text-secondary">{season.subtitle}</p>
+          <p className="mt-1 font-sans text-sm text-text-secondary">{pass.subtitle}</p>
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Chip size="sm">
-            <CalendarClock />
-            <span className="tabular">{daysLeft} дней до конца</span>
+            <InfinityIcon />
+            Без сроков
           </Chip>
           {isPremium ? (
             <Chip size="sm" variant="accent">
@@ -165,7 +161,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
           aria-valuenow={points}
           aria-valuemin={0}
           aria-valuemax={maxThreshold}
-          aria-label="Прогресс сезонного пропуска"
+          aria-label="Прогресс пропуска"
         >
           <div
             className="h-full rounded-full bg-primary transition-[width] duration-slow ease-standard"

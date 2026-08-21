@@ -10,12 +10,13 @@ import {
   PiggyBank,
   Sparkles,
 } from 'lucide-react'
-import { GlassPanel, IconButton, Chip, StatTile, ListRow, DisplayTitle } from '@/components/ui/glass'
+import { GlassPanel, IconButton, Chip, StatTile, DisplayTitle } from '@/components/ui/glass'
 import { Img } from '@/components/ui/Img'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { BattlePass } from './BattlePass'
+import { DailyQuiz } from '@/components/game/DailyQuiz'
 import { gameCountries } from '@/mocks/game'
 
 interface HomeHubProps {
@@ -31,30 +32,6 @@ const suggestions = [
   { label: 'Горы Алтая', tripId: 'altai-trekking' },
   { label: 'Культура Киото', tripId: 'kyoto-culture' },
   { label: 'Пляжи Бали', tripId: 'bali-beaches' },
-]
-
-const nearby = [
-  {
-    id: 'msk-red-square',
-    title: 'Красная площадь',
-    subtitle: 'Сердце города',
-    location: 'Москва',
-    imageUrl: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=200&q=80',
-  },
-  {
-    id: 'msk-kremlin',
-    title: 'Кремль',
-    subtitle: 'Стены и башни XV века',
-    location: 'Москва',
-    imageUrl: 'https://images.unsplash.com/photo-1547448415-e9f5b28e570d?w=200&q=80',
-  },
-  {
-    id: 'spb-bridge',
-    title: 'Дворцовый мост',
-    subtitle: 'Развод в 01:10',
-    location: 'Санкт-Петербург',
-    imageUrl: 'https://images.unsplash.com/photo-1556610961-2fecc5927173?w=200&q=80',
-  },
 ]
 
 const destinations = [
@@ -214,7 +191,8 @@ function ProgressRing({ value, size = 56 }: { value: number; size?: number }) {
 
 export function HomeHub({ onSend }: HomeHubProps) {
   const { setMainView, user, openModal } = useApp()
-  const { countryProgress, stats, passPoints } = useGameProgress()
+  const { countryProgress, stats, passPoints, answeredQuizIds, answerQuiz, resetQuiz, quizStreak } =
+    useGameProgress()
 
   // Фокус берём из игры: первая открытая страна, которую ещё не закрыли
   const focus =
@@ -330,41 +308,33 @@ export function HomeHub({ onSend }: HomeHubProps) {
               </p>
             </GlassPanel>
 
-            <GlassPanel variant="photo" className="p-2.5">
-              <div className="flex items-baseline justify-between px-2.5 pb-1 pt-1.5">
-                <h2 className="font-sans text-sm font-semibold text-text">Рядом с вами</h2>
+            {/* Вопрос дня по стране фокуса: изучение вместо витрины мест */}
+            <GlassPanel variant="photo" className="p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="font-sans text-sm font-semibold text-text">
+                  Изучаем: {focus.name}
+                </p>
                 <button
-                  onClick={() => setMainView('saved')}
-                  className="font-sans text-xs text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  onClick={() => setMainView('game')}
+                  className="shrink-0 font-sans text-xs text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
-                  Все места
+                  Все вопросы
                 </button>
               </div>
-              <div className="flex flex-col">
-                {nearby.map((n) => (
-                  <ListRow
-                    key={n.id}
-                    imageUrl={n.imageUrl}
-                    title={n.title}
-                    subtitle={n.subtitle}
-                    meta={
-                      <>
-                        <MapPin />
-                        {n.location}
-                      </>
-                    }
-                    onClick={() => onSend(`Расскажи про ${n.title}`)}
-                    action={
-                      <ArrowRight className="h-4 w-4 shrink-0 text-text-muted opacity-0 transition-opacity group-hover:opacity-100" />
-                    }
-                  />
-                ))}
-              </div>
+
+              <DailyQuiz
+                countryIso={focus.iso}
+                countryName={focus.name}
+                answeredIds={answeredQuizIds}
+                onAnswer={answerQuiz}
+                onReset={() => resetQuiz(focus.iso)}
+                streak={quizStreak}
+              />
             </GlassPanel>
           </div>
         </div>
 
-        {/* Сезонный пропуск: главный крючок удержания, сразу под героем */}
+        {/* Пропуск путешественника: главный крючок удержания, сразу под героем */}
         <section className="mt-12">
           <BattlePass
             points={passPoints}
