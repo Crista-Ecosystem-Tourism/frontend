@@ -1,43 +1,24 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  ArrowLeft, Globe2, Lock, Flame, PiggyBank, Trophy, CheckCircle2,
-  Circle, TrendingDown, MapPin, ChevronRight, BookOpenCheck,
+  ArrowLeft, Globe2, Flame, PiggyBank, Trophy, CheckCircle2,
+  Circle, TrendingDown, MapPin, ChevronRight, BookOpenCheck, RotateCcw,
 } from 'lucide-react'
 import { GlassPanel, Chip, DisplayTitle, IconButton } from '@/components/ui/glass'
+import { WorldMap } from './WorldMap'
+import { CountryQuests } from './CountryQuests'
+import { useGameProgress } from '@/hooks/useGameProgress'
+import { gameCountries, findCountry, questCategoryLabel } from '@/mocks/game'
 import { cn } from '@/lib/utils'
 
 type GamePanelProps = {
   onBack: () => void
 }
 
-interface CountryTile {
-  id: string
-  name: string
-  flag: string
-  progress: number
-  opened: boolean
+const categoryTint: Record<string, string> = {
+  sights: 'bg-teal-400',
+  food: 'bg-[#E3C878]',
+  traditions: 'bg-accent-soft',
 }
-
-const countries: CountryTile[] = [
-  { id: 'ru', name: 'Россия', flag: '🇷🇺', progress: 62, opened: true },
-  { id: 'ge', name: 'Грузия', flag: '🇬🇪', progress: 28, opened: true },
-  { id: 'tr', name: 'Турция', flag: '🇹🇷', progress: 9, opened: true },
-  { id: 'it', name: 'Италия', flag: '🇮🇹', progress: 0, opened: false },
-  { id: 'jp', name: 'Япония', flag: '🇯🇵', progress: 0, opened: false },
-  { id: 'id', name: 'Индонезия', flag: '🇮🇩', progress: 0, opened: false },
-  { id: 'fr', name: 'Франция', flag: '🇫🇷', progress: 0, opened: false },
-  { id: 'th', name: 'Таиланд', flag: '🇹🇭', progress: 0, opened: false },
-  { id: 'ae', name: 'ОАЭ', flag: '🇦🇪', progress: 0, opened: false },
-  { id: 'es', name: 'Испания', flag: '🇪🇸', progress: 0, opened: false },
-  { id: 'de', name: 'Германия', flag: '🇩🇪', progress: 0, opened: false },
-  { id: 'eg', name: 'Египет', flag: '🇪🇬', progress: 0, opened: false },
-]
-
-const categoryProgress = [
-  { label: 'Достопримечательности', value: 74, tint: 'bg-teal-400' },
-  { label: 'Кухня', value: 55, tint: 'bg-[#E3C878]' },
-  { label: 'Традиции', value: 40, tint: 'bg-accent-soft' },
-]
 
 function ProgressRing({ value, size = 60 }: { value: number; size?: number }) {
   const stroke = 4
@@ -63,11 +44,25 @@ function ProgressRing({ value, size = 60 }: { value: number; size?: number }) {
 
 export function GamePanel({ onBack }: GamePanelProps) {
   const [dailyDone, setDailyDone] = useState(false)
-  const focusCountry = countries[0]
+  const [selectedIso, setSelectedIso] = useState<string>('RU')
+
+  const {
+    isDone, toggleQuest, countryProgress, cityProgress, categoryProgress, stats, resetProgress,
+  } = useGameProgress()
+
+  const country = findCountry(selectedIso) ?? gameCountries[0]
+  const progress = countryProgress(country.iso)
+  const categories = categoryProgress(country.iso)
+
+  // Фокус страны: та, что открыта и ещё не закрыта полностью
+  const focus = useMemo(
+    () => gameCountries.find((c) => c.opened && countryProgress(c.iso) < 100) ?? gameCountries[0],
+    [countryProgress]
+  )
+  const focusProgress = countryProgress(focus.iso)
 
   return (
     <div className="h-full overflow-y-auto">
-      {/* Шапка */}
       <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -79,76 +74,57 @@ export function GamePanel({ onBack }: GamePanelProps) {
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
             <Chip size="sm">
               <Globe2 />
-              <span className="tabular">3 из 195 стран</span>
+              <span className="tabular">{stats.openedCountries} из 195 стран</span>
             </Chip>
             <Chip size="sm" variant="active">
-              <Flame />
-              <span className="tabular">Стрик 12 дней</span>
+              <Trophy />
+              <span className="tabular">{stats.doneQuests} из {stats.totalQuests} квестов</span>
             </Chip>
           </div>
         </div>
       </div>
 
       <div className="mx-auto w-full max-w-[1100px] space-y-8 px-5 py-8 sm:px-6">
-        {/* Карта мира с туманом войны */}
+        {/* Карта мира */}
         <section>
           <div className="mb-4 flex items-baseline justify-between gap-4">
             <h2 className="font-display text-xl font-semibold text-text">Карта мира</h2>
-            <p className="hidden text-xs text-text-muted sm:block">
-              Клик по открытой стране ведёт к городам и точкам квестов
+            <p className="hidden font-sans text-xs text-text-muted sm:block">
+              Открытые страны подсвечены. Нажмите, чтобы увидеть города и квесты
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
-            {countries.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                disabled={!c.opened}
-                aria-label={
-                  c.opened
-                    ? `${c.name}, открыто ${c.progress} процентов`
-                    : 'Страна скрыта туманом войны'
-                }
-                title={c.opened ? c.name : 'Скрыто туманом войны. Постройте маршрут, чтобы открыть'}
-                className={cn(
-                  'group relative aspect-square overflow-hidden rounded-lg border transition duration-base ease-standard',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-                  c.opened
-                    ? 'cursor-pointer border-white/[0.09] bg-white/[0.05] hover:-translate-y-0.5 hover:border-primary/40 hover:bg-white/[0.09]'
-                    : 'cursor-not-allowed border-white/[0.05] bg-white/[0.02]'
-                )}
-              >
-                <span className="flex h-full w-full flex-col items-center justify-center gap-1.5">
-                  <span className={cn('text-3xl leading-none', !c.opened && 'opacity-25 grayscale')}>
-                    {c.flag}
-                  </span>
-                  <span
-                    className={cn(
-                      'px-1 text-center font-sans text-[11px] font-medium leading-tight',
-                      c.opened ? 'text-text-secondary' : 'text-transparent'
-                    )}
-                  >
-                    {c.opened ? c.name : '?'}
-                  </span>
-                </span>
+          <GlassPanel className="relative h-[420px] overflow-hidden p-0 sm:h-[480px]">
+            {/* Атмосферное свечение под картой */}
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(107,91,255,0.16),transparent_70%)]" />
+            <WorldMap
+              progressByIso={countryProgress}
+              selectedIso={selectedIso}
+              onSelect={setSelectedIso}
+            />
+          </GlassPanel>
 
-                {/* Туман войны: живой слой, а не серая заглушка */}
-                {!c.opened && (
-                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <span className="absolute inset-0 animate-fog-pulse bg-[radial-gradient(ellipse_at_50%_40%,rgba(107,91,255,0.32),rgba(11,10,23,0.9))] backdrop-blur-[3px]" />
-                    <Lock className="relative h-4 w-4 text-white/45" aria-hidden="true" />
-                  </span>
-                )}
-
-                {c.opened && (
-                  <span className="absolute right-1.5 top-1.5 rounded-full bg-primary/15 px-1.5 py-0.5 font-sans text-[10px] font-bold tabular text-primary">
-                    {c.progress}%
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 font-sans text-xs text-text-muted">
+            <span className="flex items-center gap-2">
+              <span className="h-2.5 w-4 rounded-sm bg-primary/70" />
+              Открыто, идёт прогресс
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="h-2.5 w-4 rounded-sm bg-violet-700" />
+              Туман войны
+            </span>
           </div>
+        </section>
+
+        {/* Квесты выбранной страны */}
+        <section>
+          <CountryQuests
+            country={country}
+            isDone={isDone}
+            onToggle={toggleQuest}
+            progress={progress}
+            cityProgress={cityProgress}
+          />
         </section>
 
         {/* Фокус страны */}
@@ -156,22 +132,24 @@ export function GamePanel({ onBack }: GamePanelProps) {
           <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <span className="relative flex items-center justify-center">
-                <ProgressRing value={focusCountry.progress} />
-                <span className="absolute text-xl leading-none">{focusCountry.flag}</span>
+                <ProgressRing value={focusProgress} />
+                <span className="absolute text-xl leading-none" aria-hidden="true">{focus.flag}</span>
               </span>
               <span>
                 <span className="block font-sans text-xs uppercase tracking-wide text-text-muted">
                   Фокус страны
                 </span>
-                <DisplayTitle as="h2" className="!text-3xl">
-                  {focusCountry.name}
-                </DisplayTitle>
+                <DisplayTitle as="h2" className="!text-3xl">{focus.name}</DisplayTitle>
                 <span className="mt-0.5 block font-sans text-sm tabular text-text-secondary">
-                  {focusCountry.progress}% закрыто
+                  {focusProgress}% закрыто
                 </span>
               </span>
             </div>
-            <Chip variant="accent">До премиум-слоя 38%</Chip>
+            {focusProgress === 100 ? (
+              <Chip variant="active"><Trophy /> Фокус закрыт</Chip>
+            ) : (
+              <Chip variant="accent">До премиум-слоя {100 - focusProgress}%</Chip>
+            )}
           </div>
 
           <div className="mb-5 grid gap-4 sm:grid-cols-2">
@@ -195,12 +173,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
                   <Circle className="mt-0.5 h-5 w-5 shrink-0 text-text-muted" aria-hidden="true" />
                 )}
                 <span>
-                  <span
-                    className={cn(
-                      'block font-sans text-sm font-medium text-text',
-                      dailyDone && 'text-text-muted line-through'
-                    )}
-                  >
+                  <span className={cn('block font-sans text-sm font-medium text-text', dailyDone && 'text-text-muted line-through')}>
                     Фраза дня: «Гамарджоба» это привет по-грузински
                   </span>
                   <span className="mt-0.5 block font-sans text-xs text-text-muted">
@@ -227,17 +200,24 @@ export function GamePanel({ onBack }: GamePanelProps) {
             </GlassPanel>
           </div>
 
+          {/* Категории считаются из реальных квестов выбранной страны */}
+          <p className="mb-2.5 font-sans text-xs text-text-muted">
+            Категории по стране {country.name}
+          </p>
           <div className="space-y-2.5">
-            {categoryProgress.map((cat) => (
-              <div key={cat.label} className="flex items-center gap-3">
+            {(Object.keys(questCategoryLabel) as Array<keyof typeof questCategoryLabel>).map((key) => (
+              <div key={key} className="flex items-center gap-3">
                 <span className="w-36 shrink-0 truncate font-sans text-xs text-text-secondary sm:w-44">
-                  {cat.label}
+                  {questCategoryLabel[key]}
                 </span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
-                  <div className={cn('h-full rounded-full', cat.tint)} style={{ width: `${cat.value}%` }} />
+                  <div
+                    className={cn('h-full rounded-full transition-[width] duration-slow ease-standard', categoryTint[key])}
+                    style={{ width: `${categories[key]}%` }}
+                  />
                 </div>
                 <span className="w-9 text-right font-sans text-xs font-semibold tabular text-text-muted">
-                  {cat.value}%
+                  {categories[key]}%
                 </span>
               </div>
             ))}
@@ -281,23 +261,33 @@ export function GamePanel({ onBack }: GamePanelProps) {
           </div>
         </GlassPanel>
 
-        {/* Тревел-паспорт */}
-        <button className="group flex w-full items-center justify-between rounded-lg border border-white/[0.09] bg-white/[0.05] p-4 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-          <span className="flex items-center gap-3">
-            <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
-            <span>
-              <span className="block font-sans text-sm font-semibold text-text">Тревел-паспорт</span>
-              <span className="block font-sans text-xs text-text-muted">
-                Собрано 3 штампа, смотрите в профиле
+        {/* Паспорт и сброс */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="group flex flex-1 items-center justify-between gap-4 rounded-lg border border-white/[0.09] bg-white/[0.05] p-4 text-left transition-colors hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+            <span className="flex items-center gap-3">
+              <Trophy className="h-5 w-5 text-primary" aria-hidden="true" />
+              <span>
+                <span className="block font-sans text-sm font-semibold text-text">Тревел-паспорт</span>
+                <span className="block font-sans text-xs tabular text-text-muted">
+                  Закрыто стран: {stats.closedCountries}
+                </span>
               </span>
             </span>
-          </span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-        </button>
+            <ChevronRight className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+          </button>
+
+          <button
+            onClick={resetProgress}
+            className="flex items-center gap-2 rounded-lg border border-white/[0.09] px-4 py-3 font-sans text-sm text-text-muted transition-colors hover:border-white/[0.16] hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
+            Сбросить прогресс
+          </button>
+        </div>
 
         <p className="flex items-start gap-2 px-1 font-sans text-xs leading-relaxed text-text-muted">
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          Пилотные города фазы 0: Москва, Санкт-Петербург и Сочи. Полный режим появится в фазе 1.
+          Пилотные города фазы 0: Москва, Санкт-Петербург и Сочи. Прогресс сохраняется в браузере.
         </p>
       </div>
     </div>
