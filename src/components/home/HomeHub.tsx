@@ -36,7 +36,7 @@ const nearby = [
     title: 'Эрмитаж',
     subtitle: 'Главный музей страны',
     location: 'Дворцовая площадь',
-    imageUrl: 'https://images.unsplash.com/photo-1583002083441-9d5e0e0f4b9e?w=200&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1548013146-72479768bada?w=200&q=80',
   },
   {
     id: 'spb-spilled-blood',

@@ -1,6 +1,8 @@
-import { ArrowLeft, Users, Heart, MapPin, Play, Trophy, Medal, Flame, UserPlus, Crown } from 'lucide-react'
+import { ArrowLeft, Heart, MapPin, Play, Trophy, Medal, Flame, UserPlus, Crown } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { GlassPanel, Chip, IconButton } from '@/components/ui/glass'
+import { Img } from '@/components/ui/Img'
 import { cn } from '@/lib/utils'
 
 type CommunityPanelProps = {
@@ -22,7 +24,7 @@ const starRoutes = [
     title: 'Секретные точки Сочи',
     author: 'Гордей',
     kind: 'Блогер',
-    cover: 'https://images.unsplash.com/photo-1601918922056-3b3b09b9c7d6?w=800&q=80',
+    cover: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80',
     likes: 1870,
     points: 6,
   },
@@ -38,148 +40,172 @@ const starRoutes = [
   {
     id: '4',
     title: 'Выходные в Питере',
-    author: 'Аня К. · подруга',
+    author: 'Аня Ковалёва, подруга',
     kind: 'Друг',
-    cover: 'https://images.unsplash.com/photo-1556610961-ef2c3d9baf7b?w=800&q=80',
+    cover: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80',
     likes: 96,
     points: 5,
   },
 ]
 
 const leaderboard = [
-  { rank: 1, name: 'Максим Т.', countries: 14, avatar: '' },
-  { rank: 2, name: 'Ирина В.', countries: 11, avatar: '' },
+  { rank: 1, name: 'Максим Терентьев', countries: 14, avatar: '' },
+  { rank: 2, name: 'Ирина Власова', countries: 11, avatar: '' },
   { rank: 3, name: 'Вы', countries: 9, avatar: '', isMe: true },
-  { rank: 4, name: 'Данила П.', countries: 8, avatar: '' },
-  { rank: 5, name: 'Соня Р.', countries: 7, avatar: '' },
+  { rank: 4, name: 'Данила Панов', countries: 8, avatar: '' },
+  { rank: 5, name: 'Соня Рахимова', countries: 7, avatar: '' },
 ]
 
 const friends = [
-  { name: 'Аня К.', progress: 62, racing: true },
-  { name: 'Пётр С.', progress: 40, racing: false },
-  { name: 'Лена М.', progress: 81, racing: true },
+  { name: 'Аня Ковалёва', progress: 62, racing: true },
+  { name: 'Пётр Соловьёв', progress: 40, racing: false },
+  { name: 'Лена Мирошник', progress: 81, racing: true },
 ]
 
 export function CommunityPanel({ onBack }: CommunityPanelProps) {
   return (
-    <div className="flex flex-col h-full bg-background overflow-y-auto">
-      <div className="flex-shrink-0 p-4 pb-3 border-b border-border sticky top-0 bg-background/90 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-hover transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 text-text-secondary" />
-          </button>
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary shrink-0" />
-            <h1 className="text-xl font-bold text-text">Сообщество</h1>
-          </div>
+    <div className="h-full overflow-y-auto">
+      <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 py-3 sm:px-6">
+          <IconButton label="Назад" variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft />
+          </IconButton>
+          <h1 className="font-display text-2xl font-semibold text-text">Сообщество</h1>
         </div>
       </div>
 
-      <div className="flex-1 p-4 sm:p-6 max-w-4xl w-full mx-auto min-h-0">
+      <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
         <Tabs defaultValue="routes" className="w-full">
-          <TabsList className="w-full sm:w-fit h-auto flex-wrap justify-start gap-1 bg-surface-light/80 p-1 rounded-xl border border-border/50">
-            <TabsTrigger value="routes" className="rounded-lg px-4 py-2">Маршруты звёзд и друзей</TabsTrigger>
-            <TabsTrigger value="leaderboard" className="rounded-lg px-4 py-2">Лидерборд</TabsTrigger>
-            <TabsTrigger value="friends" className="rounded-lg px-4 py-2">Друзья</TabsTrigger>
+          <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-md border border-white/[0.09] bg-white/[0.05] p-1 sm:w-fit">
+            <TabsTrigger value="routes" className="rounded-sm px-4 py-2">Маршруты звёзд и друзей</TabsTrigger>
+            <TabsTrigger value="leaderboard" className="rounded-sm px-4 py-2">Лидерборд</TabsTrigger>
+            <TabsTrigger value="friends" className="rounded-sm px-4 py-2">Друзья</TabsTrigger>
           </TabsList>
 
+          {/* Маршруты */}
           <TabsContent value="routes" className="mt-6 outline-none">
-            <div className="grid sm:grid-cols-2 gap-4">
-              {starRoutes.map(route => (
-                <div key={route.id} className="group rounded-2xl border border-border bg-surface-light/40 overflow-hidden hover:border-primary/40 hover:shadow-lg transition-all">
-                  <div className="relative h-36">
-                    <img src={route.cover} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-                    <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider text-white bg-white/20 backdrop-blur-md rounded-full px-2.5 py-1">
-                      {route.kind}
-                    </span>
-                    <button className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Play className="w-4 h-4 text-black fill-black" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {starRoutes.map((route) => (
+                <article
+                  key={route.id}
+                  className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] transition duration-base ease-standard hover:border-white/[0.16] hover:bg-white/[0.08]"
+                >
+                  <div className="relative aspect-[16/9] overflow-hidden">
+                    <Img
+                      src={route.cover}
+                      alt={route.title}
+                      className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
+                    />
+                    <div className="photo-scrim absolute inset-0" />
+                    <button
+                      aria-label={`Открыть маршрут «${route.title}»`}
+                      className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-ink-950 opacity-0 transition-opacity duration-base group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    >
+                      <Play className="h-4 w-4 fill-current" aria-hidden="true" />
                     </button>
                   </div>
+
                   <div className="p-4">
-                    <h3 className="font-bold text-text mb-1">{route.title}</h3>
-                    <p className="text-xs text-text-muted mb-3">{route.author}</p>
-                    <div className="flex items-center justify-between text-xs text-text-secondary">
-                      <span className="flex items-center gap-1"><Heart className="w-3.5 h-3.5 text-rose-500" /> {route.likes.toLocaleString('ru')}</span>
-                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {route.points} точек</span>
+                    <div className="mb-2 flex items-center gap-2">
+                      <Chip size="sm">{route.kind}</Chip>
+                      <span className="truncate font-sans text-xs text-text-muted">{route.author}</span>
+                    </div>
+                    <h3 className="mb-2 font-display text-xl font-semibold leading-tight text-text">
+                      {route.title}
+                    </h3>
+                    <div className="flex items-center justify-between font-sans text-xs text-text-secondary">
+                      <span className="flex items-center gap-1.5">
+                        <Heart className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                        <span className="tabular">{route.likes.toLocaleString('ru')}</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span className="tabular">{route.points} точек</span>
+                      </span>
                     </div>
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           </TabsContent>
 
+          {/* Лидерборд */}
           <TabsContent value="leaderboard" className="mt-6 outline-none">
-            <div className="rounded-2xl border border-border bg-surface-light/40 divide-y divide-border overflow-hidden">
-              {leaderboard.map(row => (
+            <GlassPanel className="divide-y divide-white/[0.07] overflow-hidden p-0">
+              {leaderboard.map((row) => (
                 <div
                   key={row.rank}
-                  className={cn(
-                    'flex items-center gap-4 px-4 py-3.5',
-                    row.isMe && 'bg-primary/5'
-                  )}
+                  className={cn('flex items-center gap-4 px-4 py-3.5', row.isMe && 'bg-primary/[0.07]')}
                 >
-                  <span className={cn(
-                    'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0',
-                    row.rank === 1 ? 'bg-amber-400/20 text-amber-500' :
-                    row.rank === 2 ? 'bg-slate-300/30 text-slate-400' :
-                    row.rank === 3 ? 'bg-orange-400/20 text-orange-500' : 'bg-surface text-text-muted'
-                  )}>
-                    {row.rank <= 3 ? <Medal className="w-3.5 h-3.5" /> : row.rank}
+                  <span
+                    className={cn(
+                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold tabular',
+                      row.rank <= 3 ? 'bg-primary/15 text-primary' : 'bg-white/[0.07] text-text-muted'
+                    )}
+                  >
+                    {row.rank <= 3 ? <Medal className="h-3.5 w-3.5" aria-hidden="true" /> : row.rank}
                   </span>
-                  <Avatar className="w-9 h-9 border border-border">
+                  <Avatar className="h-9 w-9 border border-white/10">
                     <AvatarImage src={row.avatar} />
-                    <AvatarFallback className="bg-surface text-text-secondary text-xs">{row.name.slice(0, 2)}</AvatarFallback>
+                    <AvatarFallback className="bg-white/[0.07] text-xs text-text-secondary">
+                      {row.name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <p className={cn('text-sm font-semibold text-text', row.isMe && 'text-primary')}>{row.name}</p>
-                    <p className="text-xs text-text-muted">{row.countries} стран закрыто</p>
+                  <div className="min-w-0 flex-1">
+                    <p className={cn('truncate font-sans text-sm font-semibold text-text', row.isMe && 'text-primary')}>
+                      {row.name}
+                    </p>
+                    <p className="font-sans text-xs tabular text-text-muted">
+                      {row.countries} стран закрыто
+                    </p>
                   </div>
-                  {row.rank === 1 && <Crown className="w-4 h-4 text-amber-500" />}
+                  {row.rank === 1 && <Crown className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
                 </div>
               ))}
-            </div>
+            </GlassPanel>
           </TabsContent>
 
+          {/* Друзья */}
           <TabsContent value="friends" className="mt-6 outline-none">
             <div className="space-y-3">
-              {friends.map(friend => (
-                <div key={friend.name} className="flex items-center gap-4 rounded-2xl border border-border bg-surface-light/40 p-4">
-                  <Avatar className="w-10 h-10 border border-border">
-                    <AvatarFallback className="bg-surface text-text-secondary text-sm">{friend.name.slice(0, 2)}</AvatarFallback>
+              {friends.map((friend) => (
+                <GlassPanel key={friend.name} className="flex items-center gap-4 p-4">
+                  <Avatar className="h-10 w-10 border border-white/10">
+                    <AvatarFallback className="bg-white/[0.07] text-sm text-text-secondary">
+                      {friend.name.slice(0, 2)}
+                    </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-semibold text-text">{friend.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <p className="truncate font-sans text-sm font-semibold text-text">{friend.name}</p>
                       {friend.racing && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-orange-500">
-                          <Flame className="w-3 h-3" /> Гонка
+                        <span className="flex shrink-0 items-center gap-1 font-sans text-[10px] font-bold uppercase tracking-wide text-primary">
+                          <Flame className="h-3 w-3" aria-hidden="true" /> Гонка
                         </span>
                       )}
                     </div>
-                    <div className="h-1.5 rounded-full bg-surface overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${friend.progress}%` }} />
+                    <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${friend.progress}%` }} />
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-text-muted w-9 text-right">{friend.progress}%</span>
-                </div>
+                  <span className="w-9 shrink-0 text-right font-sans text-xs font-bold tabular text-text-muted">
+                    {friend.progress}%
+                  </span>
+                </GlassPanel>
               ))}
-              <button className="w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border p-4 text-sm font-semibold text-text-secondary hover:text-primary hover:border-primary/40 transition-colors">
-                <UserPlus className="w-4 h-4" /> Пригласить друга — совместно откроете страну
+
+              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-white/[0.14] p-4 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                Пригласить друга и открыть страну вместе
               </button>
             </div>
           </TabsContent>
         </Tabs>
 
-        <div className="flex items-center gap-2 mt-6 rounded-xl border border-dashed border-border p-4 text-xs text-text-muted">
-          <Trophy className="w-4 h-4 flex-shrink-0" />
-          Публикуйте собственные маршруты как шаблоны — они попадают в общую ленту наравне с маршрутами звёзд.
-        </div>
+        <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-white/[0.12] p-4 font-sans text-xs leading-relaxed text-text-muted">
+          <Trophy className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          Публикуйте собственные маршруты как шаблоны. Они попадают в общую ленту наравне с маршрутами звёзд.
+        </p>
       </div>
     </div>
   )
