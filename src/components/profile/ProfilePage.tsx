@@ -13,7 +13,7 @@ import { Img } from '@/components/ui/Img'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { gameCountries } from '@/mocks/game'
 import { trips, formatTripDates } from '@/mocks/trips'
-import { getInitials, cn } from '@/lib/utils'
+import { getInitials, cn, pluralize } from '@/lib/utils'
 
 export function ProfilePage() {
   const navigate = useNavigate()
@@ -165,7 +165,7 @@ export function ProfilePage() {
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <h2 className="font-display text-2xl font-semibold text-text">Тревел-паспорт</h2>
                 <span className="font-sans text-xs tabular text-text-muted">
-                  {stampsEarned} штампов
+                  {pluralize(stampsEarned, 'штамп', 'штампа', 'штампов')}
                 </span>
               </div>
 
@@ -242,7 +242,7 @@ export function ProfilePage() {
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <h2 className="font-display text-2xl font-semibold text-text">Мои путешествия</h2>
                 <span className="font-sans text-xs tabular text-text-muted">
-                  {trips.length} поездок
+                  {pluralize(trips.length, 'поездка', 'поездки', 'поездок')}
                 </span>
               </div>
 

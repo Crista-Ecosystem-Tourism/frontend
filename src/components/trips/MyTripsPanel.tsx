@@ -11,7 +11,7 @@ import {
   type Trip,
   type TripPrivacy,
 } from '@/mocks/trips'
-import { cn } from '@/lib/utils'
+import { cn, pluralize } from '@/lib/utils'
 
 interface MyTripsPanelProps {
   onBack: () => void
@@ -78,7 +78,7 @@ export function MyTripsPanel({ onBack }: MyTripsPanelProps) {
               Мои путешествия
             </h1>
           </div>
-          <Chip size="sm" className="tabular">{trips.length} поездок</Chip>
+          <Chip size="sm" className="tabular">{pluralize(trips.length, 'поездка', 'поездки', 'поездок')}</Chip>
         </div>
       </div>
 

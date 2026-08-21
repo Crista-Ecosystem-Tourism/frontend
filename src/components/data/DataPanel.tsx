@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Img } from '@/components/ui/Img'
 import { WikiEditor } from './WikiEditor'
 import { CountryCarousel } from './CountryCarousel'
+import { ArticleBlocks } from './ArticleBlocks'
 import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
@@ -222,6 +223,12 @@ export function DataPanel({ onBack }: DataPanelProps) {
               </div>
             ))}
           </div>
+
+          {draft?.blocks && draft.blocks.length > 0 && (
+            <div className="mt-8">
+              <ArticleBlocks blocks={draft.blocks} />
+            </div>
+          )}
 
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-white/[0.07] pt-6">
             <Button variant="secondary" onClick={() => setEditing(true)}>

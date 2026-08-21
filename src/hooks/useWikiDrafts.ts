@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import type { ArticleBlock } from '@/types/wiki'
 
 export interface WikiPractical {
   label: string
@@ -13,6 +14,8 @@ export interface WikiDraft {
   cuisine: string
   traditions: string
   practical: WikiPractical[]
+  /** Дополнительные блоки статьи: фото, видео, врезки */
+  blocks: ArticleBlock[]
   /** Правки уходят в очередь модерации, а не в статью напрямую */
   status: 'pending' | 'published'
   updatedAt: string

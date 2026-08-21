@@ -3,6 +3,8 @@ import { ArrowLeft, Plus, Trash2, Info, Save, RotateCcw } from 'lucide-react'
 import { GlassPanel, IconButton, Chip } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
 import type { WikiDraft, WikiPractical } from '@/hooks/useWikiDrafts'
+import { BlockEditor } from './BlockEditor'
+import type { ArticleBlock } from '@/types/wiki'
 
 interface EditableArticle {
   id: string
@@ -87,6 +89,7 @@ export function WikiEditor({
   const [practical, setPractical] = useState<WikiPractical[]>(
     base.practical.map((p) => ({ label: p.label, value: p.value }))
   )
+  const [blocks, setBlocks] = useState<ArticleBlock[]>(existingDraft?.blocks ?? [])
 
   const tooLong =
     summary.length > MAX_SUMMARY ||
@@ -101,7 +104,8 @@ export function WikiEditor({
     history !== article.history ||
     cuisine !== article.cuisine ||
     traditions !== article.traditions ||
-    JSON.stringify(practical) !== JSON.stringify(article.practical.map((p) => ({ label: p.label, value: p.value })))
+    JSON.stringify(practical) !== JSON.stringify(article.practical.map((p) => ({ label: p.label, value: p.value }))) ||
+    JSON.stringify(blocks) !== JSON.stringify(existingDraft?.blocks ?? [])
 
   const updateRow = (i: number, patch: Partial<WikiPractical>) =>
     setPractical((prev) => prev.map((row, idx) => (idx === i ? { ...row, ...patch } : row)))
@@ -114,6 +118,7 @@ export function WikiEditor({
       cuisine: cuisine.trim(),
       traditions: traditions.trim(),
       practical: practical.filter((p) => p.label.trim() && p.value.trim()),
+      blocks,
       author: authorName,
     })
   }
@@ -232,6 +237,16 @@ export function WikiEditor({
               ))}
             </div>
           )}
+        </div>
+
+        {/* Дополнительные блоки */}
+        <div>
+          <h2 className="mb-1 font-sans text-sm font-semibold text-text">Блоки статьи</h2>
+          <p className="mb-3 font-sans text-xs leading-relaxed text-text-muted">
+            Фото, галереи, ролики, цитаты и врезки вроде разговорника или расписания.
+            Пока нет сервера, файлы хранятся в браузере и не переживут очистку данных.
+          </p>
+          <BlockEditor blocks={blocks} onChange={setBlocks} />
         </div>
 
         {/* Действия */}

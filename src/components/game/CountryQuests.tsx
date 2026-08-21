@@ -7,7 +7,7 @@ import {
   type QuestCategory,
   type QuestPoint,
 } from '@/mocks/game'
-import { cn } from '@/lib/utils'
+import { cn, pluralize } from '@/lib/utils'
 
 const categoryIcon: Record<QuestCategory, typeof Landmark> = {
   sights: Landmark,
@@ -122,7 +122,7 @@ export function CountryQuests({
             Страна закрыта полностью
           </Chip>
         ) : (
-          <Chip>{country.cities.length} городов</Chip>
+          <Chip>{pluralize(country.cities.length, 'город', 'города', 'городов')}</Chip>
         )}
       </div>
 
