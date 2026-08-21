@@ -15,6 +15,7 @@ import { Img } from '@/components/ui/Img'
 import { Button } from '@/components/ui/button'
 import { useApp } from '@/context/AppContext'
 import { useGameProgress } from '@/hooks/useGameProgress'
+import { BattlePass } from './BattlePass'
 import { gameCountries } from '@/mocks/game'
 
 interface HomeHubProps {
@@ -212,8 +213,8 @@ function ProgressRing({ value, size = 56 }: { value: number; size?: number }) {
 /* ------------------------------------------------------------------ HomeHub */
 
 export function HomeHub({ onSend }: HomeHubProps) {
-  const { setMainView } = useApp()
-  const { countryProgress, stats } = useGameProgress()
+  const { setMainView, user, openModal } = useApp()
+  const { countryProgress, stats, passPoints } = useGameProgress()
 
   // Фокус берём из игры: первая открытая страна, которую ещё не закрыли
   const focus =
@@ -362,6 +363,15 @@ export function HomeHub({ onSend }: HomeHubProps) {
             </GlassPanel>
           </div>
         </div>
+
+        {/* Сезонный пропуск: главный крючок удержания, сразу под героем */}
+        <section className="mt-12">
+          <BattlePass
+            points={passPoints}
+            isPremium={user?.subscription === 'premium'}
+            onUpgrade={() => openModal('subscription')}
+          />
+        </section>
 
         {/* Открытия: горизонтальная лента, не сетка одинаковых карточек */}
         <section className="mt-14">

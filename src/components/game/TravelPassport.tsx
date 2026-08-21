@@ -64,6 +64,35 @@ function Stamp({ stamp }: { stamp: StampData }) {
   )
 }
 
+/**
+ * Гербовая печать за полностью закрытую страну. Крупнее городских штампов:
+ * двойное кольцо, звёзды по краю и дата закрытия, как на визовом оттиске.
+ */
+function CountrySeal({ country, tilt }: { country: GameCountry; tilt: number }) {
+  return (
+    <div
+      className="relative flex aspect-square items-center justify-center rounded-full border-[3px] border-[#1A6F7C]/75 bg-[#1A6F7C]/10 p-2 text-center text-[#12545E] transition-transform duration-slow ease-standard hover:rotate-0"
+      style={{ transform: `rotate(${tilt}deg)` }}
+    >
+      <span className="pointer-events-none absolute inset-[5px] rounded-full border border-dashed border-[#1A6F7C]/45" aria-hidden="true" />
+      <span className="pointer-events-none absolute inset-[11px] rounded-full border border-[#1A6F7C]/30" aria-hidden="true" />
+
+      <span className="relative flex flex-col items-center leading-none">
+        <span className="text-lg" aria-hidden="true">{country.flag}</span>
+        <span className="mt-1 font-display text-[15px] font-semibold uppercase tracking-tight">
+          {country.name}
+        </span>
+        <span className="mt-1 font-sans text-[8px] uppercase tracking-[0.14em] opacity-80">
+          закрыта
+        </span>
+        <span className="mt-0.5 font-mono text-[8px] tabular opacity-70">
+          {country.iso} 100%
+        </span>
+      </span>
+    </div>
+  )
+}
+
 export function TravelPassport({
   onBack,
   countryProgress,
@@ -176,6 +205,19 @@ export function TravelPassport({
               </Button>
             </div>
 
+            {closedCountries.length > 0 && (
+              <div className="mb-6">
+                <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.18em] text-ink-950/45">
+                  Печати за закрытые страны
+                </p>
+                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
+                  {closedCountries.map((c, i) => (
+                    <CountrySeal key={c.iso} country={c} tilt={((i % 3) - 1) * 5} />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {earned.length === 0 ? (
               <div className="py-14 text-center">
                 <StampIcon className="mx-auto mb-3 h-9 w-9 text-ink-950/25" aria-hidden="true" />
@@ -185,11 +227,16 @@ export function TravelPassport({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
-                {stamps.map((s) => (
-                  <Stamp key={s.id} stamp={s} />
-                ))}
-              </div>
+              <>
+                <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.18em] text-ink-950/45">
+                  Отметки о городах
+                </p>
+                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
+                  {stamps.filter((s) => !s.major).map((s) => (
+                    <Stamp key={s.id} stamp={s} />
+                  ))}
+                </div>
+              </>
             )}
 
             {/* Машиночитаемая строка внизу страницы, как в настоящем документе */}

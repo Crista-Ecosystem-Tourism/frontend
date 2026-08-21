@@ -147,6 +147,28 @@ export function useGameProgress() {
     [doneIds]
   )
 
+  /** Очки сезонного пропуска: копятся со всего игрового слоя */
+  const passPoints = useMemo(() => {
+    const quests = gameCountries.reduce(
+      (sum, c) =>
+        sum +
+        c.cities.reduce(
+          (s, city) => s + city.quests.reduce((q, quest) => (doneIds.has(quest.id) ? q + quest.points : q), 0),
+          0
+        ),
+      0
+    )
+    // Верный ответ дня весит меньше точки квеста, но капает каждый день
+    const quiz = Object.values(quizAnswers).filter(Boolean).length * 10
+    const cities = gameCountries.reduce(
+      (sum, c) =>
+        sum +
+        c.cities.filter((city) => city.quests.length > 0 && city.quests.every((q) => doneIds.has(q.id))).length * 25,
+      0
+    )
+    return quests + quiz + cities
+  }, [doneIds, quizAnswers])
+
   const stats = useMemo(() => {
     const opened = gameCountries.filter((c) => c.opened)
     const closedFully = opened.filter((c) => countryProgress(c.iso) === 100).length
@@ -177,5 +199,6 @@ export function useGameProgress() {
     answerQuiz,
     resetQuiz,
     quizStreak,
+    passPoints,
   }
 }
