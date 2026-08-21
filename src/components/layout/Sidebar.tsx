@@ -412,13 +412,10 @@ export function Sidebar() {
       </Button>
 
       {/* Desktop Sidebar */}
+      {/* Навигация видна сразу: анимируется только ширина при сворачивании. */}
       <motion.aside
-        initial={{ width: 240, opacity: 0, x: -20 }}
-        animate={{
-          width: isCollapsed ? 64 : 240,
-          opacity: 1,
-          x: 0
-        }}
+        initial={false}
+        animate={{ width: isCollapsed ? 64 : 240 }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
         className="hidden lg:block h-full flex-shrink-0 z-20 overflow-hidden relative"
       >

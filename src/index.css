@@ -29,7 +29,10 @@
     --weight-regular: 400; --weight-medium: 500; --weight-semibold: 600; --weight-bold: 700;
 
     /* motion */
-    --ease-standard: cubic-bezier(.4,0,.2,1); --ease-out: cubic-bezier(0,0,.2,1); --ease-bounce: cubic-bezier(.34,1.56,.64,1);
+    --ease-standard: cubic-bezier(.4,0,.2,1); --ease-out: cubic-bezier(0,0,.2,1);
+    /* Только для наградных моментов Игры (открытие страны, 100% фокуса).
+       В обычном интерфейсе используйте --ease-standard: отскок там читается дёшево. */
+    --ease-bounce: cubic-bezier(.34,1.56,.64,1);
     --duration-fast: 150ms; --duration-base: 200ms; --duration-slow: 250ms; --duration-bounce: 500ms; --duration-pulse: 2400ms;
 
     /* light theme (fallback) */
@@ -42,7 +45,8 @@
     --color-border-strong: rgba(20,16,35,.14);
     --color-text-primary: #1A1526;
     --color-text-secondary: #544E6B;
-    --color-text-muted: #8B85A0;
+    /* 5.07:1 на светлом фоне: плейсхолдеры и подписи обязаны читаться */
+    --color-text-muted: #6B6683;
     --color-accent: var(--brand-teal-500);
     --color-accent-hover: var(--brand-teal-400);
     --color-accent-active: var(--brand-teal-600);
@@ -70,7 +74,8 @@
     --color-border-strong: var(--white-12);
     --color-text-primary: #F4F2FB;
     --color-text-secondary: #B8B3CC;
-    --color-text-muted: #7A7593;
+    /* 5.6:1 на ink-950. Прежний #7A7593 давал 4.48 и не проходил WCAG AA */
+    --color-text-muted: #8B85A3;
     --color-accent: var(--brand-teal-500);
     --color-accent-hover: var(--brand-teal-400);
     --color-accent-active: var(--brand-teal-600);
@@ -97,6 +102,28 @@
     color: var(--color-text-primary);
     transition: background-color 0.2s, color 0.2s;
     font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Браузерные поверхности, которые мы не рисовали, но которые несут дизайн */
+  ::selection {
+    background: rgba(59, 168, 184, 0.3);
+    color: var(--color-text-primary);
+  }
+
+  input,
+  textarea,
+  [contenteditable] {
+    caret-color: var(--color-accent);
+  }
+
+  :focus-visible {
+    outline: none;
+  }
+
+  /* Цифры в статистике и таблицах не должны прыгать по ширине */
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 
   @keyframes fog-pulse { 0%, 100% { opacity: .55 } 50% { opacity: .85 } }
@@ -189,5 +216,38 @@
 
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Затемнение под текстом поверх фотографии. Без него текст нечитаем. */
+  .photo-scrim {
+    background: linear-gradient(
+      to top,
+      var(--ink-950) 0%,
+      rgba(11, 10, 23, 0.72) 32%,
+      rgba(11, 10, 23, 0.2) 62%,
+      transparent 100%
+    );
+  }
+}
+
+/* Прозрачность стоит дорого и подходит не всем: даём плотную заливку */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-on-photo,
+  .leaflet-popup-content-wrapper {
+    background: var(--ink-850) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

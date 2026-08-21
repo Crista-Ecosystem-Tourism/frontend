@@ -313,7 +313,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [mobileActiveTab, setMobileActiveTab] = useState<'chat' | 'map'>('chat')
 
   // Sidebar
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  // На мобильных это выдвижное меню: открытым по умолчанию оно закрывает контент.
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Main view (when no chat is open)

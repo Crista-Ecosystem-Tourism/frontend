@@ -5,7 +5,7 @@ import { ChatPanel } from '@/components/chat/ChatPanel'
 import { ChatListPanel } from '@/components/chat/ChatListPanel'
 import { TravelMap } from '@/components/map/TravelMap'
 import { PlaceDetailPanel } from '@/components/map/PlaceDetailPanel'
-import { InspirationBoard } from '@/components/home/InspirationBoard'
+import { HomeHub } from '@/components/home/HomeHub'
 import { SavedRoutesPanel } from '@/components/routes/SavedRoutesPanel'
 import { DataPanel } from '@/components/data/DataPanel'
 import { SuitcasePanel } from '@/components/suitcase/SuitcasePanel'
@@ -14,7 +14,6 @@ import { CommunityPanel } from '@/components/community/CommunityPanel'
 import { GamePanel } from '@/components/game/GamePanel'
 import { PlaceByPhotoPanel } from '@/components/place/PlaceByPhotoPanel'
 import { ToursGlampingPanel } from '@/components/tours/ToursGlampingPanel'
-import { HomeInput } from '@/components/home/HomeInput'
 import { AuthModal } from '@/components/modals/AuthModal'
 import { SubscriptionModal } from '@/components/modals/SubscriptionModal'
 import { PaymentModal } from '@/components/modals/PaymentModal'
@@ -44,9 +43,9 @@ export function MainLayout() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background text-text font-sans selection:bg-primary/30">
-      {/* Global Background Gradient */}
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-primary/20 via-background to-background opacity-60 pointer-events-none" />
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-accent/20 via-background to-background opacity-60 pointer-events-none" />
+      {/* Атмосфера: фиолетовый воздух, тил остаётся редким акцентом */}
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/[0.13] via-background to-background pointer-events-none" />
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-violet-600/25 via-background to-background pointer-events-none" />
 
       {/* Sidebar */}
       <div className="flex h-full relative z-10">
@@ -157,14 +156,13 @@ export function MainLayout() {
             ) : isHome ? (
               <motion.div
                 key="home"
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1 }}
-                exit={{ opacity: 0, scale: 0.98, filter: "blur(10px)" }}
+                exit={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
                 transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
                 className="w-full h-full relative z-0"
               >
-                <InspirationBoard onSelect={(place) => handleHomeInput(`Хочу посетить ${place}`)} />
-                <HomeInput onSend={handleHomeInput} />
+                <HomeHub onSend={handleHomeInput} />
               </motion.div>
             ) : (
               <motion.div
