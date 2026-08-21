@@ -148,103 +148,117 @@ export function TravelPassport({
       </div>
 
       <div className="mx-auto w-full max-w-[980px] space-y-6 px-5 py-8 sm:px-6">
-        {/* Разворот: слева обложка документа, справа страница со штампами */}
-        <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)]">
-          {/* Обложка */}
-          <div className="relative overflow-hidden rounded-lg border border-[#C9A227]/30 bg-gradient-to-br from-[#123840] via-[#0E2A31] to-[#0B1F24] p-6 shadow-lg">
+        {/* Разворот книги: тёмная обложка оборачивает две бумажные страницы */}
+        <div className="rounded-xl bg-gradient-to-br from-[#123840] via-[#0E2A31] to-[#0B1F24] p-3 shadow-[0_28px_70px_rgba(0,0,0,0.55)] sm:p-4">
+          <div className="relative grid overflow-hidden rounded-md md:grid-cols-2">
+            {/* Корешок: тень от сгиба между страницами */}
             <div
-              className="pointer-events-none absolute inset-3 rounded-md border border-[#C9A227]/25"
+              className="pointer-events-none absolute inset-y-0 left-1/2 z-10 hidden w-16 -translate-x-1/2 md:block"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent, rgba(60,45,25,0.16) 38%, rgba(40,30,16,0.3) 50%, rgba(60,45,25,0.16) 62%, transparent)',
+              }}
               aria-hidden="true"
             />
-            <div className="relative flex h-full min-h-[320px] flex-col">
-              <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#C9A227]/80">
+
+            {/* Левая страница: владелец */}
+            <div className="relative bg-[linear-gradient(150deg,#F9F5EA_0%,#F1EBDC_100%)] p-6">
+              <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-[#8A6A2F]">
                 Crista Online
               </p>
 
-              <span className="mt-8 flex justify-center">
-                <span className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#C9A227]/45">
-                  <Globe2 className="h-11 w-11 text-[#C9A227]/85" aria-hidden="true" />
-                </span>
-              </span>
+              <div className="mt-5 flex items-start gap-4">
+                {/* Место под фото, как на странице данных */}
+                <div className="flex h-28 w-24 shrink-0 items-center justify-center rounded-sm border border-ink-950/15 bg-ink-950/[0.04]">
+                  <Globe2 className="h-9 w-9 text-ink-950/25" aria-hidden="true" />
+                </div>
 
-              <p className="mt-8 text-center font-display text-3xl font-semibold leading-tight text-[#F0E4C0]">
-                Тревел-паспорт
-              </p>
-              <p className="mt-1 text-center font-sans text-[10px] uppercase tracking-[0.18em] text-[#C9A227]/70">
-                Travel passport
-              </p>
-
-              <div className="mt-auto border-t border-[#C9A227]/25 pt-4">
-                <p className="font-sans text-[10px] uppercase tracking-wide text-[#C9A227]/70">
-                  Владелец
-                </p>
-                <p className="mt-0.5 truncate font-display text-xl font-semibold text-[#F0E4C0]">
-                  {ownerName}
-                </p>
-                <p className="mt-2 font-sans text-[11px] tabular text-[#C9A227]/60">
-                  Стран закрыто: {closedCountries.length} · Штампов: {earned.length}
-                </p>
+                <dl className="min-w-0 flex-1 space-y-2.5">
+                  <div>
+                    <dt className="font-sans text-[9px] uppercase tracking-[0.16em] text-ink-950/60">
+                      Владелец
+                    </dt>
+                    <dd className="truncate font-display text-xl font-semibold leading-tight text-ink-950/85">
+                      {ownerName}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-sans text-[9px] uppercase tracking-[0.16em] text-ink-950/60">
+                      Документ
+                    </dt>
+                    <dd className="font-sans text-sm text-ink-950/75">Тревел-паспорт</dd>
+                  </div>
+                  <div className="flex gap-6">
+                    <div>
+                      <dt className="font-sans text-[9px] uppercase tracking-[0.16em] text-ink-950/60">
+                        Стран
+                      </dt>
+                      <dd className="font-sans text-sm tabular text-ink-950/75">
+                        {closedCountries.length}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-sans text-[9px] uppercase tracking-[0.16em] text-ink-950/60">
+                        Штампов
+                      </dt>
+                      <dd className="font-sans text-sm tabular text-ink-950/75">{earned.length}</dd>
+                    </div>
+                  </div>
+                </dl>
               </div>
-            </div>
-          </div>
 
-          {/* Страница со штампами: бумага, а не тёмное стекло */}
-          <div className="relative overflow-hidden rounded-lg border border-ink-950/10 bg-[linear-gradient(180deg,#F7F3E8_0%,#EFE9DB_100%)] p-6 shadow-lg">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-ink-950/10 pb-4">
-              <div>
-                <p className="font-sans text-[10px] uppercase tracking-[0.18em] text-ink-950/45">
-                  Отметки о посещении
-                </p>
-                <p className="font-display text-2xl font-semibold text-ink-950/85">
-                  Страница 1
-                </p>
+              {/* Печати за закрытые страны живут на странице данных */}
+              {closedCountries.length > 0 && (
+                <div className="mt-6 border-t border-ink-950/10 pt-4">
+                  <p className="mb-3 font-sans text-[9px] uppercase tracking-[0.16em] text-ink-950/60">
+                    Печати за закрытые страны
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {closedCountries.map((c, i) => (
+                      <CountrySeal key={c.iso} country={c} tilt={((i % 3) - 1) * 5} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-6 select-none truncate font-mono text-[10px] tracking-[0.12em] text-ink-950/60">
+                {`CRISTA<<${ownerName.toUpperCase().replace(/\s+/g, '<')}<<${
+                  closedCountries.map((c) => c.iso).join('<') || 'XXX'
+                }`}
+              </p>
+            </div>
+
+            {/* Правая страница: отметки о городах */}
+            <div className="relative border-t border-ink-950/10 bg-[linear-gradient(210deg,#F9F5EA_0%,#EFE9DB_100%)] p-6 md:border-l md:border-t-0">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-ink-950/10 pb-3">
+                <div>
+                  <p className="font-sans text-[9px] uppercase tracking-[0.16em] text-ink-950/60">
+                    Отметки о посещении
+                  </p>
+                  <p className="font-display text-xl font-semibold text-ink-950/85">Страница 1</p>
+                </div>
+                <Button variant="secondary" size="sm" disabled={earned.length === 0}>
+                  <Share2 />
+                  Поделиться
+                </Button>
               </div>
-              <Button variant="secondary" size="sm" disabled={earned.length === 0}>
-                <Share2 />
-                Поделиться
-              </Button>
-            </div>
 
-            {closedCountries.length > 0 && (
-              <div className="mb-6">
-                <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.18em] text-ink-950/45">
-                  Печати за закрытые страны
-                </p>
-                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
-                  {closedCountries.map((c, i) => (
-                    <CountrySeal key={c.iso} country={c} tilt={((i % 3) - 1) * 5} />
+              {earned.length === 0 ? (
+                <div className="py-12 text-center">
+                  <StampIcon className="mx-auto mb-3 h-9 w-9 text-ink-950/25" aria-hidden="true" />
+                  <p className="font-sans text-sm text-ink-950/60">Страница пока чистая</p>
+                  <p className="mx-auto mt-1 max-w-[40ch] font-sans text-xs leading-relaxed text-ink-950/60">
+                    Закройте все квесты города, чтобы получить первый штамп.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-4">
+                  {stamps.filter((st) => !st.major).map((st) => (
+                    <Stamp key={st.id} stamp={st} />
                   ))}
                 </div>
-              </div>
-            )}
-
-            {earned.length === 0 ? (
-              <div className="py-14 text-center">
-                <StampIcon className="mx-auto mb-3 h-9 w-9 text-ink-950/25" aria-hidden="true" />
-                <p className="font-sans text-sm text-ink-950/60">Страница пока чистая</p>
-                <p className="mx-auto mt-1 max-w-[44ch] font-sans text-xs leading-relaxed text-ink-950/45">
-                  Закройте все квесты города, чтобы получить первый штамп.
-                </p>
-              </div>
-            ) : (
-              <>
-                <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.18em] text-ink-950/45">
-                  Отметки о городах
-                </p>
-                <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
-                  {stamps.filter((s) => !s.major).map((s) => (
-                    <Stamp key={s.id} stamp={s} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {/* Машиночитаемая строка внизу страницы, как в настоящем документе */}
-            <p className="mt-6 select-none overflow-hidden truncate border-t border-ink-950/10 pt-3 font-mono text-[11px] tracking-[0.14em] text-ink-950/35">
-              {`CRISTA<<${ownerName.toUpperCase().replace(/\s+/g, '<')}<<${
-                closedCountries.map((c) => c.iso).join('<') || 'XXX'
-              }`}
-            </p>
+              )}
+            </div>
           </div>
         </div>
 
