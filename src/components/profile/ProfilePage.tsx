@@ -1,366 +1,300 @@
-import { useRef, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, MessageSquare, Map, MapPin, Crown, ChevronRight, ChevronLeft, Camera, Share2, Award, Compass, Star, Globe, Bell, HelpCircle, Lock, Sparkles, Link2 } from 'lucide-react'
+import {
+  ArrowLeft, MapPin, Crown, ChevronRight, Share2, Compass, Globe, Stamp,
+  Flame, Route, CalendarDays, Settings, Sparkles,
+} from 'lucide-react'
 import { useApp } from '@/context/AppContext'
+import { useGameProgress } from '@/hooks/useGameProgress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { GlassPanel, Chip, IconButton, StatTile, DisplayTitle } from '@/components/ui/glass'
+import { Img } from '@/components/ui/Img'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { getInitials } from '@/lib/utils'
-
-const MOCK_STATS = {
-  chats: 12,
-  routes: 5,
-  places: 28
-}
-
-const MOCK_TRIPS = [
-  { id: '1', name: 'Тбилиси', emoji: '🇬🇪', days: 5, date: 'Дек 2025', gradient: 'from-pink-500 to-rose-500', status: 'Завершено' },
-  { id: '2', name: 'Сочи', emoji: '🏖️', days: 7, date: 'Окт 2025', gradient: 'from-red-500 to-orange-500', status: 'Завершено' },
-  { id: '3', name: 'Стамбул', emoji: '🕌', days: 4, date: 'Авг 2025', gradient: 'from-amber-500 to-yellow-500', status: 'В процессе' },
-  { id: '4', name: 'Москва', emoji: '🏛️', days: 6, date: 'Июн 2025', gradient: 'from-blue-500 to-cyan-500', status: 'Завершено' },
-]
-
-const PASSPORT_STAMPS = [
-  { id: '1', country: 'Россия', flag: '🇷🇺', collected: true },
-  { id: '2', country: 'Грузия', flag: '🇬🇪', collected: true },
-  { id: '3', country: 'Турция', flag: '🇹🇷', collected: true },
-  { id: '4', country: 'Италия', flag: '🇮🇹', collected: false },
-  { id: '5', country: 'Япония', flag: '🇯🇵', collected: false },
-  { id: '6', country: 'Индонезия', flag: '🇮🇩', collected: false },
-]
-
-const ACHIEVEMENTS = [
-  { id: '1', icon: Compass, label: 'Исследователь', description: '10+ маршрутов', color: 'text-emerald-500', bg: 'bg-emerald-500/10', unlocked: true },
-  { id: '2', icon: Globe, label: 'Путешественник', description: '5+ стран', color: 'text-blue-500', bg: 'bg-blue-500/10', unlocked: true },
-  { id: '3', icon: Star, label: 'Звезда', description: '50+ мест', color: 'text-yellow-500', bg: 'bg-yellow-500/10', unlocked: false },
-  { id: '4', icon: Award, label: 'Мастер', description: '100+ чатов', color: 'text-purple-500', bg: 'bg-purple-500/10', unlocked: false },
-]
-
-const CARD_WIDTH = 260 // ширина карточки + gap
+import { gameCountries } from '@/mocks/game'
+import { trips, formatTripDates } from '@/mocks/trips'
+import { getInitials, cn } from '@/lib/utils'
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { user, openModal } = useApp()
-  const sliderRef = useRef<HTMLDivElement>(null)
+  const { user, openModal, chatHistory, savedRoutes } = useApp()
+  const { countryProgress, cityProgress, stats } = useGameProgress()
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login')
-    }
+    if (!user) navigate('/login')
   }, [user, navigate])
 
-  if (!user) {
-    return null
-  }
+  if (!user) return null
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (!sliderRef.current) return
-    const scrollAmount = direction === 'left' ? -CARD_WIDTH : CARD_WIDTH
-    sliderRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
-  }
+  const opened = gameCountries.filter((c) => c.opened)
+  const closedCountries = opened.filter((c) => countryProgress(c.iso) === 100)
+
+  const stampsEarned = opened.reduce((sum, country) => {
+    const countryStamp = countryProgress(country.iso) === 100 ? 1 : 0
+    const cityStamps = country.cities.filter((city) => cityProgress(country, city.id) === 100).length
+    return sum + countryStamp + cityStamps
+  }, 0)
+
+  const totalKm = trips.reduce((s, t) => s + t.stats.distanceKm, 0)
+  const totalDays = trips.reduce((s, t) => s + t.stats.days, 0)
+
+  const achievements = [
+    {
+      id: 'explorer',
+      icon: Compass,
+      label: 'Исследователь',
+      description: 'Пять маршрутов сохранено',
+      unlocked: savedRoutes.length >= 5,
+    },
+    {
+      id: 'traveller',
+      icon: Globe,
+      label: 'Путешественник',
+      description: 'Одна страна закрыта полностью',
+      unlocked: closedCountries.length >= 1,
+    },
+    {
+      id: 'collector',
+      icon: Stamp,
+      label: 'Коллекционер',
+      description: 'Пять штампов в паспорте',
+      unlocked: stampsEarned >= 5,
+    },
+    {
+      id: 'streak',
+      icon: Flame,
+      label: 'Постоянство',
+      description: 'Десять квестов закрыто',
+      unlocked: stats.doneQuests >= 10,
+    },
+  ]
 
   const handleShare = async () => {
+    const url = window.location.href
     try {
-      await navigator.share({
-        title: `Профиль ${user.name}`,
-        text: `Посмотрите профиль ${user.name} в Crista Online`,
-        url: window.location.href,
-      })
+      if (navigator.share) {
+        await navigator.share({
+          title: `Профиль ${user.name}`,
+          text: `Профиль ${user.name} в Crista`,
+          url,
+        })
+      } else {
+        await navigator.clipboard.writeText(url)
+      }
     } catch {
-      navigator.clipboard.writeText(window.location.href)
+      // пользователь закрыл диалог: молчим
     }
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#fafafa] text-[#1a1a1a] font-sans selection:bg-primary/10">
-      {/* Premium Background Layer */}
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_0%_0%,_#f0f4ff_0%,_transparent_50%),radial-gradient(circle_at_100%_100%,_#fdf2f8_0%,_transparent_50%),radial-gradient(circle_at_100%_0%,_#f0fdf4_0%,_transparent_50%)] opacity-80" />
+    <div className="flex h-screen w-screen overflow-hidden bg-background font-sans text-text">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-accent/[0.13] via-background to-background" />
 
-      <div className="flex h-full relative z-10">
+      <div className="relative z-10 flex h-full w-full">
         <Sidebar />
 
-        <main className="flex-1 relative h-full min-w-0 overflow-auto">
-          {/* Top Bar */}
-          <div className="sticky top-0 z-30 bg-white/40 backdrop-blur-xl border-b border-black/[0.03]">
-            <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="p-2 -ml-2 rounded-full hover:bg-black/5 transition-all text-[#666666] hover:text-black"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h1 className="text-[1.1rem] font-bold tracking-tight">Личный кабинет</h1>
+        <main className="h-full min-w-0 flex-1 overflow-y-auto">
+          <div className="sticky top-0 z-20 border-b border-white/[0.07] bg-ink-950/85 backdrop-blur-md">
+            <div className="mx-auto flex max-w-[1000px] items-center justify-between gap-3 px-5 py-3 sm:px-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <IconButton label="Назад" variant="ghost" size="sm" onClick={() => navigate('/')}>
+                  <ArrowLeft />
+                </IconButton>
+                <h1 className="truncate font-display text-2xl font-semibold text-text">Профиль</h1>
               </div>
-              <button
-                onClick={handleShare}
-                className="p-2.5 rounded-full bg-white shadow-md border border-black/[0.1] hover:bg-black/5 transition-all group"
-              >
-                <Share2 className="w-4 h-4 text-[#444444] group-hover:text-black" />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <IconButton label="Поделиться профилем" variant="ghost" onClick={handleShare}>
+                  <Share2 />
+                </IconButton>
+                <IconButton label="Настройки" variant="ghost" onClick={() => navigate('/settings')}>
+                  <Settings />
+                </IconButton>
+              </div>
             </div>
           </div>
 
-          <div className="max-w-3xl mx-auto px-6 py-12">
-            {/* Profile Intro Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-[32px] bg-white border border-black/[0.08] p-10 shadow-[0_12px_40px_rgba(0,0,0,0.04)] mb-10"
-            >
-              {/* Glossy Overlay */}
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+          <div className="mx-auto w-full max-w-[1000px] space-y-6 px-5 py-8 sm:px-6">
+            {/* Карточка пользователя */}
+            <GlassPanel className="p-6">
+              <div className="flex flex-wrap items-center gap-5">
+                <Avatar className="h-20 w-20 border border-white/15">
+                  <AvatarImage src={user.avatar} />
+                  <AvatarFallback className="bg-white/[0.07] text-xl text-text-secondary">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
 
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-cyan-400 to-blue-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500" />
-                  <Avatar className="w-32 h-32 border-4 border-white shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
-                    <AvatarImage src={user.avatar} />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-400 text-3xl font-bold">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    className="absolute bottom-1 right-1 w-10 h-10 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-xl hover:scale-110 transition-transform border-4 border-white"
-                    onClick={() => { }}
-                  >
-                    <Camera className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="flex-1 text-center md:text-left">
-                  <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
-                    <h2 className="text-[2rem] font-bold tracking-tight leading-none text-[#1a1a1a]">{user.name}</h2>
-                    {user.subscription === 'premium' && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[0.7rem] font-bold uppercase tracking-wider">
-                        <Crown className="w-3 h-3" /> Premium
-                      </span>
+                <div className="min-w-0 flex-1">
+                  <DisplayTitle as="h2" className="!text-4xl">{user.name}</DisplayTitle>
+                  <p className="mt-1 truncate font-sans text-sm text-text-muted">{user.email}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {user.subscription === 'premium' ? (
+                      <Chip variant="active" size="sm">
+                        <Crown />
+                        Премиум
+                      </Chip>
+                    ) : (
+                      <Chip size="sm">Бесплатный план</Chip>
                     )}
-                  </div>
-                  <p className="text-[1.rem] text-[#888888] mb-6 font-medium">{user.email}</p>
-                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    <Button
-                      onClick={() => navigate('/settings')}
-                      className="rounded-full bg-[#1a1a1a] text-white hover:bg-black h-11 px-8 font-bold"
-                    >
-                      Редактировать
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="rounded-full border-[#d0d0d0] h-11 px-8 font-bold hover:bg-black/5 text-[#444444] hover:text-black"
-                    >
-                      Настройки
-                    </Button>
+                    <Chip size="sm">
+                      <Globe />
+                      <span className="tabular">{closedCountries.length} стран закрыто</span>
+                    </Chip>
                   </div>
                 </div>
-              </div>
-            </motion.div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-6 mb-10">
-              {[
-                { label: 'Чатов', value: MOCK_STATS.chats, icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-50' },
-                { label: 'Маршрутов', value: MOCK_STATS.routes, icon: Map, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                { label: 'Мест', value: MOCK_STATS.places, icon: MapPin, color: 'text-amber-500', bg: 'bg-amber-50' },
-              ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + i * 0.05 }}
-                  whileHover={{ y: -4, shadow: '0 25px 50px rgba(0,0,0,0.06)' }}
-                  className="bg-white rounded-[24px] p-6 border border-black/[0.08] shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col items-center group transition-all"
-                >
-                  <div className={`w-12 h-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <stat.icon className="w-6 h-6" />
-                  </div>
-                  <p className="text-[1.75rem] font-bold text-[#1a1a1a] mb-1 leading-none">{stat.value}</p>
-                  <p className="text-xs font-bold text-[#888888] uppercase tracking-widest">{stat.label}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Achievements Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-10"
-            >
-              <div className="flex items-center justify-between mb-6 px-2">
-                <h3 className="text-[0.75rem] font-black text-[#666666] uppercase tracking-[0.2em]">Достижения</h3>
-                <span className="text-[0.75rem] font-bold text-[#1a1a1a] bg-white px-3 py-1 rounded-full border border-black/[0.08] shadow-sm">2 из 4 разблокировано</span>
+                {user.subscription !== 'premium' && (
+                  <Button onClick={() => openModal('subscription')}>
+                    <Sparkles />
+                    Оформить премиум
+                  </Button>
+                )}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {ACHIEVEMENTS.map((achievement) => {
-                  const Icon = achievement.icon
+            </GlassPanel>
+
+            {/* Статистика */}
+            <GlassPanel className="grid grid-cols-2 gap-5 p-5 sm:grid-cols-3 lg:grid-cols-5">
+              <StatTile icon={<Route />} value={`${totalKm} км`} label="пройдено" />
+              <StatTile icon={<CalendarDays />} value={`${totalDays}`} label="дней в пути" />
+              <StatTile icon={<MapPin />} value={`${savedRoutes.length}`} label="маршрутов" />
+              <StatTile icon={<Stamp />} value={`${stampsEarned}`} label="штампов" />
+              <StatTile icon={<Compass />} value={`${chatHistory.length}`} label="чатов" />
+            </GlassPanel>
+
+            {/* Паспорт */}
+            <section>
+              <div className="mb-4 flex items-baseline justify-between gap-4">
+                <h2 className="font-display text-2xl font-semibold text-text">Тревел-паспорт</h2>
+                <span className="font-sans text-xs tabular text-text-muted">
+                  {stampsEarned} штампов
+                </span>
+              </div>
+
+              <GlassPanel className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 lg:grid-cols-4">
+                {gameCountries.slice(0, 8).map((country) => {
+                  const p = countryProgress(country.iso)
+                  const done = p === 100
                   return (
-                    <motion.div
-                      key={achievement.id}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      className={`relative overflow-hidden rounded-[24px] border p-5 flex flex-col items-center text-center transition-all ${achievement.unlocked
-                        ? 'bg-white border-black/[0.08] shadow-sm'
-                        : 'bg-white/40 border-black/[0.04] opacity-60 grayscale'
-                        }`}
-                    >
-                      <div className={`w-14 h-14 rounded-full ${achievement.bg} flex items-center justify-center mb-4`}>
-                        <Icon className={`w-7 h-7 ${achievement.color}`} />
-                      </div>
-                      <h4 className="text-[0.9rem] font-bold text-[#1a1a1a] mb-1">{achievement.label}</h4>
-                      <p className="text-[0.7rem] font-medium text-[#888888] leading-tight px-2">{achievement.description}</p>
-                      {!achievement.unlocked && (
-                        <div className="absolute top-2 right-2">
-                          <Star className="w-3 h-3 text-[#cccccc]" />
-                        </div>
+                    <div
+                      key={country.iso}
+                      className={cn(
+                        'flex items-center gap-3 rounded-md border p-3',
+                        done
+                          ? 'border-primary/40 bg-primary/[0.08]'
+                          : 'border-white/[0.07] bg-white/[0.03]'
                       )}
-                    </motion.div>
+                    >
+                      <span
+                        className={cn('text-2xl leading-none', !country.opened && 'opacity-30 grayscale')}
+                        aria-hidden="true"
+                      >
+                        {country.flag}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-sans text-sm font-medium text-text">
+                          {country.name}
+                        </span>
+                        <span
+                          className={cn(
+                            'block font-sans text-xs tabular',
+                            done ? 'text-primary' : 'text-text-muted'
+                          )}
+                        >
+                          {country.opened ? `${p}%` : 'белое пятно'}
+                        </span>
+                      </span>
+                    </div>
                   )
                 })}
-              </div>
-            </motion.div>
+              </GlassPanel>
+            </section>
 
-            {/* Crista Wrapped promo */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22 }}
-              className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-violet-600 via-fuchsia-600 to-orange-500 p-8 mb-10 text-white shadow-[0_20px_60px_rgba(124,58,237,0.25)]"
-            >
-              <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/10 blur-2xl" />
-              <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-widest bg-white/20 rounded-full px-3 py-1 mb-3">
-                    <Sparkles className="w-3 h-3" /> Crista Wrapped 2026
-                  </span>
-                  <h3 className="text-2xl font-bold mb-1">Ваш годовой рекап готов</h3>
-                  <p className="text-white/80 text-sm">3 страны · 4 210 км · экономия 18 600 ₽ — сравните с друзьями</p>
-                </div>
-                <button className="flex-shrink-0 rounded-full bg-white text-[#1a1a1a] font-bold px-6 h-11 hover:bg-white/90 transition-colors">
-                  Смотреть Wrapped
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Travel Passport */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.26 }}
-              className="mb-10"
-            >
-              <div className="flex items-center justify-between mb-6 px-2">
-                <h3 className="text-[0.75rem] font-black text-[#666666] uppercase tracking-[0.2em]">Тревел-паспорт</h3>
-                <span className="text-[0.75rem] font-bold text-[#1a1a1a] bg-white px-3 py-1 rounded-full border border-black/[0.08] shadow-sm">3 из 6 штампов</span>
-              </div>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-                {PASSPORT_STAMPS.map(stamp => (
-                  <motion.div
-                    key={stamp.id}
-                    whileHover={{ scale: 1.05, rotate: stamp.collected ? -2 : 0 }}
-                    className={`aspect-square rounded-full border-[3px] flex flex-col items-center justify-center transition-all ${stamp.collected
-                      ? 'border-amber-400 bg-amber-50 shadow-[0_4px_16px_rgba(251,191,36,0.25)]'
-                      : 'border-dashed border-black/[0.12] bg-white/40 opacity-50'
-                      }`}
-                    style={{ transform: stamp.collected ? 'rotate(-3deg)' : undefined }}
+            {/* Достижения */}
+            <section>
+              <h2 className="mb-4 font-display text-2xl font-semibold text-text">Достижения</h2>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {achievements.map((a) => (
+                  <GlassPanel
+                    key={a.id}
+                    className={cn('p-4', !a.unlocked && 'opacity-55')}
                   >
-                    <span className={`text-2xl ${!stamp.collected && 'grayscale opacity-60'}`}>{stamp.flag}</span>
-                    <span className="text-[0.6rem] font-bold text-[#666666] mt-0.5">{stamp.country}</span>
-                  </motion.div>
+                    <span
+                      className={cn(
+                        'mb-3 flex h-10 w-10 items-center justify-center rounded-md',
+                        a.unlocked ? 'bg-primary/15 text-primary' : 'bg-white/[0.06] text-text-muted'
+                      )}
+                    >
+                      <a.icon className="h-5 w-5" aria-hidden="true" />
+                    </span>
+                    <p className="font-sans text-sm font-semibold text-text">{a.label}</p>
+                    <p className="mt-0.5 font-sans text-xs leading-relaxed text-text-muted">
+                      {a.description}
+                    </p>
+                    {!a.unlocked && (
+                      <p className="mt-2 font-sans text-[11px] text-text-muted">Ещё не открыто</p>
+                    )}
+                  </GlassPanel>
                 ))}
               </div>
-            </motion.div>
+            </section>
 
-            {/* Trips Showcase */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mb-10"
-            >
-              <div className="flex items-center justify-between mb-6 px-2">
-                <h3 className="text-[0.75rem] font-black text-[#888888] uppercase tracking-[0.2em]">Мои путешествия</h3>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => scroll('left')}
-                      className="w-9 h-9 rounded-full bg-white border border-black/[0.08] shadow-sm flex items-center justify-center hover:bg-black/5 hover:border-black/15 transition-all active:scale-95"
-                    >
-                      <ChevronLeft className="w-4 h-4 text-[#666666]" />
-                    </button>
-                    <button
-                      onClick={() => scroll('right')}
-                      className="w-9 h-9 rounded-full bg-white border border-black/[0.08] shadow-sm flex items-center justify-center hover:bg-black/5 hover:border-black/15 transition-all active:scale-95"
-                    >
-                      <ChevronRight className="w-4 h-4 text-[#666666]" />
-                    </button>
-                  </div>
-                  <button className="text-[0.75rem] font-bold text-blue-600 hover:text-blue-700">Смотреть все</button>
-                </div>
+            {/* Поездки */}
+            <section>
+              <div className="mb-4 flex items-baseline justify-between gap-4">
+                <h2 className="font-display text-2xl font-semibold text-text">Мои путешествия</h2>
+                <span className="font-sans text-xs tabular text-text-muted">
+                  {trips.length} поездок
+                </span>
               </div>
-              <div
-                ref={sliderRef}
-                className="flex gap-5 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide scroll-smooth"
-                style={{ scrollSnapType: 'x mandatory' }}
-              >
-                {MOCK_TRIPS.map((trip) => (
-                  <motion.div
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {trips.map((trip) => (
+                  <article
                     key={trip.id}
-                    whileHover={{ y: -8 }}
-                    className="flex-shrink-0 w-[240px] rounded-[28px] overflow-hidden bg-white border border-black/[0.08] shadow-sm group cursor-pointer transition-all hover:shadow-2xl hover:shadow-black/[0.06]"
-                    style={{ scrollSnapAlign: 'start' }}
+                    className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] transition duration-base hover:border-white/[0.16]"
                   >
-                    <div className={`h-[140px] bg-gradient-to-br ${trip.gradient} flex items-center justify-center relative`}>
-                      <span className="text-[4.5rem] drop-shadow-2xl transform transition-transform group-hover:scale-110 duration-500">{trip.emoji}</span>
-                      <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[0.65rem] font-bold uppercase tracking-wider">
-                        {trip.days} дн.
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Img
+                        src={trip.cover}
+                        alt={trip.title}
+                        className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
+                      />
+                      <div className="photo-scrim absolute inset-0" />
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <p className="font-display text-xl font-semibold leading-tight text-white">
+                          {trip.title}
+                        </p>
+                        <p className="mt-0.5 flex items-center gap-1.5 font-sans text-[11px] text-white/70">
+                          <MapPin className="h-3 w-3" aria-hidden="true" />
+                          {trip.city}
+                        </p>
                       </div>
                     </div>
-                    <div className="p-6">
-                      <h4 className="text-[1.1rem] font-bold text-[#1a1a1a] mb-1">{trip.name}</h4>
-                      <div className="flex items-center justify-between text-[#888888] mb-3">
-                        <span className="text-[0.75rem] font-medium">{trip.date}</span>
-                        <span className={`text-[0.65rem] font-bold uppercase tracking-wide ${trip.status === 'Завершено' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                          {trip.status}
-                        </span>
-                      </div>
-                      <button className="flex items-center gap-1.5 text-[0.75rem] font-bold text-blue-600 hover:text-blue-700">
-                        <Link2 className="w-3 h-3" /> Мини-сайт поездки
-                      </button>
-                    </div>
-                  </motion.div>
+                    <p className="p-4 font-sans text-xs text-text-muted">{formatTripDates(trip)}</p>
+                  </article>
                 ))}
               </div>
-            </motion.div>
+            </section>
 
-            {/* Account Settings List */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-white rounded-[28px] overflow-hidden border border-black/[0.08] shadow-sm divide-y divide-black/[0.04]"
-            >
+            {/* Переходы */}
+            <GlassPanel className="divide-y divide-white/[0.07] overflow-hidden p-0">
               {[
-                { label: 'Безопасность и пароль', icon: Lock, onClick: () => navigate('/settings') },
-                { label: 'Уведомления', icon: Bell, onClick: () => { } },
-                { label: 'Подписка и оплата', icon: Crown, onClick: () => openModal('subscription') },
-                { label: 'Помощь и поддержка', icon: HelpCircle, onClick: () => navigate('/support') },
-              ].map((item) => (
+                { label: 'Настройки аккаунта', to: '/settings' },
+                { label: 'Поддержка', to: '/support' },
+              ].map((row) => (
                 <button
-                  key={item.label}
-                  onClick={item.onClick}
-                  className="w-full flex items-center justify-between px-10 py-6 hover:bg-black/[0.01] transition-colors group"
+                  key={row.to}
+                  onClick={() => navigate(row.to)}
+                  className="group flex w-full items-center justify-between gap-3 px-5 py-4 text-left transition-colors hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
-                  <div className="flex items-center gap-5">
-                    <div className="w-11 h-11 rounded-2xl bg-gray-50 flex items-center justify-center text-[#aaaaaa] group-hover:text-black group-hover:bg-gray-100 transition-all">
-                      <item.icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[1rem] font-bold text-[#1a1a1a] tracking-tight">{item.label}</span>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-[#cccccc] group-hover:text-black group-hover:translate-x-1 transition-all" />
+                  <span className="font-sans text-sm text-text">{row.label}</span>
+                  <ChevronRight
+                    className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5"
+                    aria-hidden="true"
+                  />
                 </button>
               ))}
-            </motion.div>
+            </GlassPanel>
           </div>
         </main>
       </div>
