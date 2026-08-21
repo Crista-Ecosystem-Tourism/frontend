@@ -14,11 +14,10 @@ const QUIZ_KEY = 'crista-quiz-progress'
 function readStored(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw === null) return preClosedQuestIds
-    const parsed = JSON.parse(raw)
+    const parsed = raw ? JSON.parse(raw) : []
     return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
   } catch {
-    return preClosedQuestIds
+    return []
   }
 }
 
@@ -27,7 +26,17 @@ function readStored(): string[] {
  * закрытые точки между переходами и перезагрузкой.
  */
 export function useGameProgress() {
-  const [doneIds, setDoneIds] = useState<Set<string>>(() => new Set(readStored()))
+  const [stored, setStored] = useState<Set<string>>(() => new Set(readStored()))
+
+  /**
+   * Поездка, совершённая до Crista, засчитана всегда: это не пользовательский
+   * прогресс, а факт биографии. Раньше она подставлялась только при пустом
+   * хранилище, и у тех, кто уже пользовался приложением, страна не закрывалась.
+   */
+  const doneIds = useMemo(
+    () => new Set([...stored, ...preClosedQuestIds]),
+    [stored]
+  )
 
   // Ответы на ежедневные вопросы хранятся отдельно от точек квестов
   const [quizAnswers, setQuizAnswers] = useState<Record<string, boolean>>(() => {
@@ -72,14 +81,16 @@ export function useGameProgress() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...doneIds]))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...stored]))
     } catch {
       // приватный режим браузера: прогресс живёт только в этой сессии
     }
-  }, [doneIds])
+  }, [stored])
 
   const toggleQuest = useCallback((questId: string) => {
-    setDoneIds((prev) => {
+    // Точки прошлой поездки не переключаются: они уже часть биографии
+    if (preClosedQuestIds.includes(questId)) return
+    setStored((prev) => {
       const next = new Set(prev)
       if (next.has(questId)) next.delete(questId)
       else next.add(questId)
@@ -185,7 +196,8 @@ export function useGameProgress() {
   }, [doneIds, countryProgress])
 
   // Сброс возвращает к исходному состоянию, а не в ноль: поездка до Crista остаётся
-  const resetProgress = useCallback(() => setDoneIds(new Set(preClosedQuestIds)), [])
+  // Сброс чистит только собственный прогресс, поездка до Crista остаётся
+  const resetProgress = useCallback(() => setStored(new Set()), [])
 
   return {
     isDone,
