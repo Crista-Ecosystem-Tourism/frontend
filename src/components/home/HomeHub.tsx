@@ -215,7 +215,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
           alt="Панорама города на воде"
           className="h-full w-full object-cover opacity-40"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/70 to-ink-950/25" />
+        <div className="photo-scrim-x absolute inset-0" />
         <div className="absolute inset-0 photo-scrim" />
       </div>
 
