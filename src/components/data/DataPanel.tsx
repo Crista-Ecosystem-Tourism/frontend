@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import {
   ArrowLeft, Search, MapPin, Landmark, UtensilsCrossed, Sparkles,
-  Wallet, Globe, Bus, HandHeart, MessageCircleQuestion, ShieldAlert, Pencil, ChevronRight,
+  Wallet, Globe, Bus, HandHeart, MessageCircleQuestion, ShieldAlert, Pencil,
 } from 'lucide-react'
 import { GlassPanel, Chip, IconButton, DisplayTitle } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
 import { Img } from '@/components/ui/Img'
 import { WikiEditor } from './WikiEditor'
+import { CountryCarousel } from './CountryCarousel'
 import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,8 @@ interface CountryArticle {
   id: string
   name: string
   flag: string
+  /** Короткая подпись под названием в карусели */
+  tagline: string
   cover: string
   summary: string
   history: string
@@ -32,6 +35,7 @@ const articles: CountryArticle[] = [
     id: 'ru',
     name: 'Россия',
     flag: '🇷🇺',
+    tagline: 'Одиннадцать часовых поясов',
     cover: 'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=1200&q=80',
     summary: 'Самая большая страна мира, от Балтики до Тихого океана, с богатым культурным наследием и разнообразной кухней.',
     history: 'Тысячелетняя история от Киевской Руси до современной федерации: империя, революция 1917 года, советский период и переход к рыночной экономике в 1990-х.',
@@ -48,6 +52,7 @@ const articles: CountryArticle[] = [
     id: 'ge',
     name: 'Грузия',
     flag: '🇬🇪',
+    tagline: 'Вино из квеври и супра',
     cover: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=1200&q=80',
     summary: 'Гостеприимная страна на Кавказе с древними традициями виноделия и одной из самых узнаваемых кухонь мира.',
     history: 'Одна из первых стран, принявших христианство в IV веке. Богатая история царств и влияние Персии, Османской империи и России.',
@@ -64,6 +69,7 @@ const articles: CountryArticle[] = [
     id: 'jp',
     name: 'Япония',
     flag: '🇯🇵',
+    tagline: 'Традиции и технологии',
     cover: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=80',
     summary: 'Страна восходящего солнца: гармония многовековых традиций и передовых технологий.',
     history: 'Эпоха самураев и сёгунов, реставрация Мэйдзи, стремительная модернизация после Второй мировой войны.',
@@ -282,48 +288,20 @@ export function DataPanel({ onBack }: DataPanelProps) {
             </button>
           </GlassPanel>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => {
-                  setOpenId(a.id)
-                  setTab('history')
-                }}
-                className="group overflow-hidden rounded-lg border border-white/[0.09] bg-white/[0.05] text-left transition duration-base ease-standard hover:border-white/[0.16] hover:bg-white/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              >
-                <div className="relative aspect-[16/9] overflow-hidden">
-                  <Img
-                    src={a.cover}
-                    alt={a.name}
-                    className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
-                  />
-                  <div className="photo-scrim absolute inset-0" />
-                  <span className="absolute bottom-3 left-4 flex items-center gap-2">
-                    <span className="text-xl leading-none" aria-hidden="true">{a.flag}</span>
-                    <span className="font-display text-2xl font-semibold text-white">{a.name}</span>
-                  </span>
-                </div>
-
-                <div className="p-4">
-                  <p className="mb-3 line-clamp-2 font-sans text-sm leading-relaxed text-text-secondary">
-                    {a.summary}
-                  </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="flex gap-1.5">
-                      {categories.map((cat) => (
-                        <Chip key={cat.key} size="sm">{cat.label}</Chip>
-                      ))}
-                    </span>
-                    <ChevronRight
-                      className="h-4 w-4 shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
-                      aria-hidden="true"
-                    />
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+          <CountryCarousel
+            items={filtered.map((a) => ({
+              id: a.id,
+              name: a.name,
+              flag: a.flag,
+              cover: a.cover,
+              summary: a.summary,
+              subtitle: a.tagline,
+            }))}
+            onOpen={(id) => {
+              setOpenId(id)
+              setTab('history')
+            }}
+          />
         )}
 
         <p className="mt-6 flex items-start gap-2 rounded-lg border border-dashed border-white/[0.12] p-4 font-sans text-xs leading-relaxed text-text-muted">
