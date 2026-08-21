@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import {
-  ArrowLeft, Globe2, Flame, PiggyBank, Trophy, CheckCircle2,
-  Circle, TrendingDown, MapPin, ChevronRight, BookOpenCheck, RotateCcw,
+  ArrowLeft, Globe2, PiggyBank, Trophy,
+  TrendingDown, MapPin, ChevronRight, BookOpenCheck, RotateCcw,
 } from 'lucide-react'
 import { GlassPanel, Chip, DisplayTitle, IconButton } from '@/components/ui/glass'
 import { WorldMap } from './WorldMap'
 import { CountryQuests } from './CountryQuests'
 import { TravelPassport } from './TravelPassport'
+import { DailyQuiz } from './DailyQuiz'
+import { CountryPage } from './CountryPage'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
 import { gameCountries, findCountry, questCategoryLabel } from '@/mocks/game'
@@ -45,13 +47,14 @@ function ProgressRing({ value, size = 60 }: { value: number; size?: number }) {
 }
 
 export function GamePanel({ onBack }: GamePanelProps) {
-  const [dailyDone, setDailyDone] = useState<Record<string, boolean>>({})
   const [selectedIso, setSelectedIso] = useState<string>('RU')
   const [showPassport, setShowPassport] = useState(false)
+  const [openCountry, setOpenCountry] = useState<string | null>(null)
   const { user } = useApp()
 
   const {
     isDone, toggleQuest, countryProgress, cityProgress, categoryProgress, stats, resetProgress,
+    answeredQuizIds, answerQuiz, resetQuiz, quizStreak,
   } = useGameProgress()
 
   const country = findCountry(selectedIso) ?? gameCountries[0]
@@ -61,11 +64,28 @@ export function GamePanel({ onBack }: GamePanelProps) {
   // Фокус, треки и копилка следуют за выбранной на карте страной
   const focus = country
   const focusProgress = progress
-  const daily = country.daily
   const weekly = country.weekly
   const savings = country.savings
   const savedPercent = savings ? Math.round((savings.current / savings.target) * 100) : 0
-  const isDailyDone = Boolean(dailyDone[country.iso])
+
+  if (openCountry) {
+    const oc = findCountry(openCountry) ?? country
+    return (
+      <CountryPage
+        country={oc}
+        onBack={() => setOpenCountry(null)}
+        progress={countryProgress(oc.iso)}
+        categories={categoryProgress(oc.iso)}
+        isDone={isDone}
+        onToggle={toggleQuest}
+        cityProgress={cityProgress}
+        answeredQuizIds={answeredQuizIds}
+        onAnswerQuiz={answerQuiz}
+        onResetQuiz={() => resetQuiz(oc.iso)}
+        quizStreak={quizStreak}
+      />
+    )
+  }
 
   if (showPassport) {
     return (
@@ -107,7 +127,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
           <div className="mb-4 flex items-baseline justify-between gap-4">
             <h2 className="font-display text-xl font-semibold text-text">Карта мира</h2>
             <p className="hidden font-sans text-xs text-text-muted sm:block">
-              Открытые страны подсвечены. Нажмите, чтобы увидеть города и квесты
+              Нажмите на открытую страну, чтобы попасть в её регионы и квесты
             </p>
           </div>
 
@@ -117,7 +137,10 @@ export function GamePanel({ onBack }: GamePanelProps) {
             <WorldMap
               progressByIso={countryProgress}
               selectedIso={selectedIso}
-              onSelect={setSelectedIso}
+              onSelect={(iso) => {
+                setSelectedIso(iso)
+                setOpenCountry(iso)
+              }}
             />
           </GlassPanel>
 
@@ -128,7 +151,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
             </span>
             <span className="flex items-center gap-2">
               <span className="h-2.5 w-4 rounded-sm bg-violet-700" />
-              Туман войны
+              Белые пятна
             </span>
           </div>
         </section>
@@ -170,39 +193,14 @@ export function GamePanel({ onBack }: GamePanelProps) {
           </div>
 
           <div className="mb-5 grid gap-4 sm:grid-cols-2">
-            <GlassPanel variant="flat" className="p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <span className="font-sans text-xs uppercase tracking-wide text-text-muted">
-                  Ежедневный трек
-                </span>
-                <span className="flex items-center gap-1 font-sans text-xs font-bold tabular text-primary">
-                  <Flame className="h-3.5 w-3.5" /> 12
-                </span>
-              </div>
-              {daily ? (
-                <button
-                  onClick={() => setDailyDone((prev) => ({ ...prev, [country.iso]: !prev[country.iso] }))}
-                  aria-pressed={isDailyDone}
-                  className="flex w-full items-start gap-3 rounded-md p-2 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                >
-                  {isDailyDone ? (
-                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                  ) : (
-                    <Circle className="mt-0.5 h-5 w-5 shrink-0 text-text-muted" aria-hidden="true" />
-                  )}
-                  <span>
-                    <span className={cn('block font-sans text-sm font-medium text-text', isDailyDone && 'text-text-muted line-through')}>
-                      {daily.title}
-                    </span>
-                    <span className="mt-0.5 block font-sans text-xs text-text-muted">{daily.hint}</span>
-                  </span>
-                </button>
-              ) : (
-                <p className="p-2 font-sans text-sm text-text-muted">
-                  Задания появятся, когда {country.name} будет открыта
-                </p>
-              )}
-            </GlassPanel>
+            <DailyQuiz
+              countryIso={country.iso}
+              countryName={country.name}
+              answeredIds={answeredQuizIds}
+              onAnswer={answerQuiz}
+              onReset={() => resetQuiz(country.iso)}
+              streak={quizStreak}
+            />
 
             <GlassPanel variant="flat" className="p-4">
               <div className="mb-3 flex items-center justify-between">

@@ -3,19 +3,22 @@ import {
   gameCountries,
   countryTotalPoints,
   findCountry,
+  preClosedQuestIds,
   type GameCountry,
   type QuestCategory,
 } from '@/mocks/game'
 
 const STORAGE_KEY = 'crista-quest-progress'
+const QUIZ_KEY = 'crista-quiz-progress'
 
 function readStored(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
+    if (raw === null) return preClosedQuestIds
+    const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === 'string') : []
   } catch {
-    return []
+    return preClosedQuestIds
   }
 }
 
@@ -25,6 +28,47 @@ function readStored(): string[] {
  */
 export function useGameProgress() {
   const [doneIds, setDoneIds] = useState<Set<string>>(() => new Set(readStored()))
+
+  // Ответы на ежедневные вопросы хранятся отдельно от точек квестов
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, boolean>>(() => {
+    try {
+      const raw = localStorage.getItem(QUIZ_KEY)
+      const parsed = raw ? JSON.parse(raw) : {}
+      return parsed && typeof parsed === 'object' ? parsed : {}
+    } catch {
+      return {}
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(QUIZ_KEY, JSON.stringify(quizAnswers))
+    } catch {
+      // приватный режим
+    }
+  }, [quizAnswers])
+
+  const answerQuiz = useCallback((questionId: string, correct: boolean) => {
+    setQuizAnswers((prev) => ({ ...prev, [questionId]: correct }))
+  }, [])
+
+  const resetQuiz = useCallback((iso: string) => {
+    setQuizAnswers((prev) => {
+      const next = { ...prev }
+      Object.keys(next)
+        .filter((id) => id.startsWith(`${iso.toLowerCase()}-`))
+        .forEach((id) => delete next[id])
+      return next
+    })
+  }, [])
+
+  const answeredQuizIds = useMemo(() => new Set(Object.keys(quizAnswers)), [quizAnswers])
+
+  /** Стрик считаем как число верных ответов подряд с конца */
+  const quizStreak = useMemo(
+    () => Object.values(quizAnswers).filter(Boolean).length,
+    [quizAnswers]
+  )
 
   useEffect(() => {
     try {
@@ -118,7 +162,8 @@ export function useGameProgress() {
     }
   }, [doneIds, countryProgress])
 
-  const resetProgress = useCallback(() => setDoneIds(new Set()), [])
+  // Сброс возвращает к исходному состоянию, а не в ноль: поездка до Crista остаётся
+  const resetProgress = useCallback(() => setDoneIds(new Set(preClosedQuestIds)), [])
 
   return {
     isDone,
@@ -128,5 +173,9 @@ export function useGameProgress() {
     categoryProgress,
     stats,
     resetProgress,
+    answeredQuizIds,
+    answerQuiz,
+    resetQuiz,
+    quizStreak,
   }
 }

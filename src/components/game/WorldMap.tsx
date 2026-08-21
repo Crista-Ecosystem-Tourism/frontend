@@ -48,7 +48,7 @@ export function WorldMap({ progressByIso, selectedIso, onSelect }: WorldMapProps
         const selected = iso === selectedIso
 
         if (!opened) {
-          // Туман войны: очертания мира читаются, содержимое скрыто
+          // Белое пятно: очертания мира читаются, содержимое скрыто
           return {
             fillColor: '#332B57',
             fillOpacity: 0.85,
@@ -79,7 +79,7 @@ export function WorldMap({ progressByIso, selectedIso, onSelect }: WorldMapProps
       const opened = openedCountryIso.has(iso)
 
       layer.bindTooltip(
-        opened ? name : 'Скрыто туманом войны',
+        opened ? name : 'Белое пятно: маршрут сюда ещё не строили',
         { direction: 'top', className: 'crista-map-tip', sticky: true }
       )
 

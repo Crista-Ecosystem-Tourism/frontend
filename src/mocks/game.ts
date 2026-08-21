@@ -19,6 +19,8 @@ export interface QuestPoint {
 export interface QuestCity {
   id: string
   name: string
+  /** Название региона в границах Natural Earth: по нему подсвечивается карта */
+  region: string
   coordinates: [number, number]
   quests: QuestPoint[]
 }
@@ -86,6 +88,7 @@ export const gameCountries: GameCountry[] = [
       {
         id: 'msk',
         name: 'Москва',
+        region: 'Москва',
         coordinates: [55.7558, 37.6173],
         quests: [
           { id: 'msk-1', title: 'Красная площадь', hint: 'Дойдите до Лобного места и сделайте фото с геометкой', category: 'sights', points: 20, coordinates: [55.7539, 37.6208] },
@@ -98,6 +101,7 @@ export const gameCountries: GameCountry[] = [
       {
         id: 'spb',
         name: 'Санкт-Петербург',
+        region: 'Санкт-Петербург',
         coordinates: [59.9311, 30.3609],
         quests: [
           { id: 'spb-1', title: 'Эрмитаж', hint: 'Найдите часы «Павлин» в Павильонном зале', category: 'sights', points: 30, coordinates: [59.9398, 30.3146] },
@@ -111,6 +115,7 @@ export const gameCountries: GameCountry[] = [
       {
         id: 'sochi',
         name: 'Сочи',
+        region: 'Краснодарский край',
         coordinates: [43.5855, 39.7231],
         quests: [
           { id: 'sochi-1', title: 'Олимпийский парк', hint: 'Найдите чашу олимпийского огня', category: 'sights', points: 20, coordinates: [43.4025, 39.9564] },
@@ -141,6 +146,7 @@ export const gameCountries: GameCountry[] = [
       {
         id: 'tbilisi',
         name: 'Тбилиси',
+        region: 'Тбилиси',
         coordinates: [41.7151, 44.8271],
         quests: [
           { id: 'tb-1', title: 'Серные бани Абанотубани', hint: 'Загляните под кирпичные купола в старом городе', category: 'traditions', points: 25, coordinates: [41.6884, 44.8090] },
@@ -151,6 +157,7 @@ export const gameCountries: GameCountry[] = [
       {
         id: 'batumi',
         name: 'Батуми',
+        region: 'Аджария',
         coordinates: [41.6168, 41.6367],
         quests: [
           { id: 'bt-1', title: 'Статуя Али и Нино', hint: 'Дождитесь, когда фигуры пройдут сквозь друг друга', category: 'sights', points: 25, coordinates: [41.6520, 41.6350] },
@@ -179,11 +186,53 @@ export const gameCountries: GameCountry[] = [
       {
         id: 'istanbul',
         name: 'Стамбул',
+        region: 'Стамбул',
         coordinates: [41.0082, 28.9784],
         quests: [
           { id: 'is-1', title: 'Айя-София', hint: 'Найдите византийские мозаики на верхней галерее', category: 'sights', points: 35, coordinates: [41.0086, 28.9802] },
           { id: 'is-2', title: 'Гранд-базар', hint: 'Проведите торг и снизьте цену хотя бы на треть', category: 'traditions', points: 25, coordinates: [41.0106, 28.9681] },
           { id: 'is-3', title: 'Балык-экмек у Галатского моста', hint: 'Возьмите рыбу в хлебе прямо с лодки', category: 'food', points: 20, coordinates: [41.0201, 28.9741] },
+        ],
+      },
+    ],
+  },
+  {
+    iso: 'BE',
+    name: 'Бельгия',
+    flag: '🇧🇪',
+    opened: true,
+    daily: {
+      title: 'Слово дня: «gezellig» это уют, которому нет точного перевода',
+      hint: 'Мини-квест, 60 секунд',
+    },
+    weekly: {
+      title: 'Онлайн-курс: «Фламандские примитивы за 10 минут»',
+      lesson: 6,
+      totalLessons: 6,
+      percent: 100,
+    },
+    savings: { destination: 'Брюгге, 3 дня', current: 51000, target: 51000, priceTrend: -5, weekly: 0 },
+    cities: [
+      {
+        id: 'brussels',
+        name: 'Брюссель',
+        region: 'Брюссельский столичный регион',
+        coordinates: [50.8503, 4.3517],
+        quests: [
+          { id: 'be-1', title: 'Гран-Плас', hint: 'Обойдите площадь по периметру и найдите дом гильдии пекарей', category: 'sights', points: 25, coordinates: [50.8467, 4.3525] },
+          { id: 'be-2', title: 'Писающий мальчик', hint: 'Застаньте его в костюме: наряд меняют больше сотни раз в год', category: 'traditions', points: 15, coordinates: [50.8450, 4.3499] },
+          { id: 'be-3', title: 'Вафли на улице', hint: 'Возьмите льежскую, а не брюссельскую, и ешьте без приборов', category: 'food', points: 20, coordinates: [50.8476, 4.3532] },
+        ],
+      },
+      {
+        id: 'bruges',
+        name: 'Брюгге',
+        region: 'Западная Фландрия',
+        coordinates: [51.2093, 3.2247],
+        quests: [
+          { id: 'be-4', title: 'Колокольня Белфорт', hint: 'Поднимитесь на 366 ступеней и дождитесь боя курантов', category: 'sights', points: 30, coordinates: [51.2085, 3.2247] },
+          { id: 'be-5', title: 'Каналы Брюгге', hint: 'Проплывите по каналам и сосчитайте мосты', category: 'sights', points: 25, coordinates: [51.2075, 3.2270] },
+          { id: 'be-6', title: 'Бельгийский шоколад', hint: 'Попробуйте пралине там, где его придумали', category: 'food', points: 20, coordinates: [51.2089, 3.2240] },
         ],
       },
     ],
@@ -207,6 +256,9 @@ export const openedCountryIso = new Set(
 export function findCountry(iso: string): GameCountry | undefined {
   return gameCountries.find((c) => c.iso === iso)
 }
+
+/** Поездка, совершённая до Crista: страна уже закрыта, штампы в паспорте есть */
+export const preClosedQuestIds = ['be-1', 'be-2', 'be-3', 'be-4', 'be-5', 'be-6']
 
 export function countryTotalPoints(country: GameCountry): number {
   return country.cities.reduce(

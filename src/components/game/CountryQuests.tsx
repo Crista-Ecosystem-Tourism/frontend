@@ -93,10 +93,10 @@ export function CountryQuests({
       <GlassPanel className="flex flex-col items-center justify-center px-8 py-12 text-center">
         <MapPin className="mb-3 h-9 w-9 text-text-muted" aria-hidden="true" />
         <p className="font-sans text-sm text-text-secondary">
-          {country.name} ещё скрыта туманом войны
+          {country.name} ещё белое пятно на вашей карте
         </p>
         <p className="mt-1 max-w-[40ch] font-sans text-xs leading-relaxed text-text-muted">
-          Постройте маршрут в эту страну в разделе Маршрут, и здесь появятся города и точки квестов.
+          Постройте маршрут в эту страну в разделе Маршрут, и здесь появятся регионы, города и точки квестов.
         </p>
       </GlassPanel>
     )
