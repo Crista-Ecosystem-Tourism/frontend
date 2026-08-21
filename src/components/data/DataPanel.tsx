@@ -4,7 +4,11 @@ import {
   Wallet, Globe, Bus, HandHeart, MessageCircleQuestion, ShieldAlert, Pencil, ChevronRight,
 } from 'lucide-react'
 import { GlassPanel, Chip, IconButton, DisplayTitle } from '@/components/ui/glass'
+import { Button } from '@/components/ui/button'
 import { Img } from '@/components/ui/Img'
+import { WikiEditor } from './WikiEditor'
+import { useWikiDrafts } from '@/hooks/useWikiDrafts'
+import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
 
 interface DataPanelProps {
@@ -97,9 +101,51 @@ export function DataPanel({ onBack }: DataPanelProps) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [tab, setTab] = useState<'history' | 'cuisine' | 'traditions'>('history')
   const [query, setQuery] = useState('')
+  const [editing, setEditing] = useState(false)
+  const { getDraft, saveDraft, discardDraft, pendingCount } = useWikiDrafts()
+  const { user } = useApp()
+  const authorName = user?.name ?? 'Гость'
 
-  const active = articles.find((a) => a.id === openId)
+  const base = articles.find((a) => a.id === openId)
+  const draft = openId ? getDraft(openId) : undefined
+
+  // Правка автора видна ему сразу, остальным до модерации показывается оригинал
+  const active = base
+    ? {
+        ...base,
+        summary: draft?.summary ?? base.summary,
+        history: draft?.history ?? base.history,
+        cuisine: draft?.cuisine ?? base.cuisine,
+        traditions: draft?.traditions ?? base.traditions,
+        practical: draft
+          ? draft.practical.map((p, i) => ({
+              ...p,
+              icon: base.practical[i]?.icon ?? Globe,
+            }))
+          : base.practical,
+      }
+    : undefined
+
   const filtered = articles.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
+
+  if (editing && base) {
+    return (
+      <WikiEditor
+        article={base}
+        existingDraft={draft}
+        authorName={authorName}
+        onCancel={() => setEditing(false)}
+        onSave={(d) => {
+          saveDraft(d)
+          setEditing(false)
+        }}
+        onDiscard={() => {
+          discardDraft(base.id)
+          setEditing(false)
+        }}
+      />
+    )
+  }
 
   /* ------------------------------------------------------------- статья */
 
@@ -171,10 +217,19 @@ export function DataPanel({ onBack }: DataPanelProps) {
             ))}
           </div>
 
-          <p className="mt-8 flex items-center gap-2 font-sans text-xs text-text-muted">
-            <Pencil className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            Статья редактируется сообществом с модерацией
-          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-white/[0.07] pt-6">
+            <Button variant="secondary" onClick={() => setEditing(true)}>
+              <Pencil />
+              Редактировать или добавить информацию
+            </Button>
+            {draft?.status === 'pending' ? (
+              <Chip variant="accent" size="sm">Ваша правка на модерации</Chip>
+            ) : (
+              <span className="font-sans text-xs text-text-muted">
+                Статья редактируется сообществом с модерацией
+              </span>
+            )}
+          </div>
         </article>
       </div>
     )
@@ -187,10 +242,17 @@ export function DataPanel({ onBack }: DataPanelProps) {
       <Header onBack={onBack} title="Crista Wiki" />
 
       <div className="mx-auto w-full max-w-[1100px] px-5 py-8 sm:px-6">
-        <p className="mb-6 max-w-[68ch] font-accent text-lg leading-relaxed text-text-secondary">
-          Справочник по странам: история, кухня, традиции и практическая информация.
-          Единый источник контента для квестов, фокуса и маршрутов.
-        </p>
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <p className="max-w-[68ch] font-accent text-lg leading-relaxed text-text-secondary">
+            Справочник по странам: история, кухня, традиции и практическая информация.
+            Единый источник контента для квестов, фокуса и маршрутов.
+          </p>
+          {pendingCount > 0 && (
+            <Chip variant="accent" size="sm">
+              Ваших правок на модерации: {pendingCount}
+            </Chip>
+          )}
+        </div>
 
         <div className="relative mb-6 max-w-md">
           <Search
