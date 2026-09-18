@@ -16,7 +16,7 @@ const lessonSteps: Array<{ id: LessonStep; label: string }> = [
 ]
 
 /** First GDD learning loop. Its progress and reward are owned by the API. */
-export function OnboardingFlow({ signedIn }: { signedIn: boolean }) {
+export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; onCompleted?: () => void }) {
   const [state, setState] = useState<OnboardingState | null>(null)
   const [view, setView] = useState<ViewState>('loading')
   const [message, setMessage] = useState<string | null>(null)
@@ -29,6 +29,7 @@ export function OnboardingFlow({ signedIn }: { signedIn: boolean }) {
       .then((result) => {
         if (!active) return
         setState(result)
+        if (result.completed) onCompleted?.()
         setView('ready')
       })
       .catch((error: unknown) => {
@@ -88,6 +89,7 @@ export function OnboardingFlow({ signedIn }: { signedIn: boolean }) {
         completed: result.completed,
         starter_stamp: result.starter_stamp,
       } : previous)
+      if (result.completed) onCompleted?.()
       setMessage(result.correct
         ? result.xp_awarded ? `Верно! +${result.xp_awarded} XP` : 'Верно — этот штамп уже в твоём паспорте.'
         : 'Почти! Одна энергия потрачена — попробуй ещё раз.')
@@ -164,7 +166,7 @@ export function OnboardingFlow({ signedIn }: { signedIn: boolean }) {
             <div className="rounded-md bg-panel-2/70 p-4">
               <p className="font-sans text-sm leading-6 text-text-secondary">{content.fact.text}</p>
               <a className="mt-2 inline-block font-sans text-xs text-primary hover:underline" href={content.fact.source_url} target="_blank" rel="noreferrer">
-                Источник: Правительство Москвы
+                Источник: {content.fact.source_label ?? 'Правительство Москвы'}
               </a>
             </div>
             <button type="button" onClick={() => setStep('question')} className="rounded-md bg-primary px-4 py-3 font-sans text-sm font-semibold text-white transition hover:bg-primary/90">

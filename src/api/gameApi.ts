@@ -13,7 +13,7 @@ export type OnboardingContent = {
   country: { id: string; name: string; city: string }
   chris: { name: string; intro: string }
   scene: { title: string; mode: string }
-  fact: { text: string; source_url: string }
+  fact: { text: string; source_url: string; source_label?: string }
   question: {
     id: string
     text: string
@@ -35,6 +35,27 @@ export type OnboardingAnswer = {
   profile: GameProfile
   completed: boolean
   starter_stamp: { key: string; title: string; earned_at: string } | null
+}
+
+export type MoscowQuestState = {
+  quest: {
+    id: string
+    kind: string
+    position: number
+    prerequisite_quest_id: string | null
+  }
+  content: OnboardingContent
+  profile: GameProfile
+  completed: boolean
+  stamp: { key: string; title: string; earned_at: string } | null
+}
+
+export type MoscowQuestAnswer = {
+  correct: boolean
+  xp_awarded: number
+  profile: GameProfile
+  completed: boolean
+  stamp: { key: string; title: string; earned_at: string } | null
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -59,6 +80,20 @@ export async function getOnboarding(): Promise<OnboardingState> {
 
 export async function answerRedSquare(answerKey: string): Promise<OnboardingAnswer> {
   return parse<OnboardingAnswer>(await fetch(`${API_BASE_URL}/game/onboarding/red-square/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ answer_key: answerKey }),
+  }))
+}
+
+export async function getMoscowQuest(questId: string): Promise<MoscowQuestState> {
+  return parse<MoscowQuestState>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function answerMoscowQuest(questId: string, answerKey: string): Promise<MoscowQuestAnswer> {
+  return parse<MoscowQuestAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}/answer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answer_key: answerKey }),

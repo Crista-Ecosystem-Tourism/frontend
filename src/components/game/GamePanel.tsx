@@ -10,6 +10,7 @@ import { TravelPassport } from './TravelPassport'
 import { DailyQuiz } from './DailyQuiz'
 import { CountryPage } from './CountryPage'
 import { OnboardingFlow } from './OnboardingFlow'
+import { MoscowQuest } from './MoscowQuest'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
 import { isMockMode } from '@/api/chatApi'
@@ -61,6 +62,8 @@ export function GamePanel({ onBack }: GamePanelProps) {
 }
 
 function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolean }) {
+  const [pathVersion, setPathVersion] = useState(0)
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 pb-2 pt-6 sm:px-6">
@@ -74,7 +77,8 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
       </div>
 
       <div className="mx-auto w-full max-w-[1100px] space-y-5 px-5 pb-8 pt-4 sm:px-6">
-        <OnboardingFlow signedIn={signedIn} />
+        <OnboardingFlow signedIn={signedIn} onCompleted={() => setPathVersion((version) => version + 1)} />
+        <MoscowQuest signedIn={signedIn} refreshKey={pathVersion} />
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">
             Следующие точки Москвы откроются после публикации их проверенных заданий и серверных правил пути.
