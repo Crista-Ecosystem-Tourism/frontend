@@ -72,7 +72,13 @@ export type MoscowQuestAnswer = {
 }
 
 export type MoscowPathState = {
-  city: { id: string; name: string; tier: number }
+  city: {
+    id: string
+    name: string
+    tier: number
+    required_quest_count: number
+    completion_stamp: { key: string; title: string } | null
+  }
   profile: GameProfile
   daily: GameDailyProgress
   nodes: Array<{
@@ -82,6 +88,7 @@ export type MoscowPathState = {
     completed: boolean
     unlocked: boolean
     prerequisite_quest_id: string | null
+    district: { id: string; name: string; position: number } | null
   }>
 }
 

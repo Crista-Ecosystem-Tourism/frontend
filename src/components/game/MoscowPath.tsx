@@ -8,6 +8,13 @@ const nodeLabels: Record<string, string> = {
   'moscow-red-square': 'Красная площадь',
   'moscow-spasskaya-tower': 'Спасская башня',
   'moscow-tsar-bell': 'Царь-колокол',
+  'moscow-annunciation-cathedral': 'Благовещенский собор',
+  'moscow-gum': 'ГУМ',
+  'moscow-zaryadye': 'Парк «Зарядье»',
+  'moscow-tretyakov-gallery': 'Третьяковская галерея',
+  'moscow-bolshoi-theatre': 'Большой театр',
+  'moscow-metro': 'Московское метро',
+  'moscow-vdnh': 'ВДНХ',
 }
 
 export function MoscowPath({
@@ -46,6 +53,15 @@ export function MoscowPath({
     ) : null
   }
 
+  const districts = new Map<string, typeof state.nodes>()
+  for (const node of state.nodes) {
+    const districtId = node.district?.id ?? 'unassigned'
+    const current = districts.get(districtId) ?? []
+    current.push(node)
+    districts.set(districtId, current)
+  }
+  const groupedNodes = [...districts.values()]
+
   return (
     <GlassPanel variant="flat" className="p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -59,16 +75,22 @@ export function MoscowPath({
         </div>
       </div>
       <p className="mt-3 font-sans text-xs text-text-muted">
-        Сегодня: {state.daily.completed_quests}/{state.daily.goal} точек{state.daily.goal_reached ? ' · цель выполнена' : ''}.
+        Маршрут tier {state.city.tier}: {state.nodes.filter((node) => node.completed).length}/{state.city.required_quest_count} точек. Сегодня: {state.daily.completed_quests}/{state.daily.goal} точек{state.daily.goal_reached ? ' · цель выполнена' : ''}.
       </p>
-      <ol className="mt-5 space-y-2" aria-label="Точки маршрута по Москве">
-        {state.nodes.map((node) => {
-          const label = nodeLabels[node.id] ?? `Точка ${node.position}`
-          const isStarter = node.id === 'moscow-red-square'
-          const Icon = node.completed ? CheckCircle2 : node.unlocked ? Circle : LockKeyhole
-          const interactive = node.unlocked && !node.completed && !isStarter
-          return (
-            <li key={node.id}>
+      <ol className="mt-5 space-y-5" aria-label="Точки маршрута по Москве">
+        {groupedNodes.map((districtNodes) => (
+          <li key={districtNodes[0].district?.id ?? 'unassigned'}>
+            <p className="mb-2 font-sans text-xs uppercase tracking-wide text-text-muted">
+              {districtNodes[0].district?.name ?? 'Маршрут Москвы'}
+            </p>
+            <ol className="space-y-2">
+              {districtNodes.map((node) => {
+                const label = nodeLabels[node.id] ?? `Точка ${node.position}`
+                const isStarter = node.id === 'moscow-red-square'
+                const Icon = node.completed ? CheckCircle2 : node.unlocked ? Circle : LockKeyhole
+                const interactive = node.unlocked && !node.completed && !isStarter
+                return (
+                  <li key={node.id}>
               <button
                 type="button"
                 disabled={!interactive}
@@ -84,9 +106,12 @@ export function MoscowPath({
                 </span>
                 <MapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
               </button>
-            </li>
-          )
-        })}
+                  </li>
+                )
+              })}
+            </ol>
+          </li>
+        ))}
       </ol>
     </GlassPanel>
   )

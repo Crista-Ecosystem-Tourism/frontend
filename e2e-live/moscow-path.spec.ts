@@ -11,6 +11,8 @@ test('new player signs up and completes the three live Moscow quests', async ({ 
   await page.getByRole('button', { name: 'Изучение мира' }).click()
 
   await expect(page.getByRole('heading', { name: 'Первое путешествие' })).toBeVisible()
+  await expect(page.getByText('Китай-город и Зарядье')).toBeVisible()
+  await expect(page.getByText('ВДНХ', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Выбрать Россию' }).click()
   await page.getByRole('button', { name: 'Узнать историю места' }).click()
   await page.getByRole('button', { name: 'Пройти мини-квест' }).click()
