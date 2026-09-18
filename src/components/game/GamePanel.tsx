@@ -12,6 +12,7 @@ import { CountryPage } from './CountryPage'
 import { OnboardingFlow } from './OnboardingFlow'
 import { MoscowQuest } from './MoscowQuest'
 import { MoscowPath } from './MoscowPath'
+import { MoscowBoss } from './MoscowBoss'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
 import { isMockMode } from '@/api/chatApi'
@@ -65,6 +66,7 @@ export function GamePanel({ onBack }: GamePanelProps) {
 function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolean }) {
   const [pathVersion, setPathVersion] = useState(0)
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null)
+  const [bossSelected, setBossSelected] = useState(false)
 
   const refreshPath = () => setPathVersion((version) => version + 1)
 
@@ -86,6 +88,7 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
           signedIn={signedIn}
           refreshKey={pathVersion}
           onSelect={setSelectedQuestId}
+          onSelectBoss={() => setBossSelected(true)}
         />
         {selectedQuestId && (
           <MoscowQuest
@@ -98,9 +101,18 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
             }}
           />
         )}
+        {bossSelected && (
+          <MoscowBoss
+            signedIn={signedIn}
+            refreshKey={pathVersion}
+            onCompleted={() => {
+              refreshPath()
+            }}
+          />
+        )}
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">
-            У маршрута три проверяемые сервером точки: Красная площадь, Спасская башня и Царь-колокол.
+            У маршрута десять проверяемых сервером точек. После них открывается финальный круг из трёх вопросов и городской штамп.
             Карта мира, ежедневные квизы и ручное закрытие точек пока доступны только в демонстрационном режиме.
           </p>
         </GlassPanel>

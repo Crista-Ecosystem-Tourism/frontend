@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
-test('new player signs up and completes the three live Moscow quests', async ({ page }) => {
+test('new player completes the live Moscow path and city boss', async ({ page }) => {
+  test.setTimeout(120_000)
   const email = `moscow-e2e-${Date.now()}@example.test`
   await page.goto('/signup')
   await page.locator('#name').fill('Moscow E2E')
@@ -28,5 +29,31 @@ test('new player signs up and completes the three live Moscow quests', async ({ 
   await expect(page.getByRole('heading', { name: 'Царь-колокол' })).toBeVisible()
   await page.getByRole('button', { name: '1735' }).click()
   await expect(page.getByRole('button', { name: /Царь-колокол.*Пройдено/ })).toBeVisible()
-  await expect(page.getByText('Сегодня: 3/2 точек · цель выполнена')).toBeVisible()
+
+  const remainingQuests = [
+    ['Благовещенский собор', '1489'],
+    ['ГУМ', '1893'],
+    ['Парк «Зарядье»', '2017'],
+    ['Третьяковская галерея', '1856'],
+    ['Большой театр', '1825'],
+    ['Московское метро', '1935'],
+    ['ВДНХ', '1939'],
+  ]
+  for (const [title, answer] of remainingQuests) {
+    await page.getByRole('button', { name: new RegExp(title) }).click()
+    await expect(page.getByRole('heading', { name: title })).toBeVisible()
+    await page.getByRole('button', { name: answer, exact: true }).click()
+    await expect(page.getByRole('button', { name: new RegExp(`${title}.*Пройдено`) })).toBeVisible()
+  }
+
+  await page.getByRole('button', { name: /Финальный круг Москвы.*3 вопроса/ }).click()
+  await expect(page.getByRole('heading', { name: 'Финальный круг Москвы' })).toBeVisible()
+  await page.locator('section').filter({ hasText: 'В каком году освятили Благовещенский собор?' })
+    .getByRole('button', { name: '1489', exact: true }).click()
+  await page.locator('section').filter({ hasText: 'В каком году открылись Верхние торговые ряды' })
+    .getByRole('button', { name: '1893', exact: true }).click()
+  await page.locator('section').filter({ hasText: 'В каком году открылась первая выставка на территории ВДНХ?' })
+    .getByRole('button', { name: '1939', exact: true }).click()
+  await page.getByRole('button', { name: 'Проверить три ответа' }).click()
+  await expect(page.getByText('Городской штамп получен. Москва открыта для свободного исследования.')).toBeVisible()
 })

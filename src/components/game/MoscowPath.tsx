@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Award, CheckCircle2, Circle, Flame, LockKeyhole, MapPin } from 'lucide-react'
+import { Award, CheckCircle2, Circle, Crown, Flame, LockKeyhole, MapPin } from 'lucide-react'
 import { ApiError } from '@/api/chatApi'
 import { getMoscowPath, type MoscowPathState } from '@/api/gameApi'
 import { Chip, GlassPanel } from '@/components/ui/glass'
@@ -21,10 +21,12 @@ export function MoscowPath({
   signedIn,
   refreshKey,
   onSelect,
+  onSelectBoss,
 }: {
   signedIn: boolean
   refreshKey: number
   onSelect: (questId: string) => void
+  onSelectBoss: () => void
 }) {
   const [state, setState] = useState<MoscowPathState | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -113,6 +115,29 @@ export function MoscowPath({
           </li>
         ))}
       </ol>
+      {state.boss && (
+        <div className="mt-5 border-t border-white/10 pt-5">
+          <button
+            type="button"
+            disabled={!state.boss.unlocked || state.boss.completed}
+            onClick={() => state.boss?.unlocked && !state.boss.completed && onSelectBoss()}
+            className="flex w-full items-center gap-3 rounded-md border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-left transition enabled:hover:border-amber-300/50 enabled:hover:bg-amber-300/10 disabled:cursor-default"
+          >
+            {state.boss.completed ? <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" /> : state.boss.unlocked ? <Crown className="h-5 w-5 shrink-0 text-amber-200" /> : <LockKeyhole className="h-5 w-5 shrink-0 text-text-muted" />}
+            <span className="flex-1">
+              <span className="block font-sans text-sm font-medium text-text">{state.boss.title}</span>
+              <span className="mt-0.5 block font-sans text-xs text-text-muted">
+                {state.boss.completed
+                  ? 'Городской штамп получен · sandbox открыт'
+                  : state.boss.unlocked
+                    ? `${state.boss.question_count} вопроса · получить городской штамп`
+                    : 'Откроется после всех точек маршрута'}
+              </span>
+            </span>
+            <Crown className="h-4 w-4 text-text-muted" aria-hidden="true" />
+          </button>
+        </div>
+      )}
     </GlassPanel>
   )
 }

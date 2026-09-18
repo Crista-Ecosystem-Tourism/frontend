@@ -90,6 +90,43 @@ export type MoscowPathState = {
     prerequisite_quest_id: string | null
     district: { id: string; name: string; position: number } | null
   }>
+  boss: {
+    title: string
+    question_count: number
+    unlocked: boolean
+    completed: boolean
+    sandbox_unlocked: boolean
+  } | null
+}
+
+export type MoscowBossState = {
+  city: { id: string; name: string }
+  content: {
+    chris: { name: string; intro: string }
+    scene: { title: string; mode: string }
+    questions: Array<{
+      id: string
+      text: string
+      options: Array<{ id: string; label: string }>
+      explanation?: string
+    }>
+    sources?: Array<{ label: string; url: string }>
+  }
+  profile: GameProfile
+  daily: GameDailyProgress
+  completed: boolean
+  city_stamp: { key: string; title: string; earned_at: string } | null
+  sandbox_unlocked: boolean
+}
+
+export type MoscowBossAnswer = {
+  correct: boolean
+  incorrect_answers: number
+  profile: GameProfile
+  daily: GameDailyProgress
+  completed: boolean
+  city_stamp: { key: string; title: string; earned_at: string } | null
+  sandbox_unlocked: boolean
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -137,5 +174,21 @@ export async function answerMoscowQuest(questId: string, answerKey: string): Pro
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answer_key: answerKey }),
+  }))
+}
+
+export async function getMoscowBoss(): Promise<MoscowBossState> {
+  return parse<MoscowBossState>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function answerMoscowBoss(
+  answers: Array<{ question_id: string; answer_key: string }>,
+): Promise<MoscowBossAnswer> {
+  return parse<MoscowBossAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ answers }),
   }))
 }
