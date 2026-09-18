@@ -1,0 +1,101 @@
+name: Live Moscow game e2e
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'src/components/game/**'
+      - 'src/components/auth/**'
+      - 'src/api/gameApi.ts'
+      - 'src/api/authApi.ts'
+      - 'src/context/AppContext.tsx'
+      - 'e2e-live/**'
+      - 'playwright.live.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/live-game-e2e.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'src/components/game/**'
+      - 'src/components/auth/**'
+      - 'src/api/gameApi.ts'
+      - 'src/api/authApi.ts'
+      - 'src/context/AppContext.tsx'
+      - 'e2e-live/**'
+      - 'playwright.live.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/live-game-e2e.yml'
+
+concurrency:
+  group: live-moscow-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  live-moscow-path:
+    name: Authenticated Moscow path in a browser
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: crista_test
+          POSTGRES_PASSWORD: crista_live_game_test
+          POSTGRES_DB: crista_live_game
+        options: >-
+          --health-cmd "pg_isready -U crista_test -d crista_live_game"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql+asyncpg://crista_test:crista_live_game_test@127.0.0.1:5432/crista_live_game
+      JWT_SECRET: crista-live-game-jwt-secret-32-bytes-minimum
+      CORS_ORIGINS: http://127.0.0.1:4174
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+      - name: Checkout compatible ai_agent main
+        uses: actions/checkout@v4
+        with:
+          repository: Crista-Ecosystem-Tourism/ai_agent
+          ref: main
+          path: ai_agent
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: ai_agent/requirements.txt
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r ai_agent/requirements.txt
+      - name: Migrate game database
+        working-directory: ai_agent
+        run: python -m alembic upgrade head
+      - name: Start agent API
+        working-directory: ai_agent
+        run: |
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8080 > "$RUNNER_TEMP/ai-agent.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/ai-agent.pid"
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent http://127.0.0.1:8080/health > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/ai-agent.log"
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:live
+      - name: Print agent log on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/ai-agent.log"
