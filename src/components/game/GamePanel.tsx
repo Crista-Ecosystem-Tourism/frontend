@@ -11,6 +11,7 @@ import { DailyQuiz } from './DailyQuiz'
 import { CountryPage } from './CountryPage'
 import { OnboardingFlow } from './OnboardingFlow'
 import { MoscowQuest } from './MoscowQuest'
+import { MoscowPath } from './MoscowPath'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
 import { isMockMode } from '@/api/chatApi'
@@ -63,6 +64,9 @@ export function GamePanel({ onBack }: GamePanelProps) {
 
 function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolean }) {
   const [pathVersion, setPathVersion] = useState(0)
+  const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null)
+
+  const refreshPath = () => setPathVersion((version) => version + 1)
 
   return (
     <div className="h-full overflow-y-auto">
@@ -77,12 +81,27 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
       </div>
 
       <div className="mx-auto w-full max-w-[1100px] space-y-5 px-5 pb-8 pt-4 sm:px-6">
-        <OnboardingFlow signedIn={signedIn} onCompleted={() => setPathVersion((version) => version + 1)} />
-        <MoscowQuest signedIn={signedIn} refreshKey={pathVersion} />
+        <OnboardingFlow signedIn={signedIn} onCompleted={refreshPath} />
+        <MoscowPath
+          signedIn={signedIn}
+          refreshKey={pathVersion}
+          onSelect={setSelectedQuestId}
+        />
+        {selectedQuestId && (
+          <MoscowQuest
+            signedIn={signedIn}
+            refreshKey={pathVersion}
+            questId={selectedQuestId}
+            onCompleted={() => {
+              setSelectedQuestId(null)
+              refreshPath()
+            }}
+          />
+        )}
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">
-            Следующие точки Москвы откроются после публикации их проверенных заданий и серверных правил пути.
-            Карта мира, ежедневные квизы и ручное закрытие точек сейчас доступны только в демонстрационном режиме.
+            У маршрута три проверяемые сервером точки: Красная площадь, Спасская башня и Царь-колокол.
+            Карта мира, ежедневные квизы и ручное закрытие точек пока доступны только в демонстрационном режиме.
           </p>
         </GlassPanel>
       </div>

@@ -1,0 +1,93 @@
+import { useEffect, useState } from 'react'
+import { Award, CheckCircle2, Circle, Flame, LockKeyhole, MapPin } from 'lucide-react'
+import { ApiError } from '@/api/chatApi'
+import { getMoscowPath, type MoscowPathState } from '@/api/gameApi'
+import { Chip, GlassPanel } from '@/components/ui/glass'
+
+const nodeLabels: Record<string, string> = {
+  'moscow-red-square': 'Красная площадь',
+  'moscow-spasskaya-tower': 'Спасская башня',
+  'moscow-tsar-bell': 'Царь-колокол',
+}
+
+export function MoscowPath({
+  signedIn,
+  refreshKey,
+  onSelect,
+}: {
+  signedIn: boolean
+  refreshKey: number
+  onSelect: (questId: string) => void
+}) {
+  const [state, setState] = useState<MoscowPathState | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!signedIn) return
+    let active = true
+    getMoscowPath()
+      .then((result) => {
+        if (!active) return
+        setState(result)
+        setError(null)
+      })
+      .catch((requestError: unknown) => {
+        if (!active) return
+        setError(requestError instanceof ApiError ? requestError.message : 'не удалось загрузить путь')
+      })
+    return () => { active = false }
+  }, [refreshKey, signedIn])
+
+  if (!signedIn || !state) {
+    return error ? (
+      <GlassPanel variant="flat" className="border-danger/30 p-4 font-sans text-sm text-text-secondary">
+        Маршрут Москвы пока недоступен: {error}.
+      </GlassPanel>
+    ) : null
+  }
+
+  return (
+    <GlassPanel variant="flat" className="p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Маршрут города</p>
+          <h2 className="mt-1 font-display text-xl font-semibold text-text">{state.city.name}</h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip size="sm"><Award /> {state.profile.xp} XP</Chip>
+          <Chip size="sm"><Flame /> {state.daily.streak} дн.</Chip>
+        </div>
+      </div>
+      <p className="mt-3 font-sans text-xs text-text-muted">
+        Сегодня: {state.daily.completed_quests}/{state.daily.goal} точек{state.daily.goal_reached ? ' · цель выполнена' : ''}.
+      </p>
+      <ol className="mt-5 space-y-2" aria-label="Точки маршрута по Москве">
+        {state.nodes.map((node) => {
+          const label = nodeLabels[node.id] ?? `Точка ${node.position}`
+          const isStarter = node.id === 'moscow-red-square'
+          const Icon = node.completed ? CheckCircle2 : node.unlocked ? Circle : LockKeyhole
+          const interactive = node.unlocked && !node.completed && !isStarter
+          return (
+            <li key={node.id}>
+              <button
+                type="button"
+                disabled={!interactive}
+                onClick={() => interactive && onSelect(node.id)}
+                className="flex w-full items-center gap-3 rounded-md border border-white/10 bg-panel-2/60 px-4 py-3 text-left transition enabled:hover:border-primary/50 enabled:hover:bg-primary/10 disabled:cursor-default"
+              >
+                <Icon className={`h-5 w-5 shrink-0 ${node.completed ? 'text-primary' : node.unlocked ? 'text-accent-soft' : 'text-text-muted'}`} />
+                <span className="flex-1">
+                  <span className="block font-sans text-sm font-medium text-text">{node.position}. {label}</span>
+                  <span className="mt-0.5 block font-sans text-xs text-text-muted">
+                    {node.completed ? 'Пройдено' : node.unlocked ? isStarter ? 'Начните выше' : 'Открыто — пройти квест' : 'Откроется после предыдущей точки'}
+                  </span>
+                </span>
+                <MapPin className="h-4 w-4 text-text-muted" aria-hidden="true" />
+              </button>
+            </li>
+          )
+        })}
+      </ol>
+    </GlassPanel>
+  )
+}

@@ -6,6 +6,15 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 export type GameProfile = {
   xp: number
   energy: number
+  streak: number
+}
+
+export type GameDailyProgress = {
+  timezone: 'Europe/Moscow'
+  streak: number
+  completed_quests: number
+  goal: number
+  goal_reached: boolean
 }
 
 export type OnboardingContent = {
@@ -25,6 +34,7 @@ export type OnboardingContent = {
 export type OnboardingState = {
   content: OnboardingContent
   profile: GameProfile
+  daily: GameDailyProgress
   completed: boolean
   starter_stamp: { key: string; title: string; earned_at: string } | null
 }
@@ -33,6 +43,7 @@ export type OnboardingAnswer = {
   correct: boolean
   xp_awarded: number
   profile: GameProfile
+  daily: GameDailyProgress
   completed: boolean
   starter_stamp: { key: string; title: string; earned_at: string } | null
 }
@@ -46,6 +57,7 @@ export type MoscowQuestState = {
   }
   content: OnboardingContent
   profile: GameProfile
+  daily: GameDailyProgress
   completed: boolean
   stamp: { key: string; title: string; earned_at: string } | null
 }
@@ -54,8 +66,23 @@ export type MoscowQuestAnswer = {
   correct: boolean
   xp_awarded: number
   profile: GameProfile
+  daily: GameDailyProgress
   completed: boolean
   stamp: { key: string; title: string; earned_at: string } | null
+}
+
+export type MoscowPathState = {
+  city: { id: string; name: string; tier: number }
+  profile: GameProfile
+  daily: GameDailyProgress
+  nodes: Array<{
+    id: string
+    kind: string
+    position: number
+    completed: boolean
+    unlocked: boolean
+    prerequisite_quest_id: string | null
+  }>
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -88,6 +115,12 @@ export async function answerRedSquare(answerKey: string): Promise<OnboardingAnsw
 
 export async function getMoscowQuest(questId: string): Promise<MoscowQuestState> {
   return parse<MoscowQuestState>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function getMoscowPath(): Promise<MoscowPathState> {
+  return parse<MoscowPathState>(await fetch(`${API_BASE_URL}/game/paths/moscow`, {
     headers: getAuthHeaders(),
   }))
 }

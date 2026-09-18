@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Award, BatteryMedium, CheckCircle2, Compass, LoaderCircle, MapPin, Sparkles } from 'lucide-react'
+import { Award, BatteryMedium, CheckCircle2, Compass, Flame, LoaderCircle, MapPin, Sparkles } from 'lucide-react'
 import { GlassPanel, Chip } from '@/components/ui/glass'
 import { answerRedSquare, getOnboarding, type OnboardingState } from '@/api/gameApi'
 import { isMockMode } from '@/api/chatApi'
@@ -76,7 +76,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
     )
   }
 
-  const { content, profile } = state
+  const { content, daily, profile } = state
   const choose = async (answerKey: string) => {
     if (view === 'answering' || state.completed) return
     setView('answering')
@@ -86,6 +86,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
       setState((previous) => previous ? {
         ...previous,
         profile: result.profile,
+        daily: result.daily,
         completed: result.completed,
         starter_stamp: result.starter_stamp,
       } : previous)
@@ -108,11 +109,15 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
           <div className="flex items-center gap-2">
             <Chip size="sm"><Award /> {profile.xp} XP</Chip>
             <Chip size="sm"><BatteryMedium /> {profile.energy}/5</Chip>
+            <Chip size="sm"><Flame /> {daily.streak} дн.</Chip>
           </div>
         </div>
         <p className="font-sans text-sm text-text-secondary">{content.chris.name} · проводник</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-text sm:text-3xl">{content.scene.title}</h2>
         <p className="mt-3 max-w-2xl font-sans text-sm leading-6 text-text-secondary">{content.chris.intro}</p>
+        <p className="mt-3 font-sans text-xs text-text-muted">
+          Цель на сегодня: {daily.completed_quests}/{daily.goal} точек{daily.goal_reached ? ' — выполнена' : ''}.
+        </p>
         {!state.completed && (
           <ol className="mt-5 flex gap-2 overflow-x-auto" aria-label="Шаги первого путешествия">
             {lessonSteps.map((item, index) => {

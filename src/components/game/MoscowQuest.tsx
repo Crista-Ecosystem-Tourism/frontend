@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Award, BatteryMedium, CheckCircle2, LockKeyhole, MapPin, Sparkles } from 'lucide-react'
+import { Award, BatteryMedium, CheckCircle2, Flame, LockKeyhole, MapPin, Sparkles } from 'lucide-react'
 import { ApiError } from '@/api/chatApi'
 import {
   answerMoscowQuest,
@@ -10,8 +10,18 @@ import { Chip, GlassPanel } from '@/components/ui/glass'
 
 type ViewState = 'loading' | 'ready' | 'answering' | 'locked' | 'error'
 
-/** Second live Moscow node. Its prerequisite and reward stay enforced by the API. */
-export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refreshKey: number }) {
+/** A live Moscow node. Prerequisites and rewards stay enforced by the API. */
+export function MoscowQuest({
+  signedIn,
+  refreshKey,
+  questId,
+  onCompleted,
+}: {
+  signedIn: boolean
+  refreshKey: number
+  questId: string
+  onCompleted?: () => void
+}) {
   const [state, setState] = useState<MoscowQuestState | null>(null)
   const [view, setView] = useState<ViewState>('loading')
   const [message, setMessage] = useState<string | null>(null)
@@ -20,7 +30,7 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
     if (!signedIn) return
     let active = true
     setView('loading')
-    getMoscowQuest('moscow-spasskaya-tower')
+    getMoscowQuest(questId)
       .then((result) => {
         if (!active) return
         setState(result)
@@ -36,7 +46,7 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
         setView('error')
       })
     return () => { active = false }
-  }, [refreshKey, signedIn])
+  }, [questId, refreshKey, signedIn])
 
   const choose = async (answerKey: string) => {
     if (!state || view === 'answering' || state.completed) return
@@ -47,9 +57,11 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
       setState((previous) => previous ? {
         ...previous,
         profile: result.profile,
+        daily: result.daily,
         completed: result.completed,
         stamp: result.stamp,
       } : previous)
+      if (result.completed) onCompleted?.()
       setMessage(result.correct
         ? result.xp_awarded ? `Верно! +${result.xp_awarded} XP` : 'Верно — этот штамп уже в твоём паспорте.'
         : 'Почти! Одна энергия потрачена — попробуй ещё раз.')
@@ -67,7 +79,7 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
       <GlassPanel variant="flat" className="flex items-start gap-3 border-white/10 p-4 sm:p-5">
         <LockKeyhole className="mt-0.5 h-5 w-5 shrink-0 text-text-muted" />
         <p className="font-sans text-sm leading-6 text-text-secondary">
-          Следующая точка Москвы откроется после Красной площади. Это правило проверяет сервер, а не браузер.
+          Эта точка Москвы откроется после предыдущего задания. Правило проверяет сервер, а не браузер.
         </p>
       </GlassPanel>
     )
@@ -81,7 +93,7 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
     )
   }
 
-  const { content, profile } = state
+  const { content, daily, profile } = state
   return (
     <GlassPanel className="overflow-hidden border-primary/20 p-0">
       <div className="bg-[linear-gradient(120deg,rgba(11,125,127,0.16),rgba(107,91,255,0.12))] p-5 sm:p-6">
@@ -90,6 +102,7 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
           <div className="flex items-center gap-2">
             <Chip size="sm"><Award /> {profile.xp} XP</Chip>
             <Chip size="sm"><BatteryMedium /> {profile.energy}/5</Chip>
+            <Chip size="sm"><Flame /> {daily.streak} дн.</Chip>
           </div>
         </div>
         <p className="mt-4 font-sans text-sm text-text-secondary">{content.chris.name} · проводник</p>
@@ -101,7 +114,7 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
           <div className="flex items-start gap-3 rounded-md bg-primary/10 p-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
             <p className="font-sans text-sm text-text-secondary">
-              {state.stamp?.title ?? 'Штамп'} уже в паспорте. Следующая точка появится после публикации.
+              {state.stamp?.title ?? 'Штамп'} уже в паспорте. Открой маршрут Москвы, чтобы продолжить путь.
             </p>
           </div>
         ) : (
@@ -112,6 +125,9 @@ export function MoscowQuest({ signedIn, refreshKey }: { signedIn: boolean; refre
                 Источник: {content.fact.source_label ?? 'Открыть источник'}
               </a>
             </div>
+            <p className="mt-3 font-sans text-xs text-text-muted">
+              Цель на сегодня: {daily.completed_quests}/{daily.goal} точек{daily.goal_reached ? ' — выполнена' : ''}.
+            </p>
             <p className="mt-5 font-display text-lg font-semibold text-text">{content.question.text}</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               {content.question.options.map((option) => (
