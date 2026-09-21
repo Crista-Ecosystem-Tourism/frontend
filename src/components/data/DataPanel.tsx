@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ArrowLeft, Search, MapPin, Landmark, UtensilsCrossed, Sparkles,
   Wallet, Globe, Bus, HandHeart, MessageCircleQuestion, ShieldAlert, Pencil,
+  BookOpenCheck,
 } from 'lucide-react'
 import { GlassPanel, Chip, IconButton, DisplayTitle } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
@@ -12,6 +13,7 @@ import { ArticleBlocks } from './ArticleBlocks'
 import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
+import { getWikiArticle, type WikiPublishedArticle } from '@/api/wikiApi'
 
 interface DataPanelProps {
   onBack: () => void
@@ -101,6 +103,52 @@ function Header({ onBack, title }: { onBack: () => void; title: string }) {
         <h1 className="font-display text-2xl font-semibold text-text">{title}</h1>
       </div>
     </div>
+  )
+}
+
+/** A server-owned article stays distinct from the catalogue cards until all catalogue content is migrated. */
+function PublishedMoscowArticle() {
+  const [article, setArticle] = useState<WikiPublishedArticle | null>(null)
+  const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading')
+
+  useEffect(() => {
+    let active = true
+    getWikiArticle('moscow').then((result) => {
+      if (!active) return
+      setArticle(result)
+      setStatus('ready')
+    }).catch(() => {
+      if (active) setStatus('unavailable')
+    })
+    return () => { active = false }
+  }, [])
+
+  if (status === 'loading') {
+    return <GlassPanel className="mb-6 p-4 font-sans text-sm text-text-secondary">Загружаем опубликованную статью Crista Wiki…</GlassPanel>
+  }
+  if (status === 'unavailable' || !article) {
+    return (
+      <GlassPanel className="mb-6 border-danger/30 p-4 font-sans text-sm text-text-secondary">
+        Опубликованная статья Crista Wiki сейчас недоступна. Каталог ниже не подменяет её серверную версию.
+      </GlassPanel>
+    )
+  }
+
+  const summary = typeof article.body.summary === 'string' ? article.body.summary : null
+  return (
+    <section className="mb-6 rounded-lg border border-primary/25 bg-primary/5 p-5" aria-label="Опубликованная статья Crista Wiki о Москве">
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · серверная опубликованная версия</p>
+      <h2 className="mt-1 font-display text-2xl font-semibold text-text">{article.title}</h2>
+      {summary && <p className="mt-3 max-w-[68ch] font-sans text-sm leading-6 text-text-secondary">{summary}</p>}
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+        {article.sources.map((source) => (
+          <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-sans text-xs font-semibold text-primary hover:underline">
+            <BookOpenCheck className="h-3.5 w-3.5" /> {source.label}
+          </a>
+        ))}
+      </div>
+      <p className="mt-3 font-sans text-xs text-text-muted">Лицензия: {article.license}</p>
+    </section>
   )
 }
 
@@ -266,6 +314,8 @@ export function DataPanel({ onBack }: DataPanelProps) {
             </Chip>
           )}
         </div>
+
+        <PublishedMoscowArticle />
 
         <div className="relative mb-6 max-w-md">
           <Search
