@@ -13,7 +13,7 @@ import { ArticleBlocks } from './ArticleBlocks'
 import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
-import { getWikiArticle, type WikiPublishedArticle } from '@/api/wikiApi'
+import { getMyWikiDrafts, getWikiArticle, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
 
 interface DataPanelProps {
   onBack: () => void
@@ -149,6 +149,31 @@ function PublishedMoscowArticle() {
       </div>
       <p className="mt-3 font-sans text-xs text-text-muted">Лицензия: {article.license}</p>
     </section>
+  )
+}
+
+function AuthoredDrafts({ signedIn }: { signedIn: boolean }) {
+  const [drafts, setDrafts] = useState<ServerWikiDraft[]>([])
+
+  useEffect(() => {
+    if (!signedIn) return
+    let active = true
+    getMyWikiDrafts().then((result) => {
+      if (active) setDrafts(result)
+    }).catch(() => {
+      // The old catalogue remains readable if the optional editorial status request fails.
+    })
+    return () => { active = false }
+  }, [signedIn])
+
+  if (!signedIn || drafts.length === 0) return null
+  return (
+    <GlassPanel className="mb-6 p-4" aria-label="Мои серверные черновики Wiki">
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · мои серверные версии</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {drafts.map((draft) => <Chip key={draft.id} variant={draft.status === 'review' ? 'accent' : 'default'} size="sm">{draft.title} · {draft.status === 'review' ? 'на review' : draft.status}</Chip>)}
+      </div>
+    </GlassPanel>
   )
 }
 
@@ -315,6 +340,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
           )}
         </div>
 
+        <AuthoredDrafts signedIn={Boolean(user)} />
         <PublishedMoscowArticle />
 
         <div className="relative mb-6 max-w-md">
