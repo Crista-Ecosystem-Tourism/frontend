@@ -6,6 +6,7 @@ import {
   answerMoscowTimeline,
   answerMoscowTruthMyth,
   answerMoscowWordBlocks,
+  answerMoscowPriceSlider,
   getMoscowSandbox,
   type MoscowSandboxState,
 } from '@/api/gameApi'
@@ -69,6 +70,7 @@ export function MoscowSandbox({
       {state.matching && <MatchingDrill matching={state.matching} />}
       {state.timeline && <TimelineDrill timeline={state.timeline} />}
       {state.word_blocks && <WordBlocksDrill wordBlocks={state.word_blocks} />}
+      {state.price_slider && <PriceSliderDrill priceSlider={state.price_slider} />}
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
           <details key={lesson.id} className="rounded-md border border-white/10 bg-panel-2/60 p-4">
@@ -87,6 +89,59 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function PriceSliderDrill({ priceSlider }: { priceSlider: NonNullable<MoscowSandboxState['price_slider']> }) {
+  const [value, setValue] = useState(priceSlider.min)
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [answering, setAnswering] = useState(false)
+
+  const submit = async () => {
+    if (answering) return
+    setAnswering(true)
+    setFeedback(null)
+    try {
+      const result = await answerMoscowPriceSlider(value)
+      setFeedback(`${result.correct ? 'Близко к ответу.' : 'Почти.'} ${result.explanation}`)
+    } catch (error) {
+      setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
+    } finally {
+      setAnswering(false)
+    }
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4 sm:p-5" aria-label="Упражнение угадать цену">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-text">{priceSlider.title}</h3>
+        </div>
+        <Chip size="sm">{priceSlider.fact_date}</Chip>
+      </div>
+      <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{priceSlider.intro}</p>
+      <p className="mt-4 font-display text-lg font-semibold text-text">{priceSlider.question}</p>
+      <label className="mt-4 block font-sans text-sm text-text-secondary" htmlFor="moscow-price-slider">
+        Ваша оценка: <span className="font-semibold text-text">{value} {priceSlider.unit}</span>
+      </label>
+      <input
+        id="moscow-price-slider"
+        aria-label="Ваша ставка"
+        type="range"
+        min={priceSlider.min}
+        max={priceSlider.max}
+        step={priceSlider.step}
+        value={value}
+        onChange={(event) => setValue(Number(event.target.value))}
+        className="mt-3 w-full accent-primary"
+      />
+      <div className="mt-1 flex justify-between font-sans text-xs text-text-muted"><span>{priceSlider.min}</span><span>{priceSlider.max} {priceSlider.unit}</span></div>
+      <button type="button" disabled={answering} onClick={() => void submit()} className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-4 py-3 font-sans text-sm font-semibold text-text transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50">
+        Проверить цену
+      </button>
+      {feedback && <p className="mt-3 flex items-start gap-2 rounded-md border border-white/10 bg-panel-2/60 p-3 font-sans text-sm leading-6 text-text-secondary"><Sparkles className="mt-1 h-4 w-4 shrink-0 text-accent-soft" /> {feedback}</p>}
+    </section>
   )
 }
 

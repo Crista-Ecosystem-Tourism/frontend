@@ -164,6 +164,16 @@ export type MoscowSandboxState = {
     intro: string
     blocks: Array<{ id: string; label: string }>
   } | null
+  price_slider: {
+    title: string
+    intro: string
+    question: string
+    fact_date: string
+    unit: string
+    min: number
+    max: number
+    step: number
+  } | null
 }
 
 export type TruthMythAnswer = {
@@ -187,6 +197,12 @@ export type MoscowTimelineAnswer = {
 }
 
 export type MoscowWordBlocksAnswer = {
+  correct: boolean
+  explanation: string
+  profile: GameProfile
+}
+
+export type MoscowPriceSliderAnswer = {
   correct: boolean
   explanation: string
   profile: GameProfile
@@ -286,6 +302,14 @@ export async function answerMoscowWordBlocks(orderedIds: string[]): Promise<Mosc
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ ordered_ids: orderedIds }),
+  }))
+}
+
+export async function answerMoscowPriceSlider(value: number): Promise<MoscowPriceSliderAnswer> {
+  return parse<MoscowPriceSliderAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/price-slider/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ value }),
   }))
 }
 
