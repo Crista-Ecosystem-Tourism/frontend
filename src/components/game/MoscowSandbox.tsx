@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
-import { BookOpenCheck, CheckCircle2, Compass } from 'lucide-react'
+import { BookOpenCheck, CheckCircle2, Compass, MoveHorizontal, Sparkles } from 'lucide-react'
 import { ApiError } from '@/api/chatApi'
-import { getMoscowSandbox, type MoscowSandboxState } from '@/api/gameApi'
+import {
+  answerMoscowTruthMyth,
+  getMoscowSandbox,
+  type MoscowSandboxState,
+} from '@/api/gameApi'
 import { Chip, GlassPanel } from '@/components/ui/glass'
 
 /** Review content becomes available only after the server has issued the city stamp. */
@@ -58,6 +62,7 @@ export function MoscowSandbox({
         </div>
         <Chip size="sm" variant="active"><CheckCircle2 /> {state.city_stamp.title}</Chip>
       </div>
+      {state.drill && <TruthMythDrill drill={state.drill} />}
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
           <details key={lesson.id} className="rounded-md border border-white/10 bg-panel-2/60 p-4">
@@ -76,5 +81,87 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function TruthMythDrill({ drill }: { drill: NonNullable<MoscowSandboxState['drill']> }) {
+  const [index, setIndex] = useState(0)
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [answering, setAnswering] = useState(false)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const statement = drill.statements[index]
+
+  if (!statement) return null
+
+  const answer = async (answerKey: 'truth' | 'myth') => {
+    if (answering) return
+    setAnswering(true)
+    setFeedback(null)
+    try {
+      const result = await answerMoscowTruthMyth(statement.id, answerKey)
+      setFeedback(`${result.correct ? 'Верно.' : 'Почти.'} ${result.explanation}`)
+    } catch (error) {
+      setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
+    } finally {
+      setAnswering(false)
+    }
+  }
+
+  const next = () => {
+    setIndex((current) => (current + 1) % drill.statements.length)
+    setFeedback(null)
+  }
+
+  const finishSwipe = (endX: number) => {
+    if (touchStart === null || Math.abs(endX - touchStart) < 48) return
+    void answer(endX > touchStart ? 'truth' : 'myth')
+    setTouchStart(null)
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4 sm:p-5" aria-label="Упражнение правда или миф">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-text">{drill.title}</h3>
+        </div>
+        <Chip size="sm"><MoveHorizontal /> свайп или кнопки</Chip>
+      </div>
+      <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{drill.intro}</p>
+      <div
+        className="mt-4 rounded-md border border-white/10 bg-panel-2 p-5"
+        onTouchStart={(event) => setTouchStart(event.touches[0]?.clientX ?? null)}
+        onTouchEnd={(event) => finishSwipe(event.changedTouches[0]?.clientX ?? 0)}
+      >
+        <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Утверждение {index + 1}/{drill.statements.length}</p>
+        <p className="mt-2 font-display text-xl font-semibold leading-8 text-text">{statement.text}</p>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          disabled={answering}
+          onClick={() => void answer('myth')}
+          className="rounded-md border border-white/10 bg-panel-2 px-4 py-3 font-sans text-sm font-medium text-text-secondary transition hover:border-danger/50 hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          ← Миф
+        </button>
+        <button
+          type="button"
+          disabled={answering}
+          onClick={() => void answer('truth')}
+          className="rounded-md border border-white/10 bg-panel-2 px-4 py-3 font-sans text-sm font-medium text-text-secondary transition hover:border-primary/50 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Правда →
+        </button>
+      </div>
+      {feedback && (
+        <div className="mt-3 rounded-md border border-white/10 bg-panel-2/60 p-3">
+          <p className="flex items-start gap-2 font-sans text-sm leading-6 text-text-secondary"><Sparkles className="mt-1 h-4 w-4 shrink-0 text-accent-soft" /> {feedback}</p>
+          <button type="button" onClick={next} className="mt-3 font-sans text-xs font-semibold text-primary hover:underline">
+            Следующее утверждение
+          </button>
+        </div>
+      )}
+    </section>
   )
 }

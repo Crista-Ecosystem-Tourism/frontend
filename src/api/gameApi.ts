@@ -143,6 +143,17 @@ export type MoscowSandboxState = {
     question: { id: string; text: string; options: Array<{ id: string; label: string }> }
     explanation: string
   }>
+  drill: {
+    title: string
+    intro: string
+    statements: Array<{ id: string; text: string }>
+  } | null
+}
+
+export type TruthMythAnswer = {
+  correct: boolean
+  explanation: string
+  profile: GameProfile
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -202,6 +213,17 @@ export async function getMoscowBoss(): Promise<MoscowBossState> {
 export async function getMoscowSandbox(): Promise<MoscowSandboxState> {
   return parse<MoscowSandboxState>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox`, {
     headers: getAuthHeaders(),
+  }))
+}
+
+export async function answerMoscowTruthMyth(
+  statementId: string,
+  answerKey: 'truth' | 'myth',
+): Promise<TruthMythAnswer> {
+  return parse<TruthMythAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/truth-myth/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ statement_id: statementId, answer_key: answerKey }),
   }))
 }
 
