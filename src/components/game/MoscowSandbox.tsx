@@ -11,6 +11,7 @@ import {
   getMoscowSandbox,
   type MoscowSandboxState,
 } from '@/api/gameApi'
+import { getWikiArticle, type WikiPublishedArticle } from '@/api/wikiApi'
 import { Chip, GlassPanel } from '@/components/ui/glass'
 
 /** Review content becomes available only after the server has issued the city stamp. */
@@ -67,6 +68,7 @@ export function MoscowSandbox({
         </div>
         <Chip size="sm" variant="active"><CheckCircle2 /> {state.city_stamp.title}</Chip>
       </div>
+      <MoscowWikiArticle />
       {state.drill && <TruthMythDrill drill={state.drill} />}
       {state.matching && <MatchingDrill matching={state.matching} />}
       {state.timeline && <TimelineDrill timeline={state.timeline} />}
@@ -91,6 +93,38 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function MoscowWikiArticle() {
+  const [article, setArticle] = useState<WikiPublishedArticle | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getWikiArticle('moscow').then((result) => {
+      if (active) setArticle(result)
+    }).catch(() => {
+      // The sandbox must remain available when the optional reading card is offline.
+    })
+    return () => { active = false }
+  }, [])
+
+  if (!article) return null
+  const summary = typeof article.body.summary === 'string' ? article.body.summary : null
+  return (
+    <section className="mt-5 rounded-md border border-white/10 bg-panel-2/60 p-4 sm:p-5" aria-label="Статья Crista Wiki о Москве">
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · опубликованная версия</p>
+      <h3 className="mt-1 font-display text-lg font-semibold text-text">{article.title}</h3>
+      {summary && <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{summary}</p>}
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+        {article.sources.map((source) => (
+          <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-sans text-xs text-primary hover:underline">
+            <BookOpenCheck className="h-3.5 w-3.5" /> {source.label}
+          </a>
+        ))}
+      </div>
+      <p className="mt-3 font-sans text-xs text-text-muted">Лицензия: {article.license}</p>
+    </section>
   )
 }
 
