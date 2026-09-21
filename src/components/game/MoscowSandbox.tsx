@@ -25,6 +25,12 @@ export function MoscowSandbox({
   const [state, setState] = useState<MoscowSandboxState | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  const refreshPracticeRecovery = () => {
+    getMoscowSandbox().then((result) => setState(result)).catch(() => {
+      // A completed exercise remains usable if the optional recovery refresh is interrupted.
+    })
+  }
+
   useEffect(() => {
     if (!signedIn) return
     let active = true
@@ -69,11 +75,12 @@ export function MoscowSandbox({
         <Chip size="sm" variant="active"><CheckCircle2 /> {state.city_stamp.title}</Chip>
       </div>
       <MoscowWikiArticle />
-      {state.drill && <TruthMythDrill drill={state.drill} />}
-      {state.matching && <MatchingDrill matching={state.matching} />}
-      {state.timeline && <TimelineDrill timeline={state.timeline} />}
-      {state.word_blocks && <WordBlocksDrill wordBlocks={state.word_blocks} />}
-      {state.price_slider && <PriceSliderDrill priceSlider={state.price_slider} />}
+      {state.story && <StoryCard story={state.story} />}
+      {state.drill && <TruthMythDrill drill={state.drill} onCorrect={refreshPracticeRecovery} />}
+      {state.matching && <MatchingDrill matching={state.matching} onCorrect={refreshPracticeRecovery} />}
+      {state.timeline && <TimelineDrill timeline={state.timeline} onCorrect={refreshPracticeRecovery} />}
+      {state.word_blocks && <WordBlocksDrill wordBlocks={state.word_blocks} onCorrect={refreshPracticeRecovery} />}
+      {state.price_slider && <PriceSliderDrill priceSlider={state.price_slider} onCorrect={refreshPracticeRecovery} />}
       <PracticeRecovery initial={state.practice_recovery} />
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
@@ -93,6 +100,23 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function StoryCard({ story }: { story: NonNullable<MoscowSandboxState['story']> }) {
+  return (
+    <section className="mt-5 overflow-hidden rounded-md border border-primary/20 bg-panel-2" aria-label="Story о Красной площади">
+      <img src={story.image_url} alt={story.image_alt} className="aspect-video w-full object-cover" />
+      <div className="p-4 sm:p-5">
+        <p className="font-sans text-xs uppercase tracking-wide text-text-muted">{story.eyebrow}</p>
+        <h3 className="mt-1 font-display text-xl font-semibold text-text">{story.title}</h3>
+        <p className="mt-3 font-sans text-sm leading-6 text-text-secondary">{story.fact}</p>
+        <a href={story.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 font-sans text-xs font-semibold text-primary hover:underline">
+          <BookOpenCheck className="h-4 w-4" /> Источник: {story.source_label}
+        </a>
+        <p className="mt-3 font-sans text-xs text-text-muted">{story.note} {story.media_credit}</p>
+      </div>
+    </section>
   )
 }
 
@@ -133,6 +157,8 @@ function PracticeRecovery({ initial }: { initial: MoscowSandboxState['practice_r
   const [message, setMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => setRecovery(initial), [initial])
+
   const restore = async () => {
     if (!recovery.available || loading) return
     setLoading(true)
@@ -165,7 +191,7 @@ function PracticeRecovery({ initial }: { initial: MoscowSandboxState['practice_r
   )
 }
 
-function PriceSliderDrill({ priceSlider }: { priceSlider: NonNullable<MoscowSandboxState['price_slider']> }) {
+function PriceSliderDrill({ priceSlider, onCorrect }: { priceSlider: NonNullable<MoscowSandboxState['price_slider']>; onCorrect: () => void }) {
   const [value, setValue] = useState(priceSlider.min)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [answering, setAnswering] = useState(false)
@@ -177,6 +203,7 @@ function PriceSliderDrill({ priceSlider }: { priceSlider: NonNullable<MoscowSand
     try {
       const result = await answerMoscowPriceSlider(value)
       setFeedback(`${result.correct ? 'Близко к ответу.' : 'Почти.'} ${result.explanation}`)
+      if (result.correct) onCorrect()
     } catch (error) {
       setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
     } finally {
@@ -218,7 +245,7 @@ function PriceSliderDrill({ priceSlider }: { priceSlider: NonNullable<MoscowSand
   )
 }
 
-function WordBlocksDrill({ wordBlocks }: { wordBlocks: NonNullable<MoscowSandboxState['word_blocks']> }) {
+function WordBlocksDrill({ wordBlocks, onCorrect }: { wordBlocks: NonNullable<MoscowSandboxState['word_blocks']>; onCorrect: () => void }) {
   const [blocks, setBlocks] = useState(wordBlocks.blocks)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [answering, setAnswering] = useState(false)
@@ -241,6 +268,7 @@ function WordBlocksDrill({ wordBlocks }: { wordBlocks: NonNullable<MoscowSandbox
     try {
       const result = await answerMoscowWordBlocks(blocks.map((block) => block.id))
       setFeedback(`${result.correct ? 'Фраза собрана.' : 'Порядок пока неточный.'} ${result.explanation}`)
+      if (result.correct) onCorrect()
     } catch (error) {
       setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
     } finally {
@@ -275,7 +303,7 @@ function WordBlocksDrill({ wordBlocks }: { wordBlocks: NonNullable<MoscowSandbox
   )
 }
 
-function TimelineDrill({ timeline }: { timeline: NonNullable<MoscowSandboxState['timeline']> }) {
+function TimelineDrill({ timeline, onCorrect }: { timeline: NonNullable<MoscowSandboxState['timeline']>; onCorrect: () => void }) {
   const [items, setItems] = useState(timeline.items)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [answering, setAnswering] = useState(false)
@@ -299,6 +327,7 @@ function TimelineDrill({ timeline }: { timeline: NonNullable<MoscowSandboxState[
       const result = await answerMoscowTimeline(items.map((item) => item.id))
       const explanations = result.feedback.map((item) => `${item.correct ? 'На месте' : 'Не на месте'}: ${item.explanation}`)
       setFeedback(`${result.correct ? 'Хронология собрана.' : 'Порядок пока неточный.'} ${explanations.join(' ')}`)
+      if (result.correct) onCorrect()
     } catch (error) {
       setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
     } finally {
@@ -336,7 +365,7 @@ function TimelineDrill({ timeline }: { timeline: NonNullable<MoscowSandboxState[
   )
 }
 
-function MatchingDrill({ matching }: { matching: NonNullable<MoscowSandboxState['matching']> }) {
+function MatchingDrill({ matching, onCorrect }: { matching: NonNullable<MoscowSandboxState['matching']>; onCorrect: () => void }) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [feedback, setFeedback] = useState<string | null>(null)
   const [answering, setAnswering] = useState(false)
@@ -353,6 +382,7 @@ function MatchingDrill({ matching }: { matching: NonNullable<MoscowSandboxState[
       })))
       const explanations = result.feedback.map((item) => `${item.correct ? 'Верно' : 'Проверь ещё раз'}: ${item.explanation}`)
       setFeedback(`${result.correct ? 'Все пары собраны.' : 'Есть неточные пары.'} ${explanations.join(' ')}`)
+      if (result.correct) onCorrect()
     } catch (error) {
       setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
     } finally {
@@ -403,7 +433,7 @@ function MatchingDrill({ matching }: { matching: NonNullable<MoscowSandboxState[
   )
 }
 
-function TruthMythDrill({ drill }: { drill: NonNullable<MoscowSandboxState['drill']> }) {
+function TruthMythDrill({ drill, onCorrect }: { drill: NonNullable<MoscowSandboxState['drill']>; onCorrect: () => void }) {
   const [index, setIndex] = useState(0)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [answering, setAnswering] = useState(false)
@@ -419,6 +449,7 @@ function TruthMythDrill({ drill }: { drill: NonNullable<MoscowSandboxState['dril
     try {
       const result = await answerMoscowTruthMyth(statement.id, answerKey)
       setFeedback(`${result.correct ? 'Верно.' : 'Почти.'} ${result.explanation}`)
+      if (result.correct) onCorrect()
     } catch (error) {
       setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
     } finally {

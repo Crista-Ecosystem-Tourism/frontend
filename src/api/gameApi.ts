@@ -174,6 +174,17 @@ export type MoscowSandboxState = {
     max: number
     step: number
   } | null
+  story: {
+    title: string
+    eyebrow: string
+    image_url: string
+    image_alt: string
+    media_credit: string
+    fact: string
+    source_label: string
+    source_url: string
+    note: string
+  } | null
   practice_recovery: { available: boolean; used_today: boolean; amount: number }
 }
 
