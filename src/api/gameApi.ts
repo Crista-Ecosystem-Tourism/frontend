@@ -185,6 +185,18 @@ export type MoscowSandboxState = {
     source_url: string
     note: string
   } | null
+  photo_scanner: {
+    title: string
+    intro: string
+    question: string
+    image_url: string
+    image_alt: string
+    media_credit: string
+    media_source_url: string
+    license: string
+    field_note: string
+    hotspots: Array<{ id: string; x: number; y: number; width: number; height: number }>
+  } | null
   practice_recovery: { available: boolean; used_today: boolean; amount: number }
 }
 
@@ -215,6 +227,12 @@ export type MoscowWordBlocksAnswer = {
 }
 
 export type MoscowPriceSliderAnswer = {
+  correct: boolean
+  explanation: string
+  profile: GameProfile
+}
+
+export type MoscowPhotoScannerAnswer = {
   correct: boolean
   explanation: string
   profile: GameProfile
@@ -327,6 +345,14 @@ export async function answerMoscowPriceSlider(value: number): Promise<MoscowPric
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ value }),
+  }))
+}
+
+export async function answerMoscowPhotoScanner(hotspotId: string): Promise<MoscowPhotoScannerAnswer> {
+  return parse<MoscowPhotoScannerAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/photo-scanner/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ hotspot_id: hotspotId }),
   }))
 }
 

@@ -7,6 +7,7 @@ import {
   answerMoscowTruthMyth,
   answerMoscowWordBlocks,
   answerMoscowPriceSlider,
+  answerMoscowPhotoScanner,
   restoreMoscowEnergy,
   getMoscowSandbox,
   type MoscowSandboxState,
@@ -81,6 +82,7 @@ export function MoscowSandbox({
       {state.timeline && <TimelineDrill timeline={state.timeline} onCorrect={refreshPracticeRecovery} />}
       {state.word_blocks && <WordBlocksDrill wordBlocks={state.word_blocks} onCorrect={refreshPracticeRecovery} />}
       {state.price_slider && <PriceSliderDrill priceSlider={state.price_slider} onCorrect={refreshPracticeRecovery} />}
+      {state.photo_scanner && <PhotoScannerDrill photoScanner={state.photo_scanner} onCorrect={refreshPracticeRecovery} />}
       <PracticeRecovery initial={state.practice_recovery} />
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
@@ -116,6 +118,54 @@ function StoryCard({ story }: { story: NonNullable<MoscowSandboxState['story']> 
         </a>
         <p className="mt-3 font-sans text-xs text-text-muted">{story.note} {story.media_credit}</p>
       </div>
+    </section>
+  )
+}
+
+function PhotoScannerDrill({ photoScanner, onCorrect }: { photoScanner: NonNullable<MoscowSandboxState['photo_scanner']>; onCorrect: () => void }) {
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [answering, setAnswering] = useState(false)
+
+  const selectHotspot = async (hotspotId: string) => {
+    if (answering) return
+    setAnswering(true)
+    setFeedback(null)
+    try {
+      const result = await answerMoscowPhotoScanner(hotspotId)
+      setFeedback(`${result.correct ? 'Точно!' : 'Не совсем.'} ${result.explanation}`)
+      if (result.correct) onCorrect()
+    } catch (error) {
+      setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
+    } finally {
+      setAnswering(false)
+    }
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4 sm:p-5" aria-label="Упражнение фото-сканер">
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика · экранный сканер</p>
+      <h3 className="mt-1 font-display text-lg font-semibold text-text">{photoScanner.title}</h3>
+      <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{photoScanner.intro}</p>
+      <p className="mt-4 font-display text-lg font-semibold text-text">{photoScanner.question}</p>
+      <div className="relative mt-4 overflow-hidden rounded-md border border-white/10 bg-panel-2">
+        <img src={photoScanner.image_url} alt={photoScanner.image_alt} className="aspect-[16/9] w-full object-cover" />
+        {photoScanner.hotspots.map((hotspot, index) => (
+          <button
+            key={hotspot.id}
+            type="button"
+            aria-label={`Отметить область ${index + 1} на фотографии`}
+            disabled={answering}
+            onClick={() => void selectHotspot(hotspot.id)}
+            style={{ left: `${hotspot.x}%`, top: `${hotspot.y}%`, width: `${hotspot.width}%`, height: `${hotspot.height}%` }}
+            className="absolute rounded border-2 border-transparent bg-transparent outline-none transition hover:border-primary/70 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-white/90 disabled:cursor-wait"
+          />
+        ))}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-sans text-xs text-text-muted">
+        <a href={photoScanner.media_source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline"><BookOpenCheck className="h-3.5 w-3.5" /> {photoScanner.media_credit} · {photoScanner.license}</a>
+        <span>{photoScanner.field_note}</span>
+      </div>
+      {feedback && <p className="mt-3 flex items-start gap-2 rounded-md border border-white/10 bg-panel-2/60 p-3 font-sans text-sm leading-6 text-text-secondary"><Sparkles className="mt-1 h-4 w-4 shrink-0 text-accent-soft" /> {feedback}</p>}
     </section>
   )
 }
