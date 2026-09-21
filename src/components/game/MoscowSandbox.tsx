@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, BookOpenCheck, CheckCircle2, Compass, Link2, MoveHorizontal, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, BatteryCharging, BookOpenCheck, CheckCircle2, Compass, Link2, MoveHorizontal, Sparkles } from 'lucide-react'
 import { ApiError } from '@/api/chatApi'
 import {
   answerMoscowMatching,
@@ -7,6 +7,7 @@ import {
   answerMoscowTruthMyth,
   answerMoscowWordBlocks,
   answerMoscowPriceSlider,
+  restoreMoscowEnergy,
   getMoscowSandbox,
   type MoscowSandboxState,
 } from '@/api/gameApi'
@@ -71,6 +72,7 @@ export function MoscowSandbox({
       {state.timeline && <TimelineDrill timeline={state.timeline} />}
       {state.word_blocks && <WordBlocksDrill wordBlocks={state.word_blocks} />}
       {state.price_slider && <PriceSliderDrill priceSlider={state.price_slider} />}
+      <PracticeRecovery initial={state.practice_recovery} />
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
           <details key={lesson.id} className="rounded-md border border-white/10 bg-panel-2/60 p-4">
@@ -89,6 +91,43 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function PracticeRecovery({ initial }: { initial: MoscowSandboxState['practice_recovery'] }) {
+  const [recovery, setRecovery] = useState(initial)
+  const [message, setMessage] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const restore = async () => {
+    if (!recovery.available || loading) return
+    setLoading(true)
+    setMessage(null)
+    try {
+      const result = await restoreMoscowEnergy()
+      setRecovery(result.practice_recovery)
+      setMessage(`+${initial.amount} энергия за повторение. Возвращайся завтра за следующим восстановлением.`)
+    } catch (error) {
+      setMessage(error instanceof ApiError ? error.message : 'Не удалось восстановить энергию.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4 sm:p-5" aria-label="Восстановление энергии">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Повторение</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-text">Верни одну энергию</h3>
+          <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">Сначала правильно реши любое упражнение выше. Восстановление доступно раз в день и не поднимает энергию выше пяти.</p>
+        </div>
+        <button type="button" disabled={!recovery.available || loading} onClick={() => void restore()} className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-4 py-3 font-sans text-sm font-semibold text-text transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50">
+          <BatteryCharging className="h-4 w-4" /> {recovery.used_today ? 'Уже восстановлено' : 'Восстановить +1'}
+        </button>
+      </div>
+      {message && <p className="mt-3 font-sans text-sm text-text-secondary">{message}</p>}
+    </section>
   )
 }
 

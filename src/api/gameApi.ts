@@ -174,6 +174,7 @@ export type MoscowSandboxState = {
     max: number
     step: number
   } | null
+  practice_recovery: { available: boolean; used_today: boolean; amount: number }
 }
 
 export type TruthMythAnswer = {
@@ -206,6 +207,11 @@ export type MoscowPriceSliderAnswer = {
   correct: boolean
   explanation: string
   profile: GameProfile
+}
+
+export type MoscowPracticeRecovery = {
+  profile: GameProfile
+  practice_recovery: { available: boolean; used_today: boolean; amount: number }
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -310,6 +316,13 @@ export async function answerMoscowPriceSlider(value: number): Promise<MoscowPric
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ value }),
+  }))
+}
+
+export async function restoreMoscowEnergy(): Promise<MoscowPracticeRecovery> {
+  return parse<MoscowPracticeRecovery>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/restore-energy`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
   }))
 }
 
