@@ -154,6 +154,11 @@ export type MoscowSandboxState = {
     pairs: Array<{ id: string; left: string }>
     choices: Array<{ id: string; label: string }>
   } | null
+  timeline: {
+    title: string
+    intro: string
+    items: Array<{ id: string; label: string }>
+  } | null
 }
 
 export type TruthMythAnswer = {
@@ -166,6 +171,13 @@ export type MoscowMatchingAnswer = {
   correct: boolean
   incorrect_pairs: string[]
   feedback: Array<{ pair_id: string; correct: boolean; explanation: string }>
+  profile: GameProfile
+}
+
+export type MoscowTimelineAnswer = {
+  correct: boolean
+  expected_order: string[] | null
+  feedback: Array<{ item_id: string; correct: boolean; explanation: string }>
   profile: GameProfile
 }
 
@@ -247,6 +259,14 @@ export async function answerMoscowMatching(
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answers }),
+  }))
+}
+
+export async function answerMoscowTimeline(orderedIds: string[]): Promise<MoscowTimelineAnswer> {
+  return parse<MoscowTimelineAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/timeline/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ ordered_ids: orderedIds }),
   }))
 }
 

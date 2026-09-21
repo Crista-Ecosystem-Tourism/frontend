@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { BookOpenCheck, CheckCircle2, Compass, Link2, MoveHorizontal, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, BookOpenCheck, CheckCircle2, Compass, Link2, MoveHorizontal, Sparkles } from 'lucide-react'
 import { ApiError } from '@/api/chatApi'
 import {
   answerMoscowMatching,
+  answerMoscowTimeline,
   answerMoscowTruthMyth,
   getMoscowSandbox,
   type MoscowSandboxState,
@@ -65,6 +66,7 @@ export function MoscowSandbox({
       </div>
       {state.drill && <TruthMythDrill drill={state.drill} />}
       {state.matching && <MatchingDrill matching={state.matching} />}
+      {state.timeline && <TimelineDrill timeline={state.timeline} />}
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
           <details key={lesson.id} className="rounded-md border border-white/10 bg-panel-2/60 p-4">
@@ -83,6 +85,67 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function TimelineDrill({ timeline }: { timeline: NonNullable<MoscowSandboxState['timeline']> }) {
+  const [items, setItems] = useState(timeline.items)
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [answering, setAnswering] = useState(false)
+
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= items.length) return
+    setItems((current) => {
+      const next = [...current]
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
+    setFeedback(null)
+  }
+
+  const submit = async () => {
+    if (answering) return
+    setAnswering(true)
+    setFeedback(null)
+    try {
+      const result = await answerMoscowTimeline(items.map((item) => item.id))
+      const explanations = result.feedback.map((item) => `${item.correct ? 'На месте' : 'Не на месте'}: ${item.explanation}`)
+      setFeedback(`${result.correct ? 'Хронология собрана.' : 'Порядок пока неточный.'} ${explanations.join(' ')}`)
+    } catch (error) {
+      setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
+    } finally {
+      setAnswering(false)
+    }
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4 sm:p-5" aria-label="Упражнение на хронологию">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-text">{timeline.title}</h3>
+        </div>
+        <Chip size="sm"><MoveHorizontal /> перестановка</Chip>
+      </div>
+      <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{timeline.intro}</p>
+      <ol className="mt-4 space-y-2" aria-label="Порядок событий">
+        {items.map((item, index) => (
+          <li key={item.id} className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-white/10 bg-panel-2 p-3">
+            <span className="font-sans text-sm text-text-muted">{index + 1}</span>
+            <span className="font-sans text-sm font-medium text-text">{item.label}</span>
+            <span className="flex gap-1">
+              <button type="button" aria-label={`Поднять ${item.label}`} disabled={index === 0 || answering} onClick={() => move(index, -1)} className="rounded border border-white/10 p-2 text-text-secondary hover:border-primary disabled:opacity-40"><ArrowUp className="h-4 w-4" /></button>
+              <button type="button" aria-label={`Опустить ${item.label}`} disabled={index === items.length - 1 || answering} onClick={() => move(index, 1)} className="rounded border border-white/10 p-2 text-text-secondary hover:border-primary disabled:opacity-40"><ArrowDown className="h-4 w-4" /></button>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <button type="button" disabled={answering} onClick={() => void submit()} className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-4 py-3 font-sans text-sm font-semibold text-text transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50">
+        Проверить хронологию
+      </button>
+      {feedback && <p className="mt-3 flex items-start gap-2 rounded-md border border-white/10 bg-panel-2/60 p-3 font-sans text-sm leading-6 text-text-secondary"><Sparkles className="mt-1 h-4 w-4 shrink-0 text-accent-soft" /> {feedback}</p>}
+    </section>
   )
 }
 
