@@ -25,6 +25,7 @@ export function MoscowQuest({
   const [state, setState] = useState<MoscowQuestState | null>(null)
   const [view, setView] = useState<ViewState>('loading')
   const [message, setMessage] = useState<string | null>(null)
+  const [explanation, setExplanation] = useState<string | null>(null)
 
   useEffect(() => {
     if (!signedIn) return
@@ -52,6 +53,7 @@ export function MoscowQuest({
     if (!state || view === 'answering' || state.completed) return
     setView('answering')
     setMessage(null)
+    setExplanation(null)
     try {
       const result = await answerMoscowQuest(state.quest.id, answerKey)
       setState((previous) => previous ? {
@@ -61,6 +63,7 @@ export function MoscowQuest({
         completed: result.completed,
         stamp: result.stamp,
       } : previous)
+      setExplanation(result.explanation)
       if (result.completed) onCompleted?.()
       setMessage(result.correct
         ? result.xp_awarded ? `Верно! +${result.xp_awarded} XP` : 'Верно — этот штамп уже в твоём паспорте.'
@@ -148,6 +151,11 @@ export function MoscowQuest({
         {message && (
           <p className="mt-4 flex items-center gap-2 font-sans text-sm text-text-secondary">
             <Sparkles className="h-4 w-4 text-accent-soft" /> {message}
+          </p>
+        )}
+        {explanation && (
+          <p className="mt-3 rounded-md border border-white/10 bg-panel-2/60 p-3 font-sans text-sm leading-6 text-text-secondary">
+            {explanation}
           </p>
         )}
       </div>

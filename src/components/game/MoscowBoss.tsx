@@ -24,6 +24,7 @@ export function MoscowBoss({
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [view, setView] = useState<ViewState>('loading')
   const [message, setMessage] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<Array<{ question_id: string; correct: boolean; explanation: string }>>([])
 
   useEffect(() => {
     if (!signedIn) return
@@ -34,6 +35,7 @@ export function MoscowBoss({
         if (!active) return
         setState(result)
         setAnswers({})
+        setFeedback([])
         setView('ready')
       })
       .catch((error: unknown) => {
@@ -67,6 +69,7 @@ export function MoscowBoss({
         city_stamp: result.city_stamp,
         sandbox_unlocked: result.sandbox_unlocked,
       } : previous)
+      setFeedback(result.feedback)
       if (result.completed) onCompleted?.()
       setMessage(result.correct
         ? 'Городской штамп получен. Москва открыта для свободного исследования.'
@@ -151,6 +154,19 @@ export function MoscowBoss({
             ))}
           </p>
         ) : null}
+        {feedback.length > 0 && (
+          <div className="space-y-2 rounded-md border border-white/10 bg-panel-2/60 p-4">
+            <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Разбор ответов</p>
+            {state.content.questions.map((question, index) => {
+              const result = feedback.find((item) => item.question_id === question.id)
+              return result ? (
+                <p key={question.id} className="font-sans text-sm leading-6 text-text-secondary">
+                  {index + 1}. {result.correct ? 'Верно.' : 'Неверно.'} {result.explanation}
+                </p>
+              ) : null
+            })}
+          </div>
+        )}
         {message && <p className="flex items-center gap-2 font-sans text-sm text-text-secondary"><Sparkles className="h-4 w-4 text-accent-soft" /> {message}</p>}
       </div>
     </GlassPanel>

@@ -13,6 +13,7 @@ import { OnboardingFlow } from './OnboardingFlow'
 import { MoscowQuest } from './MoscowQuest'
 import { MoscowPath } from './MoscowPath'
 import { MoscowBoss } from './MoscowBoss'
+import { MoscowSandbox } from './MoscowSandbox'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
 import { isMockMode } from '@/api/chatApi'
@@ -110,6 +111,7 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
             }}
           />
         )}
+        <MoscowSandbox signedIn={signedIn} refreshKey={pathVersion} />
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">
             У маршрута десять проверяемых сервером точек. После них открывается финальный круг из трёх вопросов и городской штамп.

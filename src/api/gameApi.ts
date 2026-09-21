@@ -69,6 +69,7 @@ export type MoscowQuestAnswer = {
   daily: GameDailyProgress
   completed: boolean
   stamp: { key: string; title: string; earned_at: string } | null
+  explanation: string
 }
 
 export type MoscowPathState = {
@@ -127,6 +128,21 @@ export type MoscowBossAnswer = {
   completed: boolean
   city_stamp: { key: string; title: string; earned_at: string } | null
   sandbox_unlocked: boolean
+  feedback: Array<{ question_id: string; correct: boolean; explanation: string }>
+}
+
+export type MoscowSandboxState = {
+  city: { id: string; name: string }
+  profile: GameProfile
+  city_stamp: { key: string; title: string; earned_at: string }
+  lessons: Array<{
+    id: string
+    position: number
+    title: string
+    fact: { text: string; source_url: string; source_label?: string }
+    question: { id: string; text: string; options: Array<{ id: string; label: string }> }
+    explanation: string
+  }>
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -179,6 +195,12 @@ export async function answerMoscowQuest(questId: string, answerKey: string): Pro
 
 export async function getMoscowBoss(): Promise<MoscowBossState> {
   return parse<MoscowBossState>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function getMoscowSandbox(): Promise<MoscowSandboxState> {
+  return parse<MoscowSandboxState>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox`, {
     headers: getAuthHeaders(),
   }))
 }
