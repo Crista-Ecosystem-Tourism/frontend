@@ -13,7 +13,7 @@ import { ArticleBlocks } from './ArticleBlocks'
 import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
-import { getMyWikiDrafts, getWikiArticle, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
+import { getMyWikiDrafts, getWikiArticle, getWikiReviewQueue, publishWikiDraft, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
 
 interface DataPanelProps {
   onBack: () => void
@@ -173,6 +173,53 @@ function AuthoredDrafts({ signedIn }: { signedIn: boolean }) {
       <div className="mt-3 flex flex-wrap gap-2">
         {drafts.map((draft) => <Chip key={draft.id} variant={draft.status === 'review' ? 'accent' : 'default'} size="sm">{draft.title} · {draft.status === 'review' ? 'на review' : draft.status}</Chip>)}
       </div>
+    </GlassPanel>
+  )
+}
+
+function ReviewQueue({ isEditor }: { isEditor: boolean }) {
+  const [drafts, setDrafts] = useState<ServerWikiDraft[]>([])
+  const [publishingId, setPublishingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isEditor) return
+    let active = true
+    getWikiReviewQueue().then((result) => {
+      if (active) setDrafts(result)
+    }).catch(() => {
+      if (active) setError('Не удалось загрузить очередь review.')
+    })
+    return () => { active = false }
+  }, [isEditor])
+
+  const publish = async (versionId: string) => {
+    if (publishingId) return
+    setPublishingId(versionId)
+    setError(null)
+    try {
+      await publishWikiDraft(versionId)
+      setDrafts((current) => current.filter((draft) => draft.id !== versionId))
+    } catch {
+      setError('Не удалось опубликовать версию. Проверьте права и повторите попытку.')
+    } finally {
+      setPublishingId(null)
+    }
+  }
+
+  if (!isEditor) return null
+  return (
+    <GlassPanel className="mb-6 border-primary/25 p-4" aria-label="Редакторская очередь Crista Wiki">
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · редакторская очередь</p>
+      {drafts.length === 0 ? <p className="mt-2 font-sans text-sm text-text-secondary">На review пока нет версий.</p> : (
+        <div className="mt-3 space-y-3">
+          {drafts.map((draft) => <div key={draft.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-hairline bg-panel-2/60 p-3">
+            <div><p className="font-sans text-sm font-semibold text-text">{draft.title}</p><p className="mt-1 font-sans text-xs text-text-muted">{draft.sources.length} источник(а) · {draft.license}</p></div>
+            <Button size="sm" onClick={() => void publish(draft.id)} disabled={publishingId === draft.id}>Опубликовать</Button>
+          </div>)}
+        </div>
+      )}
+      {error && <p className="mt-3 font-sans text-xs text-error">{error}</p>}
     </GlassPanel>
   )
 }
@@ -341,6 +388,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
         </div>
 
         <AuthoredDrafts signedIn={Boolean(user)} />
+        <ReviewQueue isEditor={user?.isEditor === true} />
         <PublishedMoscowArticle />
 
         <div className="relative mb-6 max-w-md">

@@ -44,6 +44,19 @@ export async function getMyWikiDrafts(): Promise<WikiDraft[]> {
   }))
 }
 
+export async function getWikiReviewQueue(): Promise<WikiDraft[]> {
+  return parse<WikiDraft[]>(await fetch(`${API_BASE_URL}/wiki/review`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function publishWikiDraft(versionId: string): Promise<WikiPublishedArticle> {
+  return parse<WikiPublishedArticle>(await fetch(`${API_BASE_URL}/wiki/review/${versionId}/publish`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  }))
+}
+
 export async function createWikiDraft(input: {
   slug: string
   title: string
