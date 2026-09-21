@@ -437,6 +437,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             id: authUser.id,
             name: authUser.name || '',
             email: authUser.email,
+            isEditor: authUser.is_editor,
             authState: 'registered',
           })
           setAuthState('registered')
@@ -542,6 +543,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         id: authUser.id,
         name: authUser.name || '',
         email: authUser.email,
+        isEditor: authUser.is_editor,
         authState: 'registered',
       })
       setAuthState('registered')
@@ -570,6 +572,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         id: authUser.id,
         name: authUser.name || '',
         email: authUser.email,
+        isEditor: authUser.is_editor,
         authState: 'registered',
       })
       setAuthState('registered')

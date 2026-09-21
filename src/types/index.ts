@@ -59,6 +59,7 @@ export interface User {
   id: string
   name: string
   email: string
+  isEditor?: boolean
   avatar?: string
   authState: AuthState
   subscription?: SubscriptionPlan

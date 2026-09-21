@@ -9,6 +9,7 @@ export interface AuthUser {
   id: string
   email: string
   name: string | null
+  is_editor: boolean
 }
 
 export interface AuthResponse {
