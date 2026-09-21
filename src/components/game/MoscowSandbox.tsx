@@ -5,6 +5,7 @@ import {
   answerMoscowMatching,
   answerMoscowTimeline,
   answerMoscowTruthMyth,
+  answerMoscowWordBlocks,
   getMoscowSandbox,
   type MoscowSandboxState,
 } from '@/api/gameApi'
@@ -67,6 +68,7 @@ export function MoscowSandbox({
       {state.drill && <TruthMythDrill drill={state.drill} />}
       {state.matching && <MatchingDrill matching={state.matching} />}
       {state.timeline && <TimelineDrill timeline={state.timeline} />}
+      {state.word_blocks && <WordBlocksDrill wordBlocks={state.word_blocks} />}
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
           <details key={lesson.id} className="rounded-md border border-white/10 bg-panel-2/60 p-4">
@@ -85,6 +87,63 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function WordBlocksDrill({ wordBlocks }: { wordBlocks: NonNullable<MoscowSandboxState['word_blocks']> }) {
+  const [blocks, setBlocks] = useState(wordBlocks.blocks)
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [answering, setAnswering] = useState(false)
+
+  const move = (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= blocks.length) return
+    setBlocks((current) => {
+      const next = [...current]
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
+    setFeedback(null)
+  }
+
+  const submit = async () => {
+    if (answering) return
+    setAnswering(true)
+    setFeedback(null)
+    try {
+      const result = await answerMoscowWordBlocks(blocks.map((block) => block.id))
+      setFeedback(`${result.correct ? 'Фраза собрана.' : 'Порядок пока неточный.'} ${result.explanation}`)
+    } catch (error) {
+      setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
+    } finally {
+      setAnswering(false)
+    }
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-accent-soft/25 bg-accent-soft/5 p-4 sm:p-5" aria-label="Упражнение собрать фразу">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-text">{wordBlocks.title}</h3>
+        </div>
+        <Chip size="sm"><MoveHorizontal /> перестановка слов</Chip>
+      </div>
+      <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{wordBlocks.intro}</p>
+      <ol className="mt-4 flex flex-wrap gap-2" aria-label="Порядок слов">
+        {blocks.map((block, index) => (
+          <li key={block.id} className="flex items-center gap-1 rounded-md border border-white/10 bg-panel-2 px-3 py-2">
+            <span className="font-display text-base font-semibold text-text">{block.label}</span>
+            <button type="button" aria-label={`Поднять слово ${block.label}`} disabled={index === 0 || answering} onClick={() => move(index, -1)} className="rounded p-1 text-text-secondary hover:text-primary disabled:opacity-40"><ArrowUp className="h-4 w-4" /></button>
+            <button type="button" aria-label={`Опустить слово ${block.label}`} disabled={index === blocks.length - 1 || answering} onClick={() => move(index, 1)} className="rounded p-1 text-text-secondary hover:text-primary disabled:opacity-40"><ArrowDown className="h-4 w-4" /></button>
+          </li>
+        ))}
+      </ol>
+      <button type="button" disabled={answering} onClick={() => void submit()} className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-4 py-3 font-sans text-sm font-semibold text-text transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50">
+        Проверить фразу
+      </button>
+      {feedback && <p className="mt-3 flex items-start gap-2 rounded-md border border-white/10 bg-panel-2/60 p-3 font-sans text-sm leading-6 text-text-secondary"><Sparkles className="mt-1 h-4 w-4 shrink-0 text-accent-soft" /> {feedback}</p>}
+    </section>
   )
 }
 

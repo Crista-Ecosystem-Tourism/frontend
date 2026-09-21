@@ -159,6 +159,11 @@ export type MoscowSandboxState = {
     intro: string
     items: Array<{ id: string; label: string }>
   } | null
+  word_blocks: {
+    title: string
+    intro: string
+    blocks: Array<{ id: string; label: string }>
+  } | null
 }
 
 export type TruthMythAnswer = {
@@ -178,6 +183,12 @@ export type MoscowTimelineAnswer = {
   correct: boolean
   expected_order: string[] | null
   feedback: Array<{ item_id: string; correct: boolean; explanation: string }>
+  profile: GameProfile
+}
+
+export type MoscowWordBlocksAnswer = {
+  correct: boolean
+  explanation: string
   profile: GameProfile
 }
 
@@ -264,6 +275,14 @@ export async function answerMoscowMatching(
 
 export async function answerMoscowTimeline(orderedIds: string[]): Promise<MoscowTimelineAnswer> {
   return parse<MoscowTimelineAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/timeline/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ ordered_ids: orderedIds }),
+  }))
+}
+
+export async function answerMoscowWordBlocks(orderedIds: string[]): Promise<MoscowWordBlocksAnswer> {
+  return parse<MoscowWordBlocksAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/word-blocks/answer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ ordered_ids: orderedIds }),
