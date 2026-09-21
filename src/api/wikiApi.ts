@@ -38,6 +38,12 @@ export async function getWikiArticle(slug: string): Promise<WikiPublishedArticle
   return parse<WikiPublishedArticle>(await fetch(`${API_BASE_URL}/wiki/articles/${slug}`))
 }
 
+export async function getMyWikiDrafts(): Promise<WikiDraft[]> {
+  return parse<WikiDraft[]>(await fetch(`${API_BASE_URL}/wiki/drafts/mine`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
 export async function createWikiDraft(input: {
   slug: string
   title: string
