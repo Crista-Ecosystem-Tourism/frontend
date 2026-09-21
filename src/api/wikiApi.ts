@@ -6,6 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 export type WikiSource = { label: string; url: string }
 
 export type WikiPublishedArticle = {
+  version_id: string
   slug: string
   title: string
   body: Record<string, unknown>
@@ -36,6 +37,10 @@ async function parse<T>(response: Response): Promise<T> {
 
 export async function getWikiArticle(slug: string): Promise<WikiPublishedArticle> {
   return parse<WikiPublishedArticle>(await fetch(`${API_BASE_URL}/wiki/articles/${slug}`))
+}
+
+export async function getWikiArticleVersion(versionId: string): Promise<WikiPublishedArticle> {
+  return parse<WikiPublishedArticle>(await fetch(`${API_BASE_URL}/wiki/versions/${versionId}`))
 }
 
 export async function getMyWikiDrafts(): Promise<WikiDraft[]> {

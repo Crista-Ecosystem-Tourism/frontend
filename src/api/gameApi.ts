@@ -197,6 +197,7 @@ export type MoscowSandboxState = {
     field_note: string
     hotspots: Array<{ id: string; x: number; y: number; width: number; height: number }>
   } | null
+  wiki_reference: { slug: string; version_id: string } | null
   practice_recovery: { available: boolean; used_today: boolean; amount: number }
 }
 

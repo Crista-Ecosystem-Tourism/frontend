@@ -12,7 +12,7 @@ import {
   getMoscowSandbox,
   type MoscowSandboxState,
 } from '@/api/gameApi'
-import { getWikiArticle, type WikiPublishedArticle } from '@/api/wikiApi'
+import { getWikiArticle, getWikiArticleVersion, type WikiPublishedArticle } from '@/api/wikiApi'
 import { Chip, GlassPanel } from '@/components/ui/glass'
 
 /** Review content becomes available only after the server has issued the city stamp. */
@@ -75,7 +75,7 @@ export function MoscowSandbox({
         </div>
         <Chip size="sm" variant="active"><CheckCircle2 /> {state.city_stamp.title}</Chip>
       </div>
-      <MoscowWikiArticle />
+      <MoscowWikiArticle reference={state.wiki_reference} />
       {state.story && <StoryCard story={state.story} />}
       {state.drill && <TruthMythDrill drill={state.drill} onCorrect={refreshPracticeRecovery} />}
       {state.matching && <MatchingDrill matching={state.matching} onCorrect={refreshPracticeRecovery} />}
@@ -170,24 +170,25 @@ function PhotoScannerDrill({ photoScanner, onCorrect }: { photoScanner: NonNulla
   )
 }
 
-function MoscowWikiArticle() {
+function MoscowWikiArticle({ reference }: { reference: MoscowSandboxState['wiki_reference'] }) {
   const [article, setArticle] = useState<WikiPublishedArticle | null>(null)
 
   useEffect(() => {
     let active = true
-    getWikiArticle('moscow').then((result) => {
+    const request = reference ? getWikiArticleVersion(reference.version_id) : getWikiArticle('moscow')
+    request.then((result) => {
       if (active) setArticle(result)
     }).catch(() => {
       // The sandbox must remain available when the optional reading card is offline.
     })
     return () => { active = false }
-  }, [])
+  }, [reference?.version_id])
 
   if (!article) return null
   const summary = typeof article.body.summary === 'string' ? article.body.summary : null
   return (
     <section className="mt-5 rounded-md border border-white/10 bg-panel-2/60 p-4 sm:p-5" aria-label="Статья Crista Wiki о Москве">
-      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · опубликованная версия</p>
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · версия фактов {article.version_id}</p>
       <h3 className="mt-1 font-display text-lg font-semibold text-text">{article.title}</h3>
       {summary && <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{summary}</p>}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
