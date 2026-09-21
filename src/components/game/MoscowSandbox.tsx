@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { BookOpenCheck, CheckCircle2, Compass, MoveHorizontal, Sparkles } from 'lucide-react'
+import { BookOpenCheck, CheckCircle2, Compass, Link2, MoveHorizontal, Sparkles } from 'lucide-react'
 import { ApiError } from '@/api/chatApi'
 import {
+  answerMoscowMatching,
   answerMoscowTruthMyth,
   getMoscowSandbox,
   type MoscowSandboxState,
@@ -63,6 +64,7 @@ export function MoscowSandbox({
         <Chip size="sm" variant="active"><CheckCircle2 /> {state.city_stamp.title}</Chip>
       </div>
       {state.drill && <TruthMythDrill drill={state.drill} />}
+      {state.matching && <MatchingDrill matching={state.matching} />}
       <div className="mt-5 space-y-3">
         {state.lessons.map((lesson) => (
           <details key={lesson.id} className="rounded-md border border-white/10 bg-panel-2/60 p-4">
@@ -81,6 +83,73 @@ export function MoscowSandbox({
         ))}
       </div>
     </GlassPanel>
+  )
+}
+
+function MatchingDrill({ matching }: { matching: NonNullable<MoscowSandboxState['matching']> }) {
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [feedback, setFeedback] = useState<string | null>(null)
+  const [answering, setAnswering] = useState(false)
+  const ready = matching.pairs.every((pair) => answers[pair.id])
+
+  const submit = async () => {
+    if (!ready || answering) return
+    setAnswering(true)
+    setFeedback(null)
+    try {
+      const result = await answerMoscowMatching(matching.pairs.map((pair) => ({
+        pair_id: pair.id,
+        choice_id: answers[pair.id],
+      })))
+      const explanations = result.feedback.map((item) => `${item.correct ? 'Верно' : 'Проверь ещё раз'}: ${item.explanation}`)
+      setFeedback(`${result.correct ? 'Все пары собраны.' : 'Есть неточные пары.'} ${explanations.join(' ')}`)
+    } catch (error) {
+      setFeedback(error instanceof ApiError ? error.message : 'Ответ не сохранился. Попробуйте ещё раз.')
+    } finally {
+      setAnswering(false)
+    }
+  }
+
+  return (
+    <section className="mt-5 rounded-md border border-accent-soft/25 bg-accent-soft/5 p-4 sm:p-5" aria-label="Упражнение на сопоставление">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика</p>
+          <h3 className="mt-1 font-display text-lg font-semibold text-text">{matching.title}</h3>
+        </div>
+        <Chip size="sm"><Link2 /> касание или клавиатура</Chip>
+      </div>
+      <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{matching.intro}</p>
+      <div className="mt-4 space-y-3">
+        {matching.pairs.map((pair) => (
+          <label key={pair.id} className="grid gap-2 rounded-md border border-white/10 bg-panel-2 p-4 sm:grid-cols-[minmax(0,1fr)_10rem] sm:items-center">
+            <span className="font-display text-base font-semibold text-text">{pair.left}</span>
+            <select
+              aria-label={`Год для ${pair.left}`}
+              value={answers[pair.id] ?? ''}
+              onChange={(event) => setAnswers((current) => ({ ...current, [pair.id]: event.target.value }))}
+              className="rounded-md border border-white/10 bg-panel px-3 py-2 font-sans text-sm text-text outline-none transition focus:border-primary"
+            >
+              <option value="">Выбрать год</option>
+              {matching.choices.map((choice) => <option key={choice.id} value={choice.id}>{choice.label}</option>)}
+            </select>
+          </label>
+        ))}
+      </div>
+      <button
+        type="button"
+        disabled={!ready || answering}
+        onClick={() => void submit()}
+        className="mt-3 rounded-md border border-primary/40 bg-primary/10 px-4 py-3 font-sans text-sm font-semibold text-text transition hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Проверить пары
+      </button>
+      {feedback && (
+        <p className="mt-3 flex items-start gap-2 rounded-md border border-white/10 bg-panel-2/60 p-3 font-sans text-sm leading-6 text-text-secondary">
+          <Sparkles className="mt-1 h-4 w-4 shrink-0 text-accent-soft" /> {feedback}
+        </p>
+      )}
+    </section>
   )
 }
 

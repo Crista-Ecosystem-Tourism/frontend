@@ -148,11 +148,24 @@ export type MoscowSandboxState = {
     intro: string
     statements: Array<{ id: string; text: string }>
   } | null
+  matching: {
+    title: string
+    intro: string
+    pairs: Array<{ id: string; left: string }>
+    choices: Array<{ id: string; label: string }>
+  } | null
 }
 
 export type TruthMythAnswer = {
   correct: boolean
   explanation: string
+  profile: GameProfile
+}
+
+export type MoscowMatchingAnswer = {
+  correct: boolean
+  incorrect_pairs: string[]
+  feedback: Array<{ pair_id: string; correct: boolean; explanation: string }>
   profile: GameProfile
 }
 
@@ -224,6 +237,16 @@ export async function answerMoscowTruthMyth(
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ statement_id: statementId, answer_key: answerKey }),
+  }))
+}
+
+export async function answerMoscowMatching(
+  answers: Array<{ pair_id: string; choice_id: string }>,
+): Promise<MoscowMatchingAnswer> {
+  return parse<MoscowMatchingAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/matching/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ answers }),
   }))
 }
 
