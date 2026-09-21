@@ -13,7 +13,7 @@ import { ArticleBlocks } from './ArticleBlocks'
 import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
-import { getMyWikiDrafts, getWikiArticle, getWikiReviewQueue, publishWikiDraft, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
+import { createWikiDraft, getMyWikiDrafts, getWikiArticle, getWikiReviewQueue, publishWikiDraft, submitWikiDraft, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
 
 interface DataPanelProps {
   onBack: () => void
@@ -107,7 +107,7 @@ function Header({ onBack, title }: { onBack: () => void; title: string }) {
 }
 
 /** A server-owned article stays distinct from the catalogue cards until all catalogue content is migrated. */
-function PublishedMoscowArticle() {
+function PublishedMoscowArticle({ signedIn }: { signedIn: boolean }) {
   const [article, setArticle] = useState<WikiPublishedArticle | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading')
 
@@ -148,7 +148,47 @@ function PublishedMoscowArticle() {
         ))}
       </div>
       <p className="mt-3 font-sans text-xs text-text-muted">Лицензия: {article.license}</p>
+      {signedIn && <MoscowDraftForm article={article} />}
     </section>
+  )
+}
+
+function MoscowDraftForm({ article }: { article: WikiPublishedArticle }) {
+  const [open, setOpen] = useState(false)
+  const [summary, setSummary] = useState(typeof article.body.summary === 'string' ? article.body.summary : '')
+  const [sourceLabel, setSourceLabel] = useState(article.sources[0]?.label ?? '')
+  const [sourceUrl, setSourceUrl] = useState(article.sources[0]?.url ?? '')
+  const [license, setLicense] = useState(article.license)
+  const [message, setMessage] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const submit = async () => {
+    if (!summary.trim() || !sourceLabel.trim() || !sourceUrl.trim() || !license.trim() || saving) return
+    setSaving(true)
+    setMessage(null)
+    try {
+      const draft = await createWikiDraft({ slug: article.slug, title: article.title, body: { summary: summary.trim() }, sources: [{ label: sourceLabel.trim(), url: sourceUrl.trim() }], license: license.trim() })
+      await submitWikiDraft(draft.id)
+      setMessage('Правка отправлена в серверную очередь review.')
+      setOpen(false)
+    } catch {
+      setMessage('Не удалось отправить правку. Проверьте поля и подключение.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="mt-4 border-t border-primary/15 pt-4">
+      {!open ? <Button size="sm" variant="secondary" onClick={() => setOpen(true)}><Pencil /> Предложить правку</Button> : <div className="grid gap-3">
+        <label className="font-sans text-xs text-text-secondary">Краткое описание<textarea value={summary} onChange={(event) => setSummary(event.target.value)} className="mt-1 block w-full rounded-md border border-hairline bg-panel p-2 text-sm text-text" rows={3} /></label>
+        <label className="font-sans text-xs text-text-secondary">Источник<input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} className="mt-1 block w-full rounded-md border border-hairline bg-panel p-2 text-sm text-text" /></label>
+        <label className="font-sans text-xs text-text-secondary">Ссылка на источник<input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} type="url" className="mt-1 block w-full rounded-md border border-hairline bg-panel p-2 text-sm text-text" /></label>
+        <label className="font-sans text-xs text-text-secondary">Лицензия<input value={license} onChange={(event) => setLicense(event.target.value)} className="mt-1 block w-full rounded-md border border-hairline bg-panel p-2 text-sm text-text" /></label>
+        <div className="flex gap-2"><Button size="sm" onClick={() => void submit()} disabled={saving}>Отправить на review</Button><Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Отмена</Button></div>
+      </div>}
+      {message && <p className="mt-3 font-sans text-xs text-text-secondary">{message}</p>}
+    </div>
   )
 }
 
@@ -389,7 +429,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
 
         <AuthoredDrafts signedIn={Boolean(user)} />
         <ReviewQueue isEditor={user?.isEditor === true} />
-        <PublishedMoscowArticle />
+        <PublishedMoscowArticle signedIn={Boolean(user)} />
 
         <div className="relative mb-6 max-w-md">
           <Search
