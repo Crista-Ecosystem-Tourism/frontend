@@ -48,6 +48,8 @@ export interface ItineraryDay {
 }
 
 export interface BackendItinerary {
+  /** Contract revision emitted by the backend; absent only for pre-versioned saved data. */
+  schema_version?: number
   days: ItineraryDay[]
   summary: string
 }
