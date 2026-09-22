@@ -17,3 +17,21 @@ test('new player completes the server-backed St Petersburg pilot', async ({ page
   await page.getByRole('button', { name: /2\. Петергоф.*Открыто/ }).click()
   await expect(page.getByRole('heading', { name: 'Петергоф' })).toBeVisible()
 })
+
+test('new player completes the server-backed Sochi nature pilot', async ({ page }) => {
+  test.setTimeout(120_000)
+  const email = `sochi-pilot-${Date.now()}@example.test`
+  await page.goto('/signup')
+  await page.locator('#name').fill('Sochi pilot E2E')
+  await page.locator('#email').fill(email)
+  await page.locator('#password').fill('SochiPilot123')
+  await page.getByRole('button', { name: 'Создать аккаунт' }).click()
+  await page.getByRole('button', { name: 'Изучение мира' }).click()
+
+  await page.getByRole('button', { name: /1\. Сочинский национальный парк.*Открыто/ }).click()
+  await expect(page.getByRole('heading', { name: 'Сочинский национальный парк' })).toBeVisible()
+  await page.getByRole('button', { name: '1983', exact: true }).click()
+  await expect(page.getByText('Верно! +25 XP')).toBeVisible()
+  await page.getByRole('button', { name: /2\. Дендрарий.*Открыто/ }).click()
+  await expect(page.getByRole('heading', { name: 'Дендрарий' })).toBeVisible()
+})
