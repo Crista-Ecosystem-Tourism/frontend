@@ -126,6 +126,7 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
           <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Тревел-паспорт · серверные данные</p>
           <p className="mt-1 font-display text-xl font-semibold text-text">{passport.profile.xp} XP · {passport.stamps.length} штампов</p>
           <p className="mt-2 font-sans text-sm text-text-secondary">{passport.cities.map((city) => `${city.name}: ${city.completed_quests}/${city.required_quest_count}`).join(' · ')}</p>
+          <p className="mt-2 font-sans text-sm text-text-secondary">{passport.routes.length ? `Сохранённые маршруты: ${passport.routes.map((route) => `${route.name} — ${route.destination}`).join(' · ')}` : 'Сохранённых маршрутов пока нет.'}</p>
         </GlassPanel>}
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">

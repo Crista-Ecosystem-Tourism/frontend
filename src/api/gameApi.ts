@@ -21,6 +21,7 @@ export type GamePassport = {
   profile: GameProfile
   stamps: Array<{ key: string; title: string; earned_at: string }>
   cities: Array<{ id: string; name: string; completed_quests: number; required_quest_count: number }>
+  routes: Array<{ id: string; name: string; destination: string; updated_at: string | null }>
 }
 
 export type OnboardingContent = {
