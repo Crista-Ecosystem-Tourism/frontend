@@ -9,6 +9,7 @@ test('new player completes the server-backed St Petersburg pilot', async ({ page
   await page.locator('#password').fill('CityPilot123')
   await page.getByRole('button', { name: 'Создать аккаунт' }).click()
   await page.getByRole('button', { name: 'Изучение мира' }).click()
+  await expect(page.getByText('Тревел-паспорт · серверные данные')).toBeVisible()
 
   await page.getByRole('button', { name: /1\. Эрмитаж.*Открыто/ }).click()
   await expect(page.getByRole('heading', { name: 'Эрмитаж' })).toBeVisible()

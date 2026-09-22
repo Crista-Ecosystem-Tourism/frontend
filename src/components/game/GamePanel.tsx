@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ArrowLeft, Globe2, PiggyBank, Trophy,
   TrendingDown, MapPin, ChevronRight, BookOpenCheck, RotateCcw,
@@ -20,6 +20,7 @@ import { useApp } from '@/context/AppContext'
 import { isMockMode } from '@/api/chatApi'
 import { gameCountries, findCountry, questCategoryLabel } from '@/mocks/game'
 import { cn } from '@/lib/utils'
+import { getGamePassport, type GamePassport } from '@/api/gameApi'
 
 type GamePanelProps = {
   onBack: () => void
@@ -69,8 +70,14 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
   const [pathVersion, setPathVersion] = useState(0)
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null)
   const [bossSelected, setBossSelected] = useState(false)
+  const [passport, setPassport] = useState<GamePassport | null>(null)
 
   const refreshPath = () => setPathVersion((version) => version + 1)
+
+  useEffect(() => {
+    if (!signedIn) { setPassport(null); return }
+    getGamePassport().then(setPassport).catch(() => setPassport(null))
+  }, [signedIn, pathVersion])
 
   return (
     <div className="h-full overflow-y-auto">
@@ -115,6 +122,11 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
         <MoscowSandbox signedIn={signedIn} refreshKey={pathVersion} />
         <CityPilot cityId="st-petersburg" signedIn={signedIn} refreshKey={pathVersion} onCompleted={refreshPath} />
         <CityPilot cityId="sochi" signedIn={signedIn} refreshKey={pathVersion} onCompleted={refreshPath} />
+        {passport && <GlassPanel variant="flat" className="p-4 sm:p-5">
+          <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Тревел-паспорт · серверные данные</p>
+          <p className="mt-1 font-display text-xl font-semibold text-text">{passport.profile.xp} XP · {passport.stamps.length} штампов</p>
+          <p className="mt-2 font-sans text-sm text-text-secondary">{passport.cities.map((city) => `${city.name}: ${city.completed_quests}/${city.required_quest_count}`).join(' · ')}</p>
+        </GlassPanel>}
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">
             У маршрута десять проверяемых сервером точек. После них открывается финальный круг из трёх вопросов и городской штамп.

@@ -17,6 +17,12 @@ export type GameDailyProgress = {
   goal_reached: boolean
 }
 
+export type GamePassport = {
+  profile: GameProfile
+  stamps: Array<{ key: string; title: string; earned_at: string }>
+  cities: Array<{ id: string; name: string; completed_quests: number; required_quest_count: number }>
+}
+
 export type OnboardingContent = {
   id: string
   country: { id: string; name: string; city: string }
@@ -265,6 +271,12 @@ async function parse<T>(response: Response): Promise<T> {
 
 export async function getOnboarding(): Promise<OnboardingState> {
   return parse<OnboardingState>(await fetch(`${API_BASE_URL}/game/onboarding`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function getGamePassport(): Promise<GamePassport> {
+  return parse<GamePassport>(await fetch(`${API_BASE_URL}/game/passport`, {
     headers: getAuthHeaders(),
   }))
 }
