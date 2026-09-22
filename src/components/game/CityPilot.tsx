@@ -6,7 +6,9 @@ import { GlassPanel } from '@/components/ui/glass'
 
 const labels: Record<string, string> = {
   'spb-hermitage': 'Эрмитаж', 'spb-peterhof': 'Петергоф',
+  'spb-collection': 'Коллекция Эрмитажа', 'spb-fountains': 'Фонтаны Петергофа', 'spb-peterhof-history': 'Первое упоминание Петергофа',
   'sochi-national-park': 'Сочинский национальный парк', 'sochi-dendrarium': 'Дендрарий',
+  'sochi-forest': 'Горные леса', 'sochi-mzymta': 'Река Мзымта', 'sochi-park-area': 'Площадь национального парка',
 }
 
 export function CityPilot({ cityId, signedIn, refreshKey, onCompleted }: { cityId: 'st-petersburg' | 'sochi'; signedIn: boolean; refreshKey: number; onCompleted: () => void }) {
