@@ -143,9 +143,10 @@ function PhotoScannerDrill({ photoScanner, onCorrect }: { photoScanner: NonNulla
 
   return (
     <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4 sm:p-5" aria-label="Упражнение фото-сканер">
-      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика · экранный сканер</p>
+      <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Игровая механика · выбор области на учебном снимке</p>
       <h3 className="mt-1 font-display text-lg font-semibold text-text">{photoScanner.title}</h3>
       <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{photoScanner.intro}</p>
+      <p className="mt-2 font-sans text-xs leading-5 text-text-muted">Это не распознавание и не загрузка ваших фотографий: выберите область на подготовленном учебном снимке.</p>
       <p className="mt-4 font-display text-lg font-semibold text-text">{photoScanner.question}</p>
       <div className="relative mt-4 overflow-hidden rounded-md border border-white/10 bg-panel-2">
         <img src={photoScanner.image_url} alt={photoScanner.image_alt} className="aspect-[16/9] w-full object-cover" />
