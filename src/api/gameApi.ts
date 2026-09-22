@@ -72,6 +72,11 @@ export type MoscowQuestAnswer = {
   explanation: string
 }
 
+/** Generic city paths use the same server-owned lesson contract as Moscow. */
+export type CityPathState = MoscowPathState
+export type CityQuestState = MoscowQuestState
+export type CityQuestAnswer = MoscowQuestAnswer
+
 export type MoscowPathState = {
   city: {
     id: string
@@ -281,6 +286,26 @@ export async function getMoscowQuest(questId: string): Promise<MoscowQuestState>
 export async function getMoscowPath(): Promise<MoscowPathState> {
   return parse<MoscowPathState>(await fetch(`${API_BASE_URL}/game/paths/moscow`, {
     headers: getAuthHeaders(),
+  }))
+}
+
+export async function getCityPath(cityId: string): Promise<CityPathState> {
+  return parse<CityPathState>(await fetch(`${API_BASE_URL}/game/paths/${cityId}`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function getCityQuest(cityId: string, questId: string): Promise<CityQuestState> {
+  return parse<CityQuestState>(await fetch(`${API_BASE_URL}/game/paths/${cityId}/quests/${questId}`, {
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function answerCityQuest(cityId: string, questId: string, answerKey: string): Promise<CityQuestAnswer> {
+  return parse<CityQuestAnswer>(await fetch(`${API_BASE_URL}/game/paths/${cityId}/quests/${questId}/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ answer_key: answerKey }),
   }))
 }
 
