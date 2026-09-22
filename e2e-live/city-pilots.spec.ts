@@ -23,6 +23,9 @@ test('new player completes the server-backed St Petersburg pilot', async ({ page
   await page.getByRole('button', { name: 'Свыше 150', exact: true }).click()
   await page.getByRole('button', { name: /5\. Первое упоминание Петергофа.*Открыто/ }).click()
   await expect(page.getByRole('heading', { name: 'Первое упоминание Петергофа' })).toBeVisible()
+  await expect(page.getByText('Правда или миф')).toBeVisible()
+  await page.getByRole('button', { name: 'Факт', exact: true }).click()
+  await expect(page.getByText('Маршрут завершён. Все факты сохранены с первоисточниками.')).toBeVisible()
 })
 
 test('new player completes the server-backed Sochi nature pilot', async ({ page }) => {
@@ -48,4 +51,7 @@ test('new player completes the server-backed Sochi nature pilot', async ({ page 
   await page.getByRole('button', { name: '89 км', exact: true }).click()
   await page.getByRole('button', { name: /5\. Площадь национального парка.*Открыто/ }).click()
   await expect(page.getByRole('heading', { name: 'Площадь национального парка' })).toBeVisible()
+  await expect(page.getByText('Правда или миф')).toBeVisible()
+  await page.getByRole('button', { name: 'Факт', exact: true }).click()
+  await expect(page.getByText('Маршрут завершён. Все факты сохранены с первоисточниками.')).toBeVisible()
 })

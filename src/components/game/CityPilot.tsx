@@ -55,6 +55,7 @@ export function CityPilot({ cityId, signedIn, refreshKey, onCompleted }: { cityI
       <h3 className="font-display text-lg font-semibold text-text">{quest.content.scene.title}</h3>
       <p className="mt-2 font-sans text-sm text-text-secondary">{quest.content.fact.text}</p>
       <a className="mt-2 inline-block font-sans text-xs text-primary hover:underline" href={quest.content.fact.source_url} target="_blank" rel="noreferrer">Источник: {quest.content.fact.source_label ?? 'открыть'}</a>
+      {quest.quest.kind === 'truth-myth' && <p className="mt-4 font-sans text-xs font-semibold uppercase tracking-wide text-accent-soft">Правда или миф</p>}
       <p className="mt-4 font-sans text-sm font-semibold text-text">{quest.content.question.text}</p>
       <div className="mt-2 grid gap-2 sm:grid-cols-3">{quest.content.question.options.map((option) => <button key={option.id} type="button" disabled={answering} onClick={() => void answer(option.id)} className="rounded-md border border-white/10 bg-panel-2 px-3 py-2 text-left font-sans text-sm text-text disabled:opacity-60">{option.label}</button>)}</div>
     </section>}
