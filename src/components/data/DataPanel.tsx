@@ -7,10 +7,8 @@ import {
 import { GlassPanel, Chip, IconButton, DisplayTitle } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
 import { Img } from '@/components/ui/Img'
-import { WikiEditor } from './WikiEditor'
+import { WikiEditor, type WikiEditorSubmission } from './WikiEditor'
 import { CountryCarousel } from './CountryCarousel'
-import { ArticleBlocks } from './ArticleBlocks'
-import { useWikiDrafts } from '@/hooks/useWikiDrafts'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
 import { createWikiDraft, getMyWikiDrafts, getWikiArticle, getWikiReviewQueue, publishWikiDraft, submitWikiDraft, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
@@ -31,6 +29,21 @@ interface CountryArticle {
   cuisine: string
   traditions: string
   practical: { label: string; value: string; icon: typeof Wallet }[]
+}
+
+function textBody(body: Record<string, unknown>, key: string, fallback: string): string {
+  return typeof body[key] === 'string' && body[key].trim() ? body[key] : fallback
+}
+
+function practicalBody(body: Record<string, unknown>, fallback: CountryArticle['practical']): CountryArticle['practical'] {
+  if (!Array.isArray(body.practical)) return fallback
+  const rows = body.practical.flatMap((value, index) => {
+    if (!value || typeof value !== 'object') return []
+    const row = value as Record<string, unknown>
+    if (typeof row.label !== 'string' || typeof row.value !== 'string') return []
+    return [{ label: row.label, value: row.value, icon: fallback[index]?.icon ?? Globe }]
+  })
+  return rows.length > 0 ? rows : fallback
 }
 
 const articles: CountryArticle[] = [
@@ -269,45 +282,53 @@ export function DataPanel({ onBack }: DataPanelProps) {
   const [tab, setTab] = useState<'history' | 'cuisine' | 'traditions'>('history')
   const [query, setQuery] = useState('')
   const [editing, setEditing] = useState(false)
-  const { getDraft, saveDraft, discardDraft, pendingCount } = useWikiDrafts()
+  const [editorMessage, setEditorMessage] = useState<string | null>(null)
+  const [publishedCountry, setPublishedCountry] = useState<WikiPublishedArticle | null>(null)
   const { user } = useApp()
-  const authorName = user?.name ?? 'Гость'
 
   const base = articles.find((a) => a.id === openId)
-  const draft = openId ? getDraft(openId) : undefined
+  useEffect(() => {
+    if (!base) {
+      setPublishedCountry(null)
+      return
+    }
+    let active = true
+    getWikiArticle(`country-${base.id}`).then((article) => {
+      if (active) setPublishedCountry(article)
+    }).catch(() => {
+      if (active) setPublishedCountry(null)
+    })
+    return () => { active = false }
+  }, [base?.id])
 
-  // Правка автора видна ему сразу, остальным до модерации показывается оригинал
-  const active = base
+  const active = base && publishedCountry?.slug === `country-${base.id}`
     ? {
         ...base,
-        summary: draft?.summary ?? base.summary,
-        history: draft?.history ?? base.history,
-        cuisine: draft?.cuisine ?? base.cuisine,
-        traditions: draft?.traditions ?? base.traditions,
-        practical: draft
-          ? draft.practical.map((p, i) => ({
-              ...p,
-              icon: base.practical[i]?.icon ?? Globe,
-            }))
-          : base.practical,
+        summary: textBody(publishedCountry.body, 'summary', base.summary),
+        history: textBody(publishedCountry.body, 'history', base.history),
+        cuisine: textBody(publishedCountry.body, 'cuisine', base.cuisine),
+        traditions: textBody(publishedCountry.body, 'traditions', base.traditions),
+        practical: practicalBody(publishedCountry.body, base.practical),
       }
-    : undefined
+    : base
 
   const filtered = articles.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
 
-  if (editing && base) {
+  if (editing && base && user) {
     return (
       <WikiEditor
         article={base}
-        existingDraft={draft}
-        authorName={authorName}
         onCancel={() => setEditing(false)}
-        onSave={(d) => {
-          saveDraft(d)
-          setEditing(false)
-        }}
-        onDiscard={() => {
-          discardDraft(base.id)
+        onSave={async (submission: WikiEditorSubmission) => {
+          const draft = await createWikiDraft({
+            slug: `country-${base.id}`,
+            title: base.name,
+            body: submission.body,
+            sources: submission.sources,
+            license: submission.license,
+          })
+          await submitWikiDraft(draft.id)
+          setEditorMessage('Правка отправлена в серверную очередь review.')
           setEditing(false)
         }}
       />
@@ -335,6 +356,9 @@ export function DataPanel({ onBack }: DataPanelProps) {
           <p className="mb-6 max-w-[68ch] font-accent text-xl leading-relaxed text-text-secondary">
             {active.summary}
           </p>
+          {publishedCountry?.slug === `country-${active.id}` && (
+            <p className="mb-5 font-sans text-xs text-text-muted">Crista Wiki · опубликованная серверная версия · лицензия: {publishedCountry.license}</p>
+          )}
 
           <div className="mb-5 flex w-fit gap-1 rounded-md border border-hairline bg-panel p-1">
             {categories.map((cat) => (
@@ -384,25 +408,16 @@ export function DataPanel({ onBack }: DataPanelProps) {
             ))}
           </div>
 
-          {draft?.blocks && draft.blocks.length > 0 && (
-            <div className="mt-8">
-              <ArticleBlocks blocks={draft.blocks} />
-            </div>
-          )}
-
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-hairline pt-6">
-            <Button variant="secondary" onClick={() => setEditing(true)}>
+            <Button variant="secondary" onClick={() => setEditing(true)} disabled={!user}>
               <Pencil />
               Редактировать или добавить информацию
             </Button>
-            {draft?.status === 'pending' ? (
-              <Chip variant="accent" size="sm">Ваша правка на модерации</Chip>
-            ) : (
-              <span className="font-sans text-xs text-text-muted">
-                Статья редактируется сообществом с модерацией
-              </span>
-            )}
+            <span className="font-sans text-xs text-text-muted">
+              {user ? 'Правки создают серверную версию и требуют review.' : 'Войдите, чтобы предложить серверную правку.'}
+            </span>
           </div>
+          {editorMessage && <p className="mt-3 font-sans text-xs text-text-secondary">{editorMessage}</p>}
         </article>
       </div>
     )
@@ -420,11 +435,6 @@ export function DataPanel({ onBack }: DataPanelProps) {
             Справочник по странам: история, кухня, традиции и практическая информация.
             Единый источник контента для квестов, фокуса и маршрутов.
           </p>
-          {pendingCount > 0 && (
-            <Chip variant="accent" size="sm">
-              Ваших правок на модерации: {pendingCount}
-            </Chip>
-          )}
         </div>
 
         <AuthoredDrafts signedIn={Boolean(user)} />

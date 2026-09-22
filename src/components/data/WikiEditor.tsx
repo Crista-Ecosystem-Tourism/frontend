@@ -1,10 +1,20 @@
 import { useState } from 'react'
-import { ArrowLeft, Plus, Trash2, Info, Save, RotateCcw } from 'lucide-react'
-import { GlassPanel, IconButton, Chip } from '@/components/ui/glass'
+import { ArrowLeft, Plus, Trash2, Info, Save } from 'lucide-react'
+import { GlassPanel, IconButton } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
-import type { WikiDraft, WikiPractical } from '@/hooks/useWikiDrafts'
 import { BlockEditor } from './BlockEditor'
 import type { ArticleBlock } from '@/types/wiki'
+
+export interface WikiPractical {
+  label: string
+  value: string
+}
+
+export interface WikiEditorSubmission {
+  body: Record<string, unknown>
+  sources: { label: string; url: string }[]
+  license: string
+}
 
 interface EditableArticle {
   id: string
@@ -19,11 +29,8 @@ interface EditableArticle {
 
 interface WikiEditorProps {
   article: EditableArticle
-  existingDraft?: WikiDraft
   onCancel: () => void
-  onSave: (draft: Omit<WikiDraft, 'status' | 'updatedAt'>) => void
-  onDiscard: () => void
-  authorName: string
+  onSave: (submission: WikiEditorSubmission) => Promise<void>
 }
 
 const MAX_SUMMARY = 400
@@ -74,22 +81,22 @@ function Field({
 
 export function WikiEditor({
   article,
-  existingDraft,
   onCancel,
   onSave,
-  onDiscard,
-  authorName,
 }: WikiEditorProps) {
-  const base = existingDraft ?? article
-
-  const [summary, setSummary] = useState(base.summary)
-  const [history, setHistory] = useState(base.history)
-  const [cuisine, setCuisine] = useState(base.cuisine)
-  const [traditions, setTraditions] = useState(base.traditions)
+  const [summary, setSummary] = useState(article.summary)
+  const [history, setHistory] = useState(article.history)
+  const [cuisine, setCuisine] = useState(article.cuisine)
+  const [traditions, setTraditions] = useState(article.traditions)
   const [practical, setPractical] = useState<WikiPractical[]>(
-    base.practical.map((p) => ({ label: p.label, value: p.value }))
+    article.practical.map((p) => ({ label: p.label, value: p.value }))
   )
-  const [blocks, setBlocks] = useState<ArticleBlock[]>(existingDraft?.blocks ?? [])
+  const [blocks, setBlocks] = useState<ArticleBlock[]>([])
+  const [sourceLabel, setSourceLabel] = useState('')
+  const [sourceUrl, setSourceUrl] = useState('')
+  const [license, setLicense] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const tooLong =
     summary.length > MAX_SUMMARY ||
@@ -99,28 +106,31 @@ export function WikiEditor({
 
   const empty = !summary.trim() || !history.trim() || !cuisine.trim() || !traditions.trim()
 
-  const changed =
-    summary !== article.summary ||
-    history !== article.history ||
-    cuisine !== article.cuisine ||
-    traditions !== article.traditions ||
-    JSON.stringify(practical) !== JSON.stringify(article.practical.map((p) => ({ label: p.label, value: p.value }))) ||
-    JSON.stringify(blocks) !== JSON.stringify(existingDraft?.blocks ?? [])
+  // A reviewed server version may intentionally preserve the catalog text while
+  // attaching its first source and licence, so unchanged copy is valid here.
+  const changed = true
 
   const updateRow = (i: number, patch: Partial<WikiPractical>) =>
     setPractical((prev) => prev.map((row, idx) => (idx === i ? { ...row, ...patch } : row)))
 
-  const handleSave = () => {
-    onSave({
-      countryId: article.id,
-      summary: summary.trim(),
-      history: history.trim(),
-      cuisine: cuisine.trim(),
-      traditions: traditions.trim(),
-      practical: practical.filter((p) => p.label.trim() && p.value.trim()),
-      blocks,
-      author: authorName,
-    })
+  const handleSave = async () => {
+    if (saving || !sourceLabel.trim() || !sourceUrl.trim() || !license.trim()) return
+    setSaving(true)
+    setError(null)
+    try {
+      await onSave({
+        body: {
+          summary: summary.trim(), history: history.trim(), cuisine: cuisine.trim(), traditions: traditions.trim(),
+          practical: practical.filter((p) => p.label.trim() && p.value.trim()), blocks,
+        },
+        sources: [{ label: sourceLabel.trim(), url: sourceUrl.trim() }],
+        license: license.trim(),
+      })
+    } catch {
+      setError('Не удалось отправить серверную правку. Проверьте источник, лицензию и подключение.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -135,7 +145,6 @@ export function WikiEditor({
               Правка статьи
             </h1>
           </div>
-          {existingDraft?.status === 'pending' && <Chip size="sm" variant="accent">На модерации</Chip>}
         </div>
       </div>
 
@@ -144,7 +153,7 @@ export function WikiEditor({
           <span className="text-3xl leading-none" aria-hidden="true">{article.flag}</span>
           <div>
             <p className="font-display text-2xl font-semibold text-text">{article.name}</p>
-            <p className="font-sans text-xs text-text-muted">Редактирует {authorName}</p>
+            <p className="font-sans text-xs text-text-muted">Серверная версия будет отправлена на review</p>
           </div>
         </div>
 
@@ -244,27 +253,27 @@ export function WikiEditor({
           <h2 className="mb-1 font-sans text-sm font-semibold text-text">Блоки статьи</h2>
           <p className="mb-3 font-sans text-xs leading-relaxed text-text-muted">
             Фото, галереи, ролики, цитаты и врезки вроде разговорника или расписания.
-            Пока нет сервера, файлы хранятся в браузере и не переживут очистку данных.
+            Эти данные войдут в серверную версию статьи после review.
           </p>
           <BlockEditor blocks={blocks} onChange={setBlocks} />
         </div>
 
+        <div className="grid gap-3 border-t border-hairline pt-5">
+          <p className="font-sans text-sm font-semibold text-text">Источник и лицензия</p>
+          <label className="font-sans text-xs text-text-secondary">Название источника<input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
+          <label className="font-sans text-xs text-text-secondary">Ссылка на источник<input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} type="url" className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
+          <label className="font-sans text-xs text-text-secondary">Лицензия<input value={license} onChange={(event) => setLicense(event.target.value)} className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
+        </div>
+
         {/* Действия */}
         <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-5">
-          <Button onClick={handleSave} disabled={!changed || tooLong || empty}>
+          <Button onClick={() => void handleSave()} disabled={!changed || tooLong || empty || !sourceLabel.trim() || !sourceUrl.trim() || !license.trim() || saving}>
             <Save />
-            Отправить на модерацию
+            {saving ? 'Отправляем…' : 'Отправить на review'}
           </Button>
           <Button variant="ghost" onClick={onCancel}>
             Отмена
           </Button>
-
-          {existingDraft && (
-            <Button variant="ghost" className="ml-auto text-text-muted" onClick={onDiscard}>
-              <RotateCcw />
-              Убрать мою правку
-            </Button>
-          )}
         </div>
 
         {empty && (
@@ -277,6 +286,7 @@ export function WikiEditor({
             Один из разделов длиннее допустимого. Сократите текст, чтобы отправить правку.
           </p>
         )}
+        {error && <p className="font-sans text-xs text-error">{error}</p>}
       </div>
     </div>
   )
