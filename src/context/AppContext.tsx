@@ -1140,8 +1140,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const destination = savedPlaces[0]?.address?.split(',')[0] || 'Путешествие'
 
-    // Try to save via API
-    if (!isMockMode() && backendAvailable) {
+    // In live mode, never turn a failed server save into a local-only success.
+    if (!isMockMode()) {
+      setApiError(null)
+      if (!backendAvailable) {
+        const error = new Error('Сервис сохранения маршрутов недоступен')
+        setApiError(error.message)
+        throw error
+      }
       try {
         const result = await apiCreateSavedRoute({
           name,
@@ -1162,8 +1168,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSavedRoutes(prev => [...prev, newRoute])
         setActiveModal(null)
         return
-      } catch {
-        // Fall through to local save
+      } catch (error) {
+        setApiError('Не удалось сохранить маршрут на сервере')
+        throw error
       }
     }
 
