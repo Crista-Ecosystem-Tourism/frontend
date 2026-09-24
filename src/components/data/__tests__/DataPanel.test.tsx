@@ -126,4 +126,19 @@ describe('DataPanel country Wiki publication state', () => {
     expect(await screen.findByText(/Для этой страны ещё нет опубликованной серверной версии/)).toBeTruthy()
     expect(screen.queryByText(/Серверная Wiki недоступна/)).toBeNull()
   })
+
+  it('does not fill missing sections of a published version with catalogue copy', async () => {
+    getWikiArticleMock.mockResolvedValue({
+      ...japanArticle,
+      body: { summary: 'Краткое опубликованное описание.' },
+    })
+
+    render(<DataPanel onBack={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Япония' }))
+
+    expect(await screen.findByText('Краткое опубликованное описание.')).toBeTruthy()
+    expect(screen.getByText('В опубликованной версии этот раздел пока не заполнен.')).toBeTruthy()
+    expect(screen.queryByText('Эпоха самураев и сёгунов, реставрация Мэйдзи, стремительная модернизация после Второй мировой войны.')).toBeNull()
+    expect(screen.getByText('Практическая информация в опубликованной версии пока не указана.')).toBeTruthy()
+  })
 })

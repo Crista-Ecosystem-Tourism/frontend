@@ -318,11 +318,11 @@ export function DataPanel({ onBack }: DataPanelProps) {
   const active = base && publishedCountry?.slug === `country-${base.id}`
     ? {
         ...base,
-        summary: textBody(publishedCountry.body, 'summary', base.summary),
-        history: textBody(publishedCountry.body, 'history', base.history),
-        cuisine: textBody(publishedCountry.body, 'cuisine', base.cuisine),
-        traditions: textBody(publishedCountry.body, 'traditions', base.traditions),
-        practical: practicalBody(publishedCountry.body, base.practical),
+        summary: textBody(publishedCountry.body, 'summary', 'В опубликованной версии этот раздел пока не заполнен.'),
+        history: textBody(publishedCountry.body, 'history', 'В опубликованной версии этот раздел пока не заполнен.'),
+        cuisine: textBody(publishedCountry.body, 'cuisine', 'В опубликованной версии этот раздел пока не заполнен.'),
+        traditions: textBody(publishedCountry.body, 'traditions', 'В опубликованной версии этот раздел пока не заполнен.'),
+        practical: practicalBody(publishedCountry.body, []),
       }
     : base
 
@@ -418,6 +418,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
             Практическая информация
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
+            {active.practical.length === 0 && <p className="font-sans text-sm text-text-muted">Практическая информация в опубликованной версии пока не указана.</p>}
             {active.practical.map((item) => (
               <div
                 key={item.label}
