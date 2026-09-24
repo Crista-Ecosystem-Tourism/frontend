@@ -146,10 +146,9 @@ function DeleteDialog({
 
 export function SettingsPage() {
   const navigate = useNavigate()
-  const { user, theme, toggleTheme, logout } = useApp()
+  const { user, theme, toggleTheme, language, setLanguage, logout } = useApp()
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(false)
-  const [language, setLanguage] = useState('ru')
   const [publicProfile, setPublicProfile] = useState(true)
   const [showActivity, setShowActivity] = useState(true)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -234,8 +233,8 @@ export function SettingsPage() {
                 })}
               </div>
 
-              <SettingsRow label="Язык интерфейса" description="Применится ко всем разделам">
-                <Select value={language} onValueChange={setLanguage}>
+              <SettingsRow label="Язык интерфейса" description="Сохраняется в аккаунте; перевод интерфейса ещё не подключён">
+                <Select value={language} onValueChange={(value) => setLanguage(value as 'ru' | 'en')}>
                   <SelectTrigger className="h-10 w-40 rounded-md border-hairline-2 bg-panel font-sans text-sm">
                     <Globe className="mr-2 h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
                     <SelectValue />

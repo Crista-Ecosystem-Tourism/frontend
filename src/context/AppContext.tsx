@@ -6,7 +6,7 @@ import { delay, generateId } from '@/lib/utils'
 import { isMockMode, checkHealth, createSession, sendMessage as apiSendMessage, loadSession, clearSession, listSessions, getHistory, updateSessionTitle, attachSession } from '@/api/chatApi'
 import { mapMessageOutToChatMessage, mapHistoryToMessages, computeMapCenter, computeMapZoom } from '@/api/mappers'
 import { ApiError } from '@/api/chatApi'
-import { login as apiLogin, register as apiRegister, getMe, logout as apiLogout, getToken } from '@/api/authApi'
+import { login as apiLogin, register as apiRegister, getMe, getPreferences, savePreferences, logout as apiLogout, getToken } from '@/api/authApi'
 import { buildGraph } from '@/api/graphApi'
 import {
   savePlaceRatings as apiSavePlaceRatings,
@@ -132,6 +132,8 @@ interface AppContextType {
   // Theme
   theme: Theme
   toggleTheme: () => void
+  language: 'ru' | 'en'
+  setLanguage: (language: 'ru' | 'en') => void
 
   // User & Auth
   user: User | null
@@ -274,8 +276,12 @@ const mockUser: User = {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const preferenceWriteRef = useRef<Promise<void>>(Promise.resolve())
   // Theme
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
+  const [language, setLanguageState] = useState<'ru' | 'en'>(() => {
+    try { return localStorage.getItem('language') === 'en' ? 'en' : 'ru' } catch { return 'ru' }
+  })
   
   // User
   const [user, setUser] = useState<User | null>(() => isMockMode() ? mockUser : null)
@@ -490,6 +496,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (getToken()) {
         try {
           const authUser = await getMe()
+          try {
+            const preferences = await getPreferences()
+            setTheme(preferences.theme)
+            setLanguageState(preferences.language)
+          } catch { /* preference API can be unavailable independently */ }
           setUser({
             id: authUser.id,
             name: authUser.name || '',
@@ -550,12 +561,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     try {
       localStorage.setItem('theme', theme)
+      localStorage.setItem('language', language)
     } catch { /* ignore */ }
-  }, [theme])
+  }, [theme, language])
+
+  const persistPreferences = useCallback(async (nextTheme: Theme, nextLanguage: 'ru' | 'en') => {
+    const token = getToken()
+    if (!token) return
+    preferenceWriteRef.current = preferenceWriteRef.current
+      .catch(() => {})
+      .then(async () => {
+        await savePreferences({ theme: nextTheme, language: nextLanguage }, token)
+        setApiError(null)
+      })
+      .catch(() => setApiError('Не удалось сохранить настройки аккаунта'))
+    await preferenceWriteRef.current
+  }, [])
 
   const toggleTheme = useCallback(() => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
-  }, [])
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark'
+      void persistPreferences(next, language)
+      return next
+    })
+  }, [language, persistPreferences])
+
+  const setLanguage = useCallback((nextLanguage: 'ru' | 'en') => {
+    setLanguageState(nextLanguage)
+    void persistPreferences(theme, nextLanguage)
+  }, [persistPreferences, theme])
 
   // Auth functions
   const loadUserSessions = useCallback(async () => {
@@ -579,6 +613,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAuthError(null)
     try {
       const { user: authUser } = await apiLogin(email, password)
+      try {
+        const preferences = await getPreferences()
+        setTheme(preferences.theme)
+        setLanguageState(preferences.language)
+      } catch { /* keep the device preference if account preferences are unavailable */ }
       setUser({
         id: authUser.id,
         name: authUser.name || '',
@@ -608,6 +647,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAuthError(null)
     try {
       const { user: authUser } = await apiRegister(email, password, name)
+      await persistPreferences(theme, language)
       setUser({
         id: authUser.id,
         name: authUser.name || '',
@@ -630,7 +670,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       setAuthLoading(false)
     }
-  }, [loadUserSessions])
+  }, [language, loadUserSessions, persistPreferences, theme])
 
   const logout = useCallback(() => {
     apiLogout()
@@ -1294,6 +1334,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value: AppContextType = {
     theme,
     toggleTheme,
+    language,
+    setLanguage,
     user,
     authState,
     loginWithEmail,
