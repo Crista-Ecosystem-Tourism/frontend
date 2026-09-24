@@ -11,7 +11,7 @@ import {
 } from '@/mocks/game'
 import { cn } from '@/lib/utils'
 import { useApp } from '@/context/AppContext'
-import { getGameCopy } from '@/lib/gameCopy'
+import { getGameCopy, getQuestCopy } from '@/lib/gameCopy'
 
 const categoryIcon: Record<QuestCategory, typeof Landmark> = {
   sights: Landmark,
@@ -31,12 +31,15 @@ function QuestRow({
   quest,
   done,
   onToggle,
+  language,
 }: {
   quest: QuestPoint
   done: boolean
   onToggle: () => void
+  language: 'ru' | 'en'
 }) {
   const Icon = categoryIcon[quest.category]
+  const localizedQuest = getQuestCopy(quest, language)
   return (
     <button
       onClick={onToggle}
@@ -60,10 +63,10 @@ function QuestRow({
             done ? 'text-text-muted line-through' : 'text-text'
           )}
         >
-          {quest.title}
+          {localizedQuest.title}
         </span>
         <span className="mt-0.5 block font-sans text-xs leading-relaxed text-text-muted">
-          {quest.hint}
+          {localizedQuest.hint}
         </span>
       </span>
 
@@ -169,6 +172,7 @@ export function CountryQuests({
               quest={q}
               done={isDone(q.id)}
               onToggle={() => onToggle(q.id)}
+              language={language}
             />
           ))}
         </div>

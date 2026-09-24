@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getGameCopy } from '../gameCopy'
+import { getGameCopy, getQuestCopy } from '../gameCopy'
+import { gameCountries } from '../../mocks/game'
 
 describe('game interface translations', () => {
   it('formats English game screen labels and dynamic progress', () => {
@@ -20,5 +21,16 @@ describe('game interface translations', () => {
     expect(copy.cityCount(3)).toBe('3 города')
     expect(copy.cityCount(12)).toBe('12 городов')
     expect(copy.categoryNames.food).toBe('Кухня')
+  })
+
+  it('provides English titles and hints for every seeded quest while preserving Russian source copy', () => {
+    const quests = gameCountries.flatMap((country) => country.cities.flatMap((city) => city.quests))
+    expect(quests.length).toBeGreaterThan(0)
+    for (const quest of quests) {
+      const english = getQuestCopy(quest, 'en')
+      expect(english.title, quest.id).not.toBe(quest.title)
+      expect(english.hint, quest.id).not.toBe(quest.hint)
+      expect(getQuestCopy(quest, 'ru')).toEqual({ title: quest.title, hint: quest.hint })
+    }
   })
 })

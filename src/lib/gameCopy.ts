@@ -1,5 +1,5 @@
 import type { InterfaceLanguage } from './settingsCopy'
-import type { QuestCategory } from '../mocks/game'
+import type { QuestCategory, QuestPoint } from '../mocks/game'
 
 interface GameCopy {
   back: string
@@ -138,6 +138,38 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
   },
 }
 
+const questCopyEn: Record<string, [string, string]> = {
+  'msk-1': ['Red Square', 'Reach Lobnoye Mesto and take a geotagged photo'],
+  'msk-2': ['Saint Basil’s Cathedral', 'Find the chapel that gave the cathedral its popular name'],
+  'msk-3': ['Tretyakov Gallery', 'Find the Vrubel room'],
+  'msk-4': ['Pokrovka pishki', 'Try this local pastry on a weekday before noon'],
+  'msk-5': ['VDNKh', 'Walk around the Friendship of Nations fountain'],
+  'spb-1': ['The Hermitage', 'Find the Peacock Clock in the Pavilion Hall'],
+  'spb-2': ['Church of the Savior on Spilled Blood', 'Look closely at the mosaic above the west entrance'],
+  'spb-3': ['Palace Bridge opening', 'Arrive at 1:10 a.m. and capture the bridge opening'],
+  'spb-4': ['Bolshaya Konyushennaya pirozhki café', 'Try a pirozhok and coffee the Leningrad way'],
+  'spb-5': ['Peter and Paul Fortress', 'Wait for the noon cannon shot'],
+  'spb-6': ['Nevsky Prospekt', 'Walk from the Admiralty to Vosstaniya Square'],
+  'sochi-1': ['Olympic Park', 'Find the Olympic flame cauldron'],
+  'sochi-2': ['Rosa Khutor', 'Take the lift up to 2,320 metres'],
+  'sochi-3': ['Tea plantations', 'Try Krasnodar tea where it is grown'],
+  'sochi-4': ['Sochi Arboretum', 'Ride the cable car above the park'],
+  'tb-1': ['Abanotubani sulfur baths', 'Look beneath the brick domes in the old town'],
+  'tb-2': ['Narikala Fortress', 'Take the cable car up at sunset'],
+  'tb-3': ['Khinkali on Mtatsminda', 'Eat khinkali without piercing the dough'],
+  'bt-1': ['Ali and Nino statue', 'Wait for the figures to pass through one another'],
+  'bt-2': ['Adjarian khachapuri', 'Stir the egg yolk into the butter without burning yourself'],
+  'is-1': ['Hagia Sophia', 'Find the Byzantine mosaics in the upper gallery'],
+  'is-2': ['Grand Bazaar', 'Bargain and bring the price down by at least a third'],
+  'is-3': ['Balık ekmek by Galata Bridge', 'Try a fish sandwich served straight from a boat'],
+  'be-1': ['Grand Place', 'Walk around the square and find the bakers’ guild house'],
+  'be-2': ['Manneken Pis', 'Catch him in costume: his outfit changes more than a hundred times a year'],
+  'be-3': ['Street waffles', 'Choose a Liège waffle, not a Brussels one, and eat it without cutlery'],
+  'be-4': ['Belfry of Bruges', 'Climb 366 steps and listen for the carillon'],
+  'be-5': ['Bruges canals', 'Take a canal trip and count the bridges'],
+  'be-6': ['Belgian chocolate', 'Try pralines where they were invented'],
+}
+
 function russianCityCount(count: number) {
   const lastTwo = count % 100
   const last = count % 10
@@ -153,4 +185,10 @@ function russianCityCount(count: number) {
 
 export function getGameCopy(language: InterfaceLanguage) {
   return copy[language]
+}
+
+export function getQuestCopy(quest: QuestPoint, language: InterfaceLanguage) {
+  if (language === 'ru') return { title: quest.title, hint: quest.hint }
+  const translated = questCopyEn[quest.id]
+  return translated ? { title: translated[0], hint: translated[1] } : { title: quest.title, hint: quest.hint }
 }
