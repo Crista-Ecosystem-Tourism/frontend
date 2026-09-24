@@ -37,3 +37,17 @@ test('country article shows its published version and source links', async ({ pa
   await expect(page.getByText(/версия wiki-country-jp-v1/)).toBeVisible()
   await expect(page.getByRole('link', { name: 'Официальный источник' })).toHaveAttribute('href', 'https://example.test/japan')
 })
+
+test('country article reports a missing publication separately from an API outage', async ({ page }) => {
+  await page.route('**/wiki/articles/**', async (route) => {
+    await route.fulfill({ status: 404, json: { detail: 'Published article not found' } })
+  })
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Crista Wiki' }).click()
+  await page.getByRole('button', { name: 'Показать Грузия' }).click()
+  await page.getByRole('button', { name: 'Открыть статью Грузия' }).click()
+
+  await expect(page.getByText(/Для этой страны ещё нет опубликованной серверной версии/)).toBeVisible()
+  await expect(page.getByText(/Серверная Wiki недоступна/)).toHaveCount(0)
+})
