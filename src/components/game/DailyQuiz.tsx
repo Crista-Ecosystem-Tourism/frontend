@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Check, X, Flame, Sparkles, ArrowRight, RotateCcw } from 'lucide-react'
 import { GlassPanel, Chip } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
-import { questionsForCountry } from '@/mocks/quiz'
+import { questionsForCountry, quizContent } from '@/mocks/quiz'
 import { cn } from '@/lib/utils'
 import { getHomeCopy } from '@/lib/homeCopy'
 import { useApp } from '@/context/AppContext'
@@ -102,6 +102,8 @@ export function DailyQuiz({
     )
   }
 
+  const localizedQuestion = quizContent(current, language)
+
   return (
     <GlassPanel variant="flat" className="p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -122,11 +124,11 @@ export function DailyQuiz({
       </div>
 
       <p className="mb-3 font-sans text-sm font-medium leading-relaxed text-text">
-        {current.question}
+        {localizedQuestion.question}
       </p>
 
       <div className="space-y-2">
-        {current.options.map((option, i) => {
+        {localizedQuestion.options.map((option, i) => {
           const isRight = i === current.correct
           const isPicked = picked === i
           return (
@@ -174,7 +176,7 @@ export function DailyQuiz({
             )}
           </p>
           <p className="font-sans text-xs leading-relaxed text-text-secondary">
-            {current.explanation}
+            {localizedQuestion.explanation}
           </p>
           <Button variant="secondary" size="sm" className="mt-3" onClick={next}>
             {remaining.length > 1 ? copy.nextQuestion : copy.finishQuiz}
