@@ -337,10 +337,10 @@ export function DataPanel({ onBack }: DataPanelProps) {
     ? {
         ...base,
         name: publishedCountry.title || base.name,
-        summary: textBody(publishedCountry.body, 'summary', 'В опубликованной версии этот раздел пока не заполнен.'),
-        history: textBody(publishedCountry.body, 'history', 'В опубликованной версии этот раздел пока не заполнен.'),
-        cuisine: textBody(publishedCountry.body, 'cuisine', 'В опубликованной версии этот раздел пока не заполнен.'),
-        traditions: textBody(publishedCountry.body, 'traditions', 'В опубликованной версии этот раздел пока не заполнен.'),
+        summary: textBody(publishedCountry.body, 'summary', en ? 'This section is not yet included in the published edition.' : 'В опубликованной версии этот раздел пока не заполнен.'),
+        history: textBody(publishedCountry.body, 'history', en ? 'This section is not yet included in the published edition.' : 'В опубликованной версии этот раздел пока не заполнен.'),
+        cuisine: textBody(publishedCountry.body, 'cuisine', en ? 'This section is not yet included in the published edition.' : 'В опубликованной версии этот раздел пока не заполнен.'),
+        traditions: textBody(publishedCountry.body, 'traditions', en ? 'This section is not yet included in the published edition.' : 'В опубликованной версии этот раздел пока не заполнен.'),
         practical: practicalBody(publishedCountry.body, []),
       }
     : base
@@ -394,7 +394,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
           </p>
           {publishedCountry?.slug === `country-${active.id}` && (
             <div className="mb-5">
-              <p className="font-sans text-xs text-text-muted">Crista Wiki · версия {publishedCountry.version_id} · лицензия: {publishedCountry.license}</p>
+              <p className="font-sans text-xs text-text-muted">Crista Wiki · {en ? 'version' : 'версия'} {publishedCountry.version_id} · {en ? 'license:' : 'лицензия:'} {publishedCountry.license}</p>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
                 {publishedCountry.sources.map((source) => (
                   <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-sans text-xs text-primary hover:underline">
@@ -409,9 +409,9 @@ export function DataPanel({ onBack }: DataPanelProps) {
               The English edition is not available yet; showing the published Russian version.
             </p>
           )}
-          {countryWikiStatus === 'loading' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">Проверяем опубликованную версию Wiki…</p>}
-          {countryWikiStatus === 'missing' && <p className="mb-5 font-sans text-xs text-text-muted">Для этой страны ещё нет опубликованной серверной версии. Ниже показана стартовая карточка каталога.</p>}
-          {countryWikiStatus === 'unavailable' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">Серверная Wiki недоступна; ниже показана стартовая карточка, не подтверждённая публикация.</p>}
+          {countryWikiStatus === 'loading' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">{en ? 'Checking the published Wiki edition…' : 'Проверяем опубликованную версию Wiki…'}</p>}
+          {countryWikiStatus === 'missing' && <p className="mb-5 font-sans text-xs text-text-muted">{en ? 'No server-published edition exists for this country yet. The catalogue starter card is shown below.' : 'Для этой страны ещё нет опубликованной серверной версии. Ниже показана стартовая карточка каталога.'}</p>}
+          {countryWikiStatus === 'unavailable' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">{en ? 'The server Wiki is unavailable; the starter card below is catalogue content, not a confirmed publication.' : 'Серверная Wiki недоступна; ниже показана стартовая карточка, не подтверждённая публикация.'}</p>}
 
           <div className="mb-5 flex w-fit gap-1 rounded-md border border-hairline bg-panel p-1">
             {categories.map((cat) => (

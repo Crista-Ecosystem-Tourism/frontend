@@ -265,9 +265,9 @@ export function WikiEditor({
 
         <div className="grid gap-3 border-t border-hairline pt-5">
           <p className="font-sans text-sm font-semibold text-text">{en ? 'Source and license' : 'Источник и лицензия'}</p>
-          <label className="font-sans text-xs text-text-secondary">Название источника<input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
-          <label className="font-sans text-xs text-text-secondary">Ссылка на источник<input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} type="url" className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
-          <label className="font-sans text-xs text-text-secondary">Лицензия<input value={license} onChange={(event) => setLicense(event.target.value)} className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
+          <label className="font-sans text-xs text-text-secondary">{en ? 'Source name' : 'Название источника'}<input value={sourceLabel} onChange={(event) => setSourceLabel(event.target.value)} className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
+          <label className="font-sans text-xs text-text-secondary">{en ? 'Source URL' : 'Ссылка на источник'}<input value={sourceUrl} onChange={(event) => setSourceUrl(event.target.value)} type="url" className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
+          <label className="font-sans text-xs text-text-secondary">{en ? 'License' : 'Лицензия'}<input value={license} onChange={(event) => setLicense(event.target.value)} className="mt-1 block h-11 w-full rounded-md border border-hairline bg-panel px-3 text-sm text-text" /></label>
         </div>
 
         {/* Действия */}
@@ -288,7 +288,7 @@ export function WikiEditor({
         )}
         {tooLong && (
           <p className="font-sans text-xs text-error">
-            Один из разделов длиннее допустимого. Сократите текст, чтобы отправить правку.
+            {en ? 'A section exceeds the character limit. Shorten it before submitting.' : 'Один из разделов длиннее допустимого. Сократите текст, чтобы отправить правку.'}
           </p>
         )}
         {error && <p className="font-sans text-xs text-error">{error}</p>}

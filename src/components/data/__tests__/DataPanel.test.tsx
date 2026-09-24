@@ -169,6 +169,19 @@ describe('DataPanel country Wiki publication state', () => {
     expect(screen.queryByText(/English edition is not available yet/)).toBeNull()
   })
 
+  it('localizes the English Wiki catalogue and unpublished status', async () => {
+    useAppMock.mockReturnValue({ user: null, language: 'en' })
+    getWikiArticleMock.mockRejectedValue(new ApiErrorMock(404, 'Published article not found'))
+
+    render(<DataPanel onBack={() => undefined} />)
+    expect(screen.getByText(/A guide to countries/)).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: 'Search countries' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Japan' }))
+
+    expect(await screen.findByText(/No server-published edition exists for this country yet/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Edit or add information' }).getAttribute('disabled')).not.toBeNull()
+  })
+
   it('discloses a Russian country article when English content falls back', async () => {
     useAppMock.mockReturnValue({ user: null, language: 'en' })
     getWikiArticleMock.mockResolvedValue({ ...japanArticle, content_language: 'ru' })
