@@ -20,14 +20,14 @@ export function CityPilot({ cityId, signedIn, refreshKey, onCompleted }: { cityI
   }, [cityId, refreshKey, signedIn])
 
   const open = async (questId: string) => {
-    try { setQuest(await getCityQuest(cityId, questId)); setMessage(null) }
+    try { setQuest(await getCityQuest(cityId, questId, language)); setMessage(null) }
     catch (error) { setMessage(error instanceof ApiError ? error.message : copy.questUnavailable) }
   }
   const answer = async (answerKey: string) => {
     if (!quest || answering) return
     setAnswering(true)
     try {
-      const result = await answerCityQuest(cityId, quest.quest.id, answerKey)
+      const result = await answerCityQuest(cityId, quest.quest.id, answerKey, language)
       setMessage(result.correct ? copy.correctXp(result.xp_awarded) : copy.tryAgain)
       if (result.completed) { setQuest(null); onCompleted() }
     } catch (error) {
@@ -49,7 +49,7 @@ export function CityPilot({ cityId, signedIn, refreshKey, onCompleted }: { cityI
     </ol>
     {path.nodes.length > 0 && path.nodes.every((node) => node.completed) && <p className="mt-4 rounded-md bg-primary/10 p-3 font-sans text-sm text-text-secondary">{copy.pilotComplete}</p>}
     {quest && <section className="mt-5 rounded-md border border-primary/20 bg-primary/5 p-4">
-      {language === 'en' && <p className="mb-3 rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{copy.pilotContentLanguageNote}</p>}
+      {quest.content_language !== language && <p className="mb-3 rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{language === 'en' ? copy.pilotContentLanguageNote : 'Сейчас показан доступный оригинал на русском языке.'}</p>}
       <h3 className="font-display text-lg font-semibold text-text">{quest.content.scene.title}</h3>
       <p className="mt-2 font-sans text-sm text-text-secondary">{quest.content.fact.text}</p>
       <a className="mt-2 inline-block font-sans text-xs text-primary hover:underline" href={quest.content.fact.source_url} target="_blank" rel="noreferrer">{copy.source}: {quest.content.fact.source_label ?? copy.openSource}</a>

@@ -63,6 +63,7 @@ export type MoscowQuestState = {
     prerequisite_quest_id: string | null
   }
   content: OnboardingContent
+  content_language?: 'ru' | 'en'
   profile: GameProfile
   daily: GameDailyProgress
   completed: boolean
@@ -309,14 +310,16 @@ export async function getCityPath(cityId: string): Promise<CityPathState> {
   }))
 }
 
-export async function getCityQuest(cityId: string, questId: string): Promise<CityQuestState> {
-  return parse<CityQuestState>(await fetch(`${API_BASE_URL}/game/paths/${cityId}/quests/${questId}`, {
+export async function getCityQuest(cityId: string, questId: string, language: 'ru' | 'en' = 'ru'): Promise<CityQuestState> {
+  const params = new URLSearchParams({ language })
+  return parse<CityQuestState>(await fetch(`${API_BASE_URL}/game/paths/${cityId}/quests/${questId}?${params}`, {
     headers: getAuthHeaders(),
   }))
 }
 
-export async function answerCityQuest(cityId: string, questId: string, answerKey: string): Promise<CityQuestAnswer> {
-  return parse<CityQuestAnswer>(await fetch(`${API_BASE_URL}/game/paths/${cityId}/quests/${questId}/answer`, {
+export async function answerCityQuest(cityId: string, questId: string, answerKey: string, language: 'ru' | 'en' = 'ru'): Promise<CityQuestAnswer> {
+  const params = new URLSearchParams({ language })
+  return parse<CityQuestAnswer>(await fetch(`${API_BASE_URL}/game/paths/${cityId}/quests/${questId}/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answer_key: answerKey }),
