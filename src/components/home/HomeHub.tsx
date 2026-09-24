@@ -28,47 +28,47 @@ const HERO_IMAGE =
   'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=2000&q=80'
 
 const suggestions = [
-  { label: 'Санкт-Петербург за 3 дня', tripId: 'spb-excursions' },
-  { label: 'Гастротур по Грузии', tripId: 'georgia-food' },
-  { label: 'Горы Алтая', tripId: 'altai-trekking' },
-  { label: 'Культура Киото', tripId: 'kyoto-culture' },
-  { label: 'Пляжи Бали', tripId: 'bali-beaches' },
+  { label: { ru: 'Санкт-Петербург за 3 дня', en: '3 days in St. Petersburg' }, tripId: 'spb-excursions' },
+  { label: { ru: 'Гастротур по Грузии', en: 'Food tour of Georgia' }, tripId: 'georgia-food' },
+  { label: { ru: 'Горы Алтая', en: 'Altai Mountains' }, tripId: 'altai-trekking' },
+  { label: { ru: 'Культура Киото', en: 'Kyoto culture' }, tripId: 'kyoto-culture' },
+  { label: { ru: 'Пляжи Бали', en: 'Beaches of Bali' }, tripId: 'bali-beaches' },
 ]
 
 const destinations = [
   {
     id: 'venice',
-    title: 'Венеция',
-    country: 'Италия',
-    tag: 'Культура',
+    title: { ru: 'Венеция', en: 'Venice' },
+    country: { ru: 'Италия', en: 'Italy' },
+    tag: { ru: 'Культура', en: 'Culture' },
     imageUrl: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800&q=80',
   },
   {
     id: 'rome',
-    title: 'Рим',
-    country: 'Италия',
-    tag: 'История',
+    title: { ru: 'Рим', en: 'Rome' },
+    country: { ru: 'Италия', en: 'Italy' },
+    tag: { ru: 'История', en: 'History' },
     imageUrl: 'https://images.unsplash.com/photo-1531572753322-ad063cecc140?w=800&q=80',
   },
   {
     id: 'kyoto',
-    title: 'Киото',
-    country: 'Япония',
-    tag: 'Традиции',
+    title: { ru: 'Киото', en: 'Kyoto' },
+    country: { ru: 'Япония', en: 'Japan' },
+    tag: { ru: 'Традиции', en: 'Traditions' },
     imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',
   },
   {
     id: 'cinque',
-    title: 'Чинкве-Терре',
-    country: 'Италия',
-    tag: 'Побережье',
+    title: { ru: 'Чинкве-Терре', en: 'Cinque Terre' },
+    country: { ru: 'Италия', en: 'Italy' },
+    tag: { ru: 'Побережье', en: 'Coast' },
     imageUrl: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=800&q=80',
   },
   {
     id: 'fuji',
-    title: 'Фудзи',
-    country: 'Япония',
-    tag: 'Природа',
+    title: { ru: 'Фудзи', en: 'Mount Fuji' },
+    country: { ru: 'Япония', en: 'Japan' },
+    tag: { ru: 'Природа', en: 'Nature' },
     imageUrl: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=800&q=80',
   },
 ]
@@ -157,7 +157,7 @@ function Composer({ onSend }: { onSend: (message: string) => void }) {
               }
             }}
           >
-            {s.label}
+            {s.label[language]}
           </Chip>
         ))}
       </div>
@@ -370,24 +370,24 @@ export function HomeHub({ onSend }: HomeHubProps) {
             {destinations.map((d) => (
               <button
                 key={d.id}
-                onClick={() => onSend(copy.tripPrompt(d.title, d.country))}
+                onClick={() => onSend(copy.tripPrompt(d.title[language], d.country[language]))}
                 className="group relative w-[240px] shrink-0 snap-start overflow-hidden rounded-lg text-left transition duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:w-[280px]"
               >
                 <div className="aspect-[4/5] overflow-hidden">
                   <Img
                     src={d.imageUrl}
-                    alt={`${d.title}, ${d.country}`}
+                    alt={`${d.title[language]}, ${d.country[language]}`}
                     className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
                   />
                 </div>
                 <div className="absolute inset-0 photo-scrim" />
                 <div className="absolute inset-x-0 bottom-0 p-5">
                   <p className="font-display text-2xl font-semibold leading-tight text-white">
-                    {d.title}
+                    {d.title[language]}
                   </p>
                   <p className="mt-0.5 flex items-center gap-1.5 font-sans text-xs text-white/70">
                     <MapPin className="h-3 w-3" />
-                    {d.country}
+                    {d.country[language]}
                   </p>
                 </div>
               </button>

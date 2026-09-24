@@ -111,7 +111,7 @@ export function DailyQuiz({
         <span className="flex items-center gap-2">
           <Chip size="sm">
             <span className="tabular">
-              {all.filter((q) => answeredIds.has(q.id)).length + (answered ? 0 : 1)} из {all.length}
+              {copy.quizProgress(all.filter((q) => answeredIds.has(q.id)).length + (answered ? 0 : 1), all.length)}
             </span>
           </Chip>
           <Chip size="sm" variant="active">

@@ -37,6 +37,8 @@ interface HomeCopy {
   premiumActive: string
   unlockPremium: string
   level: string
+  levelsOutOf: (total: number) => string
+  quizProgress: (current: number, total: number) => string
   pointsToLevel: (points: number, threshold: number, level: number) => string
   passComplete: (points: number) => string
   passProgress: string
@@ -118,6 +120,8 @@ const homeCopy: Record<InterfaceLanguage, HomeCopy> = {
     premiumActive: 'Премиум активен',
     unlockPremium: 'Открыть премиум-дорожку',
     level: 'Уровень',
+    levelsOutOf: (total: number) => `из ${total}`,
+    quizProgress: (current: number, total: number) => `${current} из ${total}`,
     pointsToLevel: (points: number, threshold: number, level: number) => `${points} из ${threshold} очков до уровня ${level}`,
     passComplete: (points: number) => `${points} очков, пропуск пройден полностью`,
     passProgress: 'Прогресс пропуска',
@@ -175,6 +179,8 @@ const homeCopy: Record<InterfaceLanguage, HomeCopy> = {
     premiumActive: 'Premium active',
     unlockPremium: 'Unlock the Premium track',
     level: 'Level',
+    levelsOutOf: (total: number) => `of ${total}`,
+    quizProgress: (current: number, total: number) => `${current} of ${total}`,
     pointsToLevel: (points: number, threshold: number, level: number) => `${points} of ${threshold} points to level ${level}`,
     passComplete: (points: number) => `${points} points — pass complete`,
     passProgress: 'Pass progress',

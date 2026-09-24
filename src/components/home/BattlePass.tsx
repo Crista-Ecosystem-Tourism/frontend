@@ -153,7 +153,7 @@ export function BattlePass({ points, isPremium, onUpgrade, language }: BattlePas
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
           <p className="font-sans text-sm text-text">
             {copy.level} <span className="font-semibold tabular text-primary">{currentLevel}</span>
-            <span className="text-text-muted"> из {tiers.length}</span>
+            <span className="text-text-muted"> {copy.levelsOutOf(tiers.length)}</span>
           </p>
           <p className="font-sans text-xs tabular text-text-muted">
             {nextTier
