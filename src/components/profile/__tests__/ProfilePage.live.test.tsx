@@ -75,6 +75,7 @@ describe('ProfilePage live data', () => {
 
     const retryButtons = await screen.findAllByRole('button', { name: 'Повторить' })
     expect(retryButtons).toHaveLength(2)
+    expect(screen.getByText('Достижения временно недоступны вместе с игровым паспортом.')).toBeTruthy()
     getPassportMock.mockResolvedValueOnce({
       profile: { xp: 70, energy: 5, streak: 1 }, stamps: [], cities: [], routes: [],
     })

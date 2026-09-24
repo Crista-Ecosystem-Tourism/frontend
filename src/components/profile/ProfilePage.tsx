@@ -205,7 +205,7 @@ export function ProfilePage() {
                     )}
                     <Chip size="sm">
                       <Globe />
-                      <span className="tabular">{closedCountries.length} {demoMode ? 'стран закрыто' : 'городов закрыто'}</span>
+                      <span className="tabular">{!demoMode && passportError ? '—' : closedCountries.length} {demoMode ? 'стран закрыто' : 'городов закрыто'}</span>
                     </Chip>
                   </div>
                 </div>
@@ -226,13 +226,13 @@ export function ProfilePage() {
                 <StatTile icon={<CalendarDays />} value={`${totalDays}`} label="дней в пути" />
               </> : <>
                 <StatTile icon={<Sparkles />} value={passportLoading ? '…' : `${passport?.profile.xp ?? '—'}`} label="XP" />
-                <StatTile icon={<CalendarDays />} value={suitcaseLoading ? '…' : `${(suitcaseTrips ?? []).filter((trip) => !trip.isArchived).length}`} label="сохранённых поездок" />
+                <StatTile icon={<CalendarDays />} value={suitcaseLoading ? '…' : suitcaseError ? '—' : `${(suitcaseTrips ?? []).filter((trip) => !trip.isArchived).length}`} label="сохранённых поездок" />
               </>}
               <StatTile icon={<MapPin />} value={`${savedRoutes.length}`} label="маршрутов" />
-              <StatTile icon={<Stamp />} value={!demoMode && passportLoading ? '…' : `${stampsEarned}`} label="штампов" />
+              <StatTile icon={<Stamp />} value={!demoMode && passportLoading ? '…' : !demoMode && passportError ? '—' : `${stampsEarned}`} label="штампов" />
               {demoMode
                 ? <StatTile icon={<Compass />} value={`${chatHistory.length}`} label="чатов" />
-                : <StatTile icon={<Compass />} value={suitcaseLoading ? '…' : `${suitcaseGoals.length}`} label="целей" />}
+                : <StatTile icon={<Compass />} value={suitcaseLoading ? '…' : suitcaseError ? '—' : `${suitcaseGoals.length}`} label="целей" />}
             </GlassPanel>
 
             {/* Паспорт */}
@@ -314,6 +314,7 @@ export function ProfilePage() {
             {/* Достижения */}
             <section>
               <h2 className="mb-4 font-display text-2xl font-semibold text-text">Достижения</h2>
+              {!demoMode && passportError ? <p className="text-sm text-text-muted">Достижения временно недоступны вместе с игровым паспортом.</p> :
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {achievements.map((a) => (
                   <GlassPanel
@@ -338,6 +339,7 @@ export function ProfilePage() {
                   </GlassPanel>
                 ))}
               </div>
+              }
             </section>
 
             {/* Поездки */}
@@ -345,7 +347,7 @@ export function ProfilePage() {
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <h2 className="font-display text-2xl font-semibold text-text">Мои путешествия</h2>
                 <span className="font-sans text-xs tabular text-text-muted">
-                  {suitcaseLoading && !demoMode ? 'Загрузка…' : pluralize(displayTrips.length, 'поездка', 'поездки', 'поездок')}
+                  {suitcaseLoading && !demoMode ? 'Загрузка…' : !demoMode && suitcaseError ? '—' : pluralize(displayTrips.length, 'поездка', 'поездки', 'поездок')}
                 </span>
               </div>
 
