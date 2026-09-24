@@ -12,12 +12,12 @@ import { Input } from '@/components/ui/input'
 import { useApp } from '@/context/AppContext'
 
 export function SaveRouteModal() {
-  const { activeModal, closeModal, saveCurrentRoute, places } = useApp()
+  const { activeModal, closeModal, saveCurrentRoute, routePlacesToSave } = useApp()
   const isOpen = activeModal === 'save-route'
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const selectedPlaces = places.filter(p => p.selected)
+  const selectedPlaces = routePlacesToSave
 
   const handleSave = async () => {
     if (!name.trim()) return

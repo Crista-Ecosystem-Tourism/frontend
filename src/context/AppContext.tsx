@@ -170,7 +170,8 @@ interface AppContextType {
 
   // Routes
   savedRoutes: SavedRoute[]
-  saveCurrentRoute: (name: string) => void
+  routePlacesToSave: Place[]
+  saveCurrentRoute: (name: string) => Promise<void>
   loadSavedRoute: (routeId: string) => Promise<void>
   
   // Modals
@@ -337,6 +338,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const sessionRef = useRef<SessionState | null>(loadSession())
   const ratingsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingRatingsRef = useRef<Record<string, PlaceRatingEntry> | null>(null)
+  const latestItineraryMessage = [...messages].reverse().find(
+    message => message.role === 'assistant' && message.itinerary?.length,
+  )
+  const itinerarySlots = latestItineraryMessage?.itinerary?.flatMap(day => day.slots) ?? []
+  const itineraryPlaces = itinerarySlots.map(slot => slot.place).filter((place): place is Place => Boolean(place))
+  const hasCompleteRoutedItinerary = Boolean(
+    routeGeoJSON && itinerarySlots.length > 0 && itineraryPlaces.length === itinerarySlots.length,
+  )
+  const routePlacesToSave = hasCompleteRoutedItinerary ? itineraryPlaces : places.filter(place => place.selected)
 
   // Flush pending ratings to backend immediately
   const flushPendingRatings = useCallback(() => {
@@ -874,8 +884,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSuggestedReplies(mapped.suggestedReplies)
 
         // Save route data if present
-        if (response.route_geojson) setRouteGeoJSON(response.route_geojson)
-        if (response.route_metadata) setRouteMetadata(response.route_metadata)
+        setRouteGeoJSON(response.route_geojson ?? null)
+        setRouteMetadata(response.route_metadata ?? null)
       }
 
       setMessages(prev => [...prev, aiResponse])
@@ -1125,10 +1135,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Save route
   const saveCurrentRoute = useCallback(async (name: string) => {
-    const selectedPlaces = places.filter(p => p.selected)
-    if (selectedPlaces.length === 0) return
+    const savedPlaces = routePlacesToSave
+    if (savedPlaces.length === 0) return
 
-    const destination = selectedPlaces[0]?.address?.split(',')[0] || 'Путешествие'
+    const destination = savedPlaces[0]?.address?.split(',')[0] || 'Путешествие'
 
     // Try to save via API
     if (!isMockMode() && backendAvailable) {
@@ -1137,15 +1147,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
           name,
           destination,
           session_id: sessionRef.current?.sessionId ?? null,
-          places: selectedPlaces as unknown as Record<string, unknown>[],
+          places: savedPlaces as unknown as Record<string, unknown>[],
           graph_geojson: graphGeoJSON,
+          route_geojson: hasCompleteRoutedItinerary ? routeGeoJSON : null,
         })
         const newRoute: SavedRoute = {
           id: result.id,
           name: result.name,
           destination: result.destination,
-          days: selectedPlaces.length,
-          places: selectedPlaces,
+          days: savedPlaces.length,
+          places: savedPlaces,
           createdAt: result.created_at || new Date().toISOString(),
         }
         setSavedRoutes(prev => [...prev, newRoute])
@@ -1161,13 +1172,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: `route-${Date.now()}`,
       name,
       destination,
-      days: selectedPlaces.length,
-      places: selectedPlaces,
+      days: savedPlaces.length,
+      places: savedPlaces,
       createdAt: new Date().toISOString(),
     }
     setSavedRoutes(prev => [...prev, newRoute])
     setActiveModal(null)
-  }, [places, backendAvailable, graphGeoJSON])
+  }, [routePlacesToSave, backendAvailable, graphGeoJSON, hasCompleteRoutedItinerary, routeGeoJSON])
 
   // Load a saved route and display its places on the map
   const loadSavedRoute = useCallback(async (routeId: string) => {
@@ -1181,7 +1192,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (route.graph_geojson) {
         setGraphGeoJSON(route.graph_geojson)
+      } else {
+        setGraphGeoJSON(null)
       }
+      setRouteGeoJSON(route.route_geojson ?? null)
       // Switch to a chat-like view to show the map
       setCurrentChatId(`route-${routeId}`)
       setMessages([{
@@ -1192,7 +1206,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         places: routePlaces,
       }])
       setSelectedPlace(null)
-      setRouteGeoJSON(null)
       setRouteMetadata(null)
     } catch {
       setApiError('Не удалось загрузить маршрут')
@@ -1266,6 +1279,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     buildingGraph,
     buildPlaceGraph,
     savedRoutes,
+    routePlacesToSave,
     saveCurrentRoute,
     loadSavedRoute,
     activeModal,
