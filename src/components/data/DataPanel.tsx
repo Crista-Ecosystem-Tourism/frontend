@@ -11,6 +11,7 @@ import { WikiEditor, type WikiEditorSubmission } from './WikiEditor'
 import { CountryCarousel } from './CountryCarousel'
 import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
+import { ApiError } from '@/api/chatApi'
 import { createWikiDraft, getMyWikiDrafts, getWikiArticle, getWikiReviewQueue, publishWikiDraft, submitWikiDraft, type WikiDraft as ServerWikiDraft, type WikiPublishedArticle } from '@/api/wikiApi'
 
 interface DataPanelProps {
@@ -305,10 +306,10 @@ export function DataPanel({ onBack }: DataPanelProps) {
       } else {
         setCountryWikiStatus('missing')
       }
-    }).catch(() => {
+    }).catch((error: unknown) => {
       if (active) {
         setPublishedCountry(null)
-        setCountryWikiStatus('unavailable')
+        setCountryWikiStatus(error instanceof ApiError && error.status === 404 ? 'missing' : 'unavailable')
       }
     })
     return () => { active = false }

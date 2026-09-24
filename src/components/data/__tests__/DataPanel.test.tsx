@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DataPanel } from '../DataPanel'
 
 const { getWikiArticleMock } = vi.hoisted(() => ({ getWikiArticleMock: vi.fn() }))
+const { ApiErrorMock } = vi.hoisted(() => ({ ApiErrorMock: class ApiError extends Error { status: number; detail: string; constructor(status: number, detail: string) { super(detail); this.status = status; this.detail = detail } } }))
+
+vi.mock('@/api/chatApi', () => ({ ApiError: ApiErrorMock }))
 
 vi.mock('@/api/wikiApi', () => ({
   getWikiArticle: getWikiArticleMock,
@@ -112,5 +115,15 @@ describe('DataPanel country Wiki publication state', () => {
 
     await waitFor(() => expect(screen.getByText(/Серверная Wiki недоступна/)).toBeTruthy())
     expect(screen.queryByText(/опубликованная серверная версия/)).toBeNull()
+  })
+
+  it('distinguishes an unpublished country article from a server outage', async () => {
+    getWikiArticleMock.mockRejectedValue(new ApiErrorMock(404, 'Published article not found'))
+
+    render(<DataPanel onBack={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Япония' }))
+
+    expect(await screen.findByText(/Для этой страны ещё нет опубликованной серверной версии/)).toBeTruthy()
+    expect(screen.queryByText(/Серверная Wiki недоступна/)).toBeNull()
   })
 })
