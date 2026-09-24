@@ -1214,8 +1214,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }])
       setSelectedPlace(null)
       setRouteMetadata(null)
-    } catch {
+    } catch (error) {
       setApiError('Не удалось загрузить маршрут')
+      throw error
     }
   }, [])
 
