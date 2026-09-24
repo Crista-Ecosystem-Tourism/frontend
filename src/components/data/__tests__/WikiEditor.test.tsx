@@ -23,5 +23,8 @@ describe('WikiEditor localization', () => {
     expect(screen.getByText('Choose a block')).toBeTruthy()
     expect(screen.getByText('Subheading')).toBeTruthy()
     expect(screen.getByText('Divides the article into sections')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: /Photo/ }))
+    expect(screen.getByText('Drop a photo here or choose a file')).toBeTruthy()
+    expect(screen.getByText('up to 8 MB')).toBeTruthy()
   })
 })
