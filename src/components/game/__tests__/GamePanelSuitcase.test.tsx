@@ -52,7 +52,12 @@ describe('LiveGamePanel Suitcase summary', () => {
       ],
       goals: [{ id: 'goal-1', title: 'На музеи', current: 120, total: 300 }],
     })
-    getPassportMock.mockResolvedValue({ profile: { xp: 0, energy: 5, streak: 0 }, stamps: [], cities: [], routes: [] })
+    getPassportMock.mockResolvedValue({
+      profile: { xp: 240, energy: 4, streak: 3 },
+      stamps: [{ key: 'moscow-starter', title: 'Москва', earned_at: '2026-09-24' }],
+      cities: [{ id: 'moscow', name: 'Москва', completed_quests: 3, required_quest_count: 10 }],
+      routes: [{ id: 'route-1', name: 'Северный маршрут', destination: 'Санкт-Петербург', updated_at: null }],
+    })
   })
 
   it('renders server-backed active trips and goals and links to the suitcase view', async () => {
@@ -62,6 +67,9 @@ describe('LiveGamePanel Suitcase summary', () => {
     expect(screen.getByText('Киото, Япония · Осака, Япония')).toBeTruthy()
     expect(screen.queryByText(/Токио/)).toBeNull()
     expect(screen.getByText('На музеи: 120 / 300')).toBeTruthy()
+    expect(screen.getByText('240 XP · 1 штампов')).toBeTruthy()
+    expect(screen.getByText('Москва: 3/10')).toBeTruthy()
+    expect(screen.getByText('Сохранённые маршруты: Северный маршрут — Санкт-Петербург')).toBeTruthy()
     expect(fetchWorkspaceMock).toHaveBeenCalledTimes(1)
 
     screen.getByRole('button', { name: 'Открыть чемодан' }).click()
@@ -75,5 +83,16 @@ describe('LiveGamePanel Suitcase summary', () => {
 
     expect(await screen.findByText('Игровой паспорт временно недоступен.')).toBeTruthy()
     expect(await screen.findByText('2 активных поездок · 1 целей')).toBeTruthy()
+  })
+
+  it('shows a loading state while the server passport is pending', async () => {
+    let resolvePassport!: (passport: unknown) => void
+    getPassportMock.mockReturnValue(new Promise((resolve) => { resolvePassport = resolve }))
+
+    render(<GamePanel onBack={() => undefined} />)
+
+    expect(screen.getByText('Загружаем игровой паспорт…')).toBeTruthy()
+    resolvePassport({ profile: { xp: 0, energy: 5, streak: 0 }, stamps: [], cities: [], routes: [] })
+    expect(await screen.findByText('0 XP · 0 штампов')).toBeTruthy()
   })
 })
