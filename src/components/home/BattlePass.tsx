@@ -5,13 +5,16 @@ import {
 } from 'lucide-react'
 import { GlassPanel, Chip, IconButton } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
-import { pass, rewardLabel, type Reward, type RewardKind } from '@/mocks/battlepass'
+import { pass, type Reward, type RewardKind } from '@/mocks/battlepass'
 import { cn } from '@/lib/utils'
+import { getHomeCopy } from '@/lib/homeCopy'
+import type { InterfaceLanguage } from '@/lib/settingsCopy'
 
 interface BattlePassProps {
   points: number
   isPremium: boolean
   onUpgrade: () => void
+  language: InterfaceLanguage
 }
 
 const rewardIcon: Record<RewardKind, typeof Stamp> = {
@@ -29,13 +32,16 @@ function RewardCell({
   unlocked,
   locked,
   premium,
+  language,
 }: {
   reward: Reward
   unlocked: boolean
   /** Уровень достигнут, но награда за подпиской */
   locked: boolean
   premium: boolean
+  language: InterfaceLanguage
 }) {
+  const copy = getHomeCopy(language)
   const Icon = rewardIcon[reward.kind]
 
   return (
@@ -66,16 +72,16 @@ function RewardCell({
         {unlocked ? (
           <Check
             className={cn('h-4 w-4 shrink-0', premium ? 'text-accent-soft' : 'text-primary')}
-            aria-label="Получено"
+            aria-label={copy.rewardReceived}
           />
         ) : (
-          <Lock className="h-3.5 w-3.5 shrink-0 text-text-muted" aria-label={locked ? 'Нужна подписка' : 'Не открыто'} />
+          <Lock className="h-3.5 w-3.5 shrink-0 text-text-muted" aria-label={locked ? copy.subscriptionRequired : copy.notUnlocked} />
         )}
       </div>
 
       <div className="min-w-0">
         <p className="font-sans text-[10px] uppercase tracking-wide text-text-muted">
-          {rewardLabel[reward.kind]}
+          {copy.rewardKinds[reward.kind]}
         </p>
         <p
           className={cn(
@@ -90,7 +96,8 @@ function RewardCell({
   )
 }
 
-export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
+export function BattlePass({ points, isPremium, onUpgrade, language }: BattlePassProps) {
+  const copy = getHomeCopy(language)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const tiers = pass.tiers
@@ -125,17 +132,17 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Chip size="sm">
             <InfinityIcon />
-            Без сроков
+            {copy.passWithoutDeadline}
           </Chip>
           {isPremium ? (
             <Chip size="sm" variant="accent">
               <Crown />
-              Премиум активен
+              {copy.premiumActive}
             </Chip>
           ) : (
             <Button size="sm" onClick={onUpgrade}>
               <Crown />
-              Открыть премиум-дорожку
+              {copy.unlockPremium}
             </Button>
           )}
         </div>
@@ -145,13 +152,13 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
       <div className="border-b border-hairline px-5 py-4">
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
           <p className="font-sans text-sm text-text">
-            Уровень <span className="font-semibold tabular text-primary">{currentLevel}</span>
+            {copy.level} <span className="font-semibold tabular text-primary">{currentLevel}</span>
             <span className="text-text-muted"> из {tiers.length}</span>
           </p>
           <p className="font-sans text-xs tabular text-text-muted">
             {nextTier
-              ? `${points} из ${nextTier.threshold} очков до уровня ${nextTier.level}`
-              : `${points} очков, пропуск пройден полностью`}
+              ? copy.pointsToLevel(points, nextTier.threshold, nextTier.level)
+              : copy.passComplete(points)}
           </p>
         </div>
 
@@ -161,7 +168,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
           aria-valuenow={points}
           aria-valuemin={0}
           aria-valuemax={maxThreshold}
-          aria-label="Прогресс пропуска"
+          aria-label={copy.passProgress}
         >
           <div
             className="h-full rounded-full bg-primary transition-[width] duration-slow ease-standard"
@@ -170,7 +177,7 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
         </div>
 
         <p className="mt-2 font-sans text-xs text-text-muted">
-          Очки дают точки квестов, верные ответы дня и полностью закрытые города.
+          {copy.pointsExplanation}
         </p>
       </div>
 
@@ -207,23 +214,24 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
                     {tier.level}
                   </span>
                   <span className="font-sans text-[11px] tabular text-text-muted">
-                    {tier.threshold} очк.
+                    {tier.threshold} {copy.pointsShort}
                   </span>
                 </div>
 
                 <div className="space-y-2">
-                  <RewardCell reward={tier.free} unlocked={reached} locked={false} premium={false} />
+                  <RewardCell reward={tier.free} unlocked={reached} locked={false} premium={false} language={language} />
                   <RewardCell
                     reward={tier.premium}
                     unlocked={reached && isPremium}
                     locked={reached && !isPremium}
                     premium
+                    language={language}
                   />
                 </div>
 
                 {isCurrent && (
                   <p className="mt-2 text-center font-sans text-[11px] text-text-muted">
-                    Следующий уровень
+                    {copy.nextLevel}
                   </p>
                 )}
               </div>
@@ -234,14 +242,14 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
         {/* Стрелки прокрутки */}
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-1">
           <span className="pointer-events-auto">
-            <IconButton label="Предыдущие уровни" size="sm" onClick={() => scrollBy(-1)}>
+            <IconButton label={copy.previousLevels} size="sm" onClick={() => scrollBy(-1)}>
               <ChevronLeft />
             </IconButton>
           </span>
         </div>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1">
           <span className="pointer-events-auto">
-            <IconButton label="Следующие уровни" size="sm" onClick={() => scrollBy(1)}>
+            <IconButton label={copy.followingLevels} size="sm" onClick={() => scrollBy(1)}>
               <ChevronRight />
             </IconButton>
           </span>
@@ -252,11 +260,11 @@ export function BattlePass({ points, isPremium, onUpgrade }: BattlePassProps) {
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-hairline px-5 py-3 font-sans text-xs text-text-muted">
         <span className="flex items-center gap-2">
           <span className="h-2.5 w-4 rounded-sm bg-primary/60" />
-          Бесплатная дорожка
+          {copy.freeTrack}
         </span>
         <span className="flex items-center gap-2">
           <span className="h-2.5 w-4 rounded-sm bg-accent/60" />
-          Премиум-дорожка
+          {copy.premiumTrack}
         </span>
       </div>
     </GlassPanel>
