@@ -209,6 +209,17 @@ function MoscowWikiArticle({ reference }: { reference: MoscowSandboxState['wiki_
       <p className="font-sans text-xs uppercase tracking-wide text-text-muted">{copy.wikiEyebrow(article.version_id)}</p>
       <h3 className="mt-1 font-display text-lg font-semibold text-text">{article.title}</h3>
       {summary && <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{summary}</p>}
+      {Array.isArray(article.body.sections) && article.body.sections.map((section, index) => {
+        if (!section || typeof section !== 'object') return null
+        const item = section as { title?: unknown; text?: unknown }
+        if (typeof item.title !== 'string' || typeof item.text !== 'string') return null
+        return (
+          <div key={`${item.title}-${index}`} className="mt-3">
+            <h4 className="font-sans text-sm font-semibold text-text">{item.title}</h4>
+            <p className="mt-1 font-sans text-sm leading-6 text-text-secondary">{item.text}</p>
+          </div>
+        )
+      })}
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
         {article.sources.map((source) => (
           <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-sans text-xs text-primary hover:underline">

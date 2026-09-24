@@ -109,4 +109,37 @@ describe('MoscowSandbox lesson Wiki references', () => {
     expect(screen.getByText('English instruction')).toBeTruthy()
     expect(getMoscowSandboxMock).toHaveBeenCalledWith('en')
   })
+
+  it('renders the published English Moscow Wiki edition and its translated sections', async () => {
+    useAppMock.mockReturnValue({ language: 'en' })
+    getMoscowSandboxMock.mockResolvedValueOnce({
+      city: { id: 'moscow', name: 'Moscow' },
+      content_language: 'en', lesson_content_language: 'en',
+      activity_content_language: 'en', wiki_content_language: 'en',
+      profile: { xp: 100, energy: 5, streak: 1 },
+      city_stamp: { key: 'moscow-city-explorer', title: 'Moscow stamp', earned_at: '2026-09-24' },
+      lessons: [], drill: null, matching: null, timeline: null, word_blocks: null,
+      price_slider: null, story: null, photo_scanner: null,
+      wiki_reference: { slug: 'moscow-en', version_id: 'wiki-moscow-en-v1' },
+      practice_recovery: { available: false, used_today: false, amount: 1 },
+    })
+    getWikiArticleVersionMock.mockResolvedValueOnce({
+      version_id: 'wiki-moscow-en-v1', slug: 'moscow-en', title: 'Moscow',
+      body: {
+        summary: 'Moscow’s English overview.',
+        sections: [{ title: 'The Kremlin and Red Square', text: 'The historic heart of the city.' }],
+      },
+      sources: [{ label: 'Official website of the Moscow Kremlin', url: 'https://www.kreml.ru/' }],
+      license: 'CC BY 4.0', published_at: null,
+    })
+
+    render(<MoscowSandbox signedIn refreshKey={0} />)
+
+    expect(await screen.findByText('Moscow’s English overview.')).toBeTruthy()
+    expect(screen.getByText('The Kremlin and Red Square')).toBeTruthy()
+    expect(screen.getByText('The historic heart of the city.')).toBeTruthy()
+    expect(screen.queryByText(/Moscow Wiki article is currently in Russian/)).toBeNull()
+    expect(screen.getByRole('link', { name: /Official website of the Moscow Kremlin/ }).getAttribute('href'))
+      .toBe('https://www.kreml.ru/')
+  })
 })
