@@ -26,7 +26,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
   useEffect(() => {
     if (!signedIn || isMockMode()) return
     let active = true
-    getOnboarding()
+    getOnboarding(language)
       .then((result) => {
         if (!active) return
         setState(result)
@@ -78,6 +78,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
   }
 
   const { content, daily, profile } = state
+  const locationLabel = language === 'en' ? 'Russia · Moscow' : `${content.country.name} · ${content.country.city}`
   const choose = async (answerKey: string) => {
     if (view === 'answering' || state.completed) return
     setView('answering')
@@ -106,7 +107,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
     <GlassPanel className="overflow-hidden border-primary/25 p-0">
       <div className="bg-[radial-gradient(circle_at_85%_0%,rgba(107,91,255,0.28),transparent_42%),linear-gradient(130deg,rgba(11,125,127,0.2),transparent_68%)] p-5 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <Chip variant="active"><MapPin /> {content.country.name} · {content.country.city}</Chip>
+          <Chip variant="active"><MapPin /> {locationLabel}</Chip>
           <div className="flex items-center gap-2">
             <Chip size="sm"><Award /> {profile.xp} XP</Chip>
             <Chip size="sm"><BatteryMedium /> {profile.energy}/5</Chip>
@@ -139,7 +140,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
       </div>
 
       <div className="p-5 sm:p-6">
-        {language === 'en' && <p className="mb-4 rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{onboarding.contentLanguageNote}</p>}
+        {state.content_language !== language && <p className="mb-4 rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{onboarding.contentLanguageNote}</p>}
         {state.completed ? (
           <div className="flex items-start gap-3 rounded-md bg-primary/10 p-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
@@ -161,7 +162,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
             <div className="rounded-md bg-panel-2/70 p-4">
               <p className="font-display text-xl font-semibold text-text">{onboarding.arrivalHeading}</p>
               <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">
-                {onboarding.arrivalBody(content.scene.title)}
+              {onboarding.arrivalBody(content.scene.title)}
               </p>
             </div>
             <button type="button" onClick={() => setStep('fact')} className="rounded-md bg-primary px-4 py-3 font-sans text-sm font-semibold text-white transition hover:bg-primary/90">

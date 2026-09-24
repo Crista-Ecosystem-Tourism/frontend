@@ -40,6 +40,7 @@ export type OnboardingContent = {
 
 export type OnboardingState = {
   content: OnboardingContent
+  content_language?: 'ru' | 'en'
   profile: GameProfile
   daily: GameDailyProgress
   completed: boolean
@@ -272,8 +273,9 @@ async function parse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>
 }
 
-export async function getOnboarding(): Promise<OnboardingState> {
-  return parse<OnboardingState>(await fetch(`${API_BASE_URL}/game/onboarding`, {
+export async function getOnboarding(language: 'ru' | 'en' = 'ru'): Promise<OnboardingState> {
+  const params = new URLSearchParams({ language })
+  return parse<OnboardingState>(await fetch(`${API_BASE_URL}/game/onboarding?${params}`, {
     headers: getAuthHeaders(),
   }))
 }

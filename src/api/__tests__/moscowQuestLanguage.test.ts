@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { answerMoscowQuest, getMoscowQuest } from '../gameApi'
+import { answerMoscowQuest, getMoscowQuest, getOnboarding } from '../gameApi'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -11,6 +11,15 @@ beforeEach(() => {
 })
 
 describe('Moscow quest language API', () => {
+  it('requests the selected first-trip edition', async () => {
+    await getOnboarding('en')
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/game\/onboarding\?language=en$/),
+      expect.objectContaining({ headers: expect.any(Object) }),
+    )
+  })
+
   it('requests the selected lesson edition', async () => {
     await getMoscowQuest('moscow-red-square', 'en')
 
