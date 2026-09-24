@@ -65,6 +65,17 @@ interface GameCopy {
   categoryNames: Record<QuestCategory, string>
   noRegions: (country: string) => string
   worldMapBlankSpot: string
+  passportOwner: string
+  document: string
+  countriesLabel: string
+  stampsLabel: string
+  countrySeals: string
+  visitMarks: string
+  page: (number: number) => string
+  share: string
+  emptyPage: string
+  firstStampHint: string
+  passportDisclaimer: string
 }
 
 const copy: Record<InterfaceLanguage, GameCopy> = {
@@ -101,6 +112,10 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
     questCategories: 'Категории', noRegions: (country) => `Регионы для страны ${country} пока не размечены`,
     categoryNames: { sights: 'Достопримечательности', food: 'Кухня', traditions: 'Традиции' },
     worldMapBlankSpot: 'Белое пятно: маршрут сюда ещё не строили',
+    passportOwner: 'Владелец', document: 'Документ', countriesLabel: 'Стран', stampsLabel: 'Штампов',
+    countrySeals: 'Печати за закрытые страны', visitMarks: 'Отметки о посещении', page: (number) => `Страница ${number}`,
+    share: 'Поделиться', emptyPage: 'Страница пока чистая', firstStampHint: 'Закройте все квесты города, чтобы получить первый штамп.',
+    passportDisclaimer: 'Штамп за город выдаётся при закрытии всех его квестов, за страну — при закрытии всех городов. Это документ Crista, не связанный с государственными паспортами.',
   },
   en: {
     back: 'Back', backToWorldMap: 'Back to world map', firstTrip: 'Your first trip', pilotTag: 'Russia · pilot',
@@ -135,6 +150,10 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
     questCategories: 'Categories', noRegions: (country) => `Regions for ${country} are not mapped yet`,
     categoryNames: { sights: 'Sightseeing', food: 'Food', traditions: 'Traditions' },
     worldMapBlankSpot: 'Undiscovered: no itinerary has been planned here yet',
+    passportOwner: 'Holder', document: 'Document', countriesLabel: 'Countries', stampsLabel: 'Stamps',
+    countrySeals: 'Seals for completed countries', visitMarks: 'Visit stamps', page: (number) => `Page ${number}`,
+    share: 'Share', emptyPage: 'This page is still blank', firstStampHint: 'Complete every quest in a city to earn your first stamp.',
+    passportDisclaimer: 'Earn a city stamp by completing all its quests, and a country seal by completing all its cities. This Crista document is not a government passport.',
   },
 }
 

@@ -11,6 +11,8 @@ describe('game interface translations', () => {
     expect(copy.lessonProgress(2, 5, 40)).toBe('Lesson 2 of 5, 40% complete')
     expect(copy.categoryNames.food).toBe('Food')
     expect(copy.unopenedCountry('Japan')).toContain('Japan')
+    expect(copy.passportOwner).toBe('Holder')
+    expect(copy.firstStampHint).toContain('Complete every quest')
   })
 
   it('keeps Russian text and inflects city counts', () => {
@@ -21,6 +23,7 @@ describe('game interface translations', () => {
     expect(copy.cityCount(3)).toBe('3 города')
     expect(copy.cityCount(12)).toBe('12 городов')
     expect(copy.categoryNames.food).toBe('Кухня')
+    expect(copy.passportOwner).toBe('Владелец')
   })
 
   it('provides English titles and hints for every seeded quest while preserving Russian source copy', () => {
