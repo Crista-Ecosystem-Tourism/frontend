@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { ArrowLeft, Heart, MapPin, Play, Trophy, Medal, UserPlus, Crown, Copy, RotateCw, UserRoundX } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -8,7 +8,19 @@ import { Img } from '@/components/ui/Img'
 import { cn } from '@/lib/utils'
 import { useApp } from '@/context/AppContext'
 import { isLoggedIn } from '@/api/authApi'
-import { acceptFriendInvite, createFriendInvite, listFriends, removeFriend, type Friend } from '@/api/socialApi'
+import {
+  acceptFriendInvite,
+  addTeamMember,
+  changeTeamRole,
+  createFriendInvite,
+  createTeam,
+  listFriends,
+  listTeams,
+  removeFriend,
+  removeTeamMember,
+  type Friend,
+  type SocialTeam,
+} from '@/api/socialApi'
 
 type CommunityPanelProps = {
   onBack: () => void
@@ -61,7 +73,7 @@ const leaderboard = [
   { rank: 5, name: 'Соня Рахимова', countries: 7, avatar: '' },
 ]
 
-function FriendsSection({ language }: { language: 'ru' | 'en' }) {
+function FriendsSection({ language, userId }: { language: 'ru' | 'en'; userId?: string }) {
   const en = language === 'en'
   const [friends, setFriends] = useState<Friend[]>([])
   const [loading, setLoading] = useState(false)
@@ -72,7 +84,7 @@ function FriendsSection({ language }: { language: 'ru' | 'en' }) {
   const [inviteCode, setInviteCode] = useState<string | null>(null)
   const signedIn = isLoggedIn()
 
-  const refreshFriends = async () => {
+  const refreshFriends = useCallback(async () => {
     if (!signedIn) return
     setLoading(true)
     setError(null)
@@ -83,13 +95,13 @@ function FriendsSection({ language }: { language: 'ru' | 'en' }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [en, signedIn])
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('friend-invite')
     setInviteCode(code)
     void refreshFriends()
-  }, [signedIn])
+  }, [refreshFriends])
 
   const createInvite = async () => {
     setBusy(true)
@@ -198,12 +210,170 @@ function FriendsSection({ language }: { language: 'ru' | 'en' }) {
         </GlassPanel>
       ))}
       {notice && <p role="status" className="text-sm text-text-secondary">{notice}</p>}
+      <TeamSection language={language} friends={friends} userId={userId} />
     </div>
   )
 }
 
+function TeamSection({ language, friends, userId }: { language: 'ru' | 'en'; friends: Friend[]; userId?: string }) {
+  const en = language === 'en'
+  const [teams, setTeams] = useState<SocialTeam[]>([])
+  const [teamName, setTeamName] = useState('')
+  const [selectedFriends, setSelectedFriends] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  const refreshTeams = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      setTeams(await listTeams())
+    } catch {
+      setError(en ? 'Could not load teams.' : 'Не удалось загрузить команды.')
+    } finally {
+      setLoading(false)
+    }
+  }, [en])
+
+  useEffect(() => { void refreshTeams() }, [refreshTeams])
+
+  const onCreateTeam = async (event: FormEvent) => {
+    event.preventDefault()
+    const name = teamName.trim()
+    if (!name || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      const team = await createTeam(name)
+      setTeams((items) => [team, ...items])
+      setTeamName('')
+      setNotice(en ? 'Team created.' : 'Команда создана.')
+    } catch {
+      setError(en ? 'Could not create the team.' : 'Не удалось создать команду.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onAddFriend = async (team: SocialTeam) => {
+    const friendId = selectedFriends[team.id]
+    if (!friendId || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await addTeamMember(team.id, friendId)
+      await refreshTeams()
+      setSelectedFriends((items) => ({ ...items, [team.id]: '' }))
+      setNotice(en ? 'Friend added to the team.' : 'Друг добавлен в команду.')
+    } catch {
+      setError(en ? 'Could not add this friend to the team.' : 'Не удалось добавить друга в команду.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onChangeRole = async (team: SocialTeam, memberId: string, role: 'admin' | 'member') => {
+    setBusy(true)
+    setError(null)
+    try {
+      await changeTeamRole(team.id, memberId, role)
+      await refreshTeams()
+      setNotice(en ? 'Team role updated.' : 'Роль участника обновлена.')
+    } catch {
+      setError(en ? 'Could not update this role.' : 'Не удалось изменить роль.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onRemoveMember = async (team: SocialTeam, memberId: string) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await removeTeamMember(team.id, memberId)
+      await refreshTeams()
+      setNotice(en ? 'Team membership updated.' : 'Состав команды обновлён.')
+    } catch {
+      setError(en ? 'Could not update team membership.' : 'Не удалось изменить состав команды.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="space-y-3 border-t border-hairline pt-4" aria-labelledby="teams-heading">
+      <h2 id="teams-heading" className="font-sans text-sm font-semibold text-text">{en ? 'Teams' : 'Команды'}</h2>
+      <form onSubmit={(event) => void onCreateTeam(event)} className="flex gap-2">
+        <input
+          aria-label={en ? 'Team name' : 'Название команды'}
+          maxLength={80}
+          value={teamName}
+          onChange={(event) => setTeamName(event.target.value)}
+          placeholder={en ? 'Team name' : 'Название команды'}
+          className="h-10 min-w-0 flex-1 rounded-md border border-hairline bg-panel px-3 font-sans text-sm text-text"
+        />
+        <Button type="submit" size="sm" disabled={busy || !teamName.trim()}><UserPlus />{en ? 'Create team' : 'Создать команду'}</Button>
+      </form>
+      {loading && <p role="status" className="text-sm text-text-muted">{en ? 'Loading teams…' : 'Загружаем команды…'}</p>}
+      {error && <p role="alert" className="text-sm text-error">{error}</p>}
+      {!loading && !error && teams.length === 0 && <p className="text-xs text-text-muted">{en ? 'Create a team, then add people from your friends list.' : 'Создайте команду и добавьте в неё друзей.'}</p>}
+      {teams.map((team) => {
+        const currentMemberIds = new Set(team.members.map((member) => member.id))
+        const availableFriends = friends.filter((friend) => !currentMemberIds.has(friend.id))
+        return (
+          <GlassPanel key={team.id} className="space-y-3 p-4">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-sans text-sm font-semibold text-text">{team.name}</h3>
+              <Chip size="sm">{team.role === 'owner' ? (en ? 'Owner' : 'Владелец') : team.role === 'admin' ? (en ? 'Admin' : 'Админ') : (en ? 'Member' : 'Участник')}</Chip>
+            </div>
+            <ul className="space-y-2">
+              {team.members.map((member) => (
+                <li key={member.id} className="flex items-center gap-2 text-sm text-text-secondary">
+                  <span className="min-w-0 flex-1 truncate">{member.name || (en ? 'Crista traveler' : 'Путешественник Crista')}</span>
+                  {team.role === 'owner' && member.role !== 'owner' && (
+                    <select
+                      aria-label={`${en ? 'Role for' : 'Роль для'} ${member.name || member.id}`}
+                      value={member.role}
+                      disabled={busy}
+                      onChange={(event) => void onChangeRole(team, member.id, event.target.value as 'admin' | 'member')}
+                      className="h-8 rounded border border-hairline bg-panel px-2 text-xs text-text"
+                    >
+                      <option value="member">{en ? 'Member' : 'Участник'}</option>
+                      <option value="admin">{en ? 'Admin' : 'Админ'}</option>
+                    </select>
+                  )}
+                  {(team.role === 'owner' && member.role !== 'owner') || (team.role === 'admin' && member.role === 'member') || (member.id === userId && member.role !== 'owner') ? (
+                    <IconButton label={en ? `Remove ${member.name || 'member'}` : `Удалить ${member.name || 'участника'}`} variant="ghost" size="sm" disabled={busy} onClick={() => void onRemoveMember(team, member.id)}><UserRoundX /></IconButton>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {(team.role === 'owner' || team.role === 'admin') && availableFriends.length > 0 && (
+              <div className="flex gap-2">
+                <select
+                  aria-label={`${en ? 'Add friend to' : 'Добавить друга в'} ${team.name}`}
+                  value={selectedFriends[team.id] || ''}
+                  onChange={(event) => setSelectedFriends((items) => ({ ...items, [team.id]: event.target.value }))}
+                  className="h-9 min-w-0 flex-1 rounded border border-hairline bg-panel px-2 text-xs text-text"
+                >
+                  <option value="">{en ? 'Choose a friend' : 'Выберите друга'}</option>
+                  {availableFriends.map((friend) => <option key={friend.id} value={friend.id}>{friend.name || friend.id}</option>)}
+                </select>
+                <Button size="sm" variant="secondary" disabled={busy || !selectedFriends[team.id]} onClick={() => void onAddFriend(team)}>{en ? 'Add' : 'Добавить'}</Button>
+              </div>
+            )}
+          </GlassPanel>
+        )
+      })}
+      {notice && <p role="status" className="text-sm text-text-secondary">{notice}</p>}
+    </section>
+  )
+}
+
 export function CommunityPanel({ onBack }: CommunityPanelProps) {
-  const { language } = useApp()
+  const { language, user } = useApp()
   const en = language === 'en'
   return (
     <div className="h-full overflow-y-auto">
@@ -309,7 +479,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
 
           {/* Друзья */}
           <TabsContent value="friends" className="mt-6 outline-none">
-            <FriendsSection language={language} />
+            <FriendsSection language={language} userId={user?.id} />
           </TabsContent>
         </Tabs>
 
