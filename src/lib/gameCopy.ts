@@ -90,6 +90,53 @@ interface GameCopy {
   tryAgain: string
   saveAnswerFailed: string
   questUnavailable: string
+  moscowCity: string
+  moscowNodeNames: Record<string, string>
+  moscowDistrictNames: Record<string, string>
+  moscowRouteLabel: string
+  moscowRouteSummary: (tier: number, done: number, required: number, todayDone: number, todayGoal: number, goalReached: boolean) => string
+  streakDays: (count: number) => string
+  routeNodes: string
+  moscowPathUnavailable: (error: string) => string
+  moscowPathLoadFailed: string
+  routeFallbackLabel: string
+  pointNumber: (position: number) => string
+  nodeStatus: { completed: string; beginAbove: string; openQuest: string; locked: string }
+  finalRound: string
+  bossCompleted: string
+  bossQuestionCount: (count: number) => string
+  bossLocked: string
+  guide: string
+  contentLanguageNote: string
+  moscowQuest: {
+    locked: string
+    unavailable: (error: string) => string
+    retry: string
+    point: (position: number) => string
+    savedStamp: (stamp: string) => string
+    source: string
+    dailyGoal: (done: number, goal: number, reached: boolean) => string
+    energyEmpty: string
+    answerAwarded: (xp: number) => string
+    answerAlreadyCompleted: string
+    answerIncorrect: string
+    saveFailed: string
+  }
+  moscowBoss: {
+    unavailable: (error: string) => string
+    retry: string
+    completed: (stamp: string) => string
+    question: (number: number) => string
+    submit: string
+    energyEmpty: string
+    sources: string
+    review: string
+    answerCorrect: string
+    answerIncorrect: string
+    allCorrect: string
+    incorrectSummary: (count: number) => string
+    saveFailed: string
+  }
 }
 
 const copy: Record<InterfaceLanguage, GameCopy> = {
@@ -142,6 +189,44 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
     source: 'Источник', openSource: 'открыть', truthOrMyth: 'Правда или миф', timeline: 'Временная шкала',
     correctXp: (xp) => `Верно! +${xp} XP`, tryAgain: 'Почти! Попробуйте ещё раз.', saveAnswerFailed: 'Не удалось сохранить ответ. Попробуйте ещё раз.',
     questUnavailable: 'Квест пока недоступен.',
+    moscowCity: 'Москва',
+    moscowNodeNames: {
+      'moscow-red-square': 'Красная площадь', 'moscow-spasskaya-tower': 'Спасская башня',
+      'moscow-tsar-bell': 'Царь-колокол', 'moscow-annunciation-cathedral': 'Благовещенский собор',
+      'moscow-gum': 'ГУМ', 'moscow-zaryadye': 'Парк «Зарядье»', 'moscow-tretyakov-gallery': 'Третьяковская галерея',
+      'moscow-bolshoi-theatre': 'Большой театр', 'moscow-metro': 'Московское метро', 'moscow-vdnh': 'ВДНХ',
+    },
+    moscowDistrictNames: {
+      'moscow-kremlin': 'Московский Кремль', 'moscow-kitaigorod': 'Китай-город',
+      'moscow-zamoskvorechye': 'Замоскворечье', 'moscow-teatralny': 'Театральный район', 'moscow-vdnh': 'ВДНХ',
+    },
+    moscowRouteLabel: 'Маршрут города',
+    moscowRouteSummary: (tier, done, required, todayDone, todayGoal, reached) => `Маршрут, уровень ${tier}: ${done}/${required} точек. Сегодня: ${todayDone}/${todayGoal}${reached ? ' · цель выполнена' : ''}.`,
+    streakDays: (count) => `${count} дн.`, routeNodes: 'Точки маршрута по Москве',
+    moscowPathUnavailable: (error) => `Маршрут Москвы пока недоступен: ${error}.`, moscowPathLoadFailed: 'не удалось загрузить маршрут', routeFallbackLabel: 'Маршрут Москвы',
+    pointNumber: (position) => `Точка ${position}`,
+    nodeStatus: { completed: 'Пройдено', beginAbove: 'Начните выше', openQuest: 'Открыто — пройти квест', locked: 'Откроется после предыдущей точки' },
+    finalRound: 'Москва · финальный круг', bossCompleted: 'Городской штамп получен · sandbox открыт',
+    bossQuestionCount: (count) => `${count} ${count === 1 ? 'вопрос' : count >= 2 && count <= 4 ? 'вопроса' : 'вопросов'} · получить городской штамп`,
+    bossLocked: 'Откроется после всех точек маршрута',
+    guide: 'проводник', contentLanguageNote: 'Текст урока и вопросы пока доступны только на русском языке — это проверенное серверное издание.',
+    moscowQuest: {
+      locked: 'Эта точка Москвы откроется после предыдущего задания. Правило проверяет сервер, а не браузер.',
+      unavailable: (error) => `Следующий квест пока недоступен: ${error}.`, retry: 'попробуйте обновить страницу',
+      point: (position) => `Москва · точка ${position}`, savedStamp: (stamp) => `${stamp} уже в паспорте. Откройте маршрут Москвы, чтобы продолжить путь.`,
+      source: 'Источник', dailyGoal: (done, goal, reached) => `Цель на сегодня: ${done}/${goal} точек${reached ? ' — выполнена' : ''}.`,
+      energyEmpty: 'Энергия закончилась — она восстановится завтра.', answerAwarded: (xp) => `Верно! +${xp} XP`,
+      answerAlreadyCompleted: 'Верно — этот штамп уже в паспорте.', answerIncorrect: 'Почти! Одна энергия потрачена — попробуйте ещё раз.',
+      saveFailed: 'Ответ не сохранился. Попробуйте ещё раз.',
+    },
+    moscowBoss: {
+      unavailable: (error) => `Финальный круг Москвы пока недоступен: ${error}.`, retry: 'попробуйте обновить страницу',
+      completed: (stamp) => `${stamp} уже в паспорте. Песочница Москвы открыта.`, question: (number) => `Вопрос ${number}`,
+      submit: 'Проверить три ответа', energyEmpty: 'Энергия закончилась — она восстановится завтра.', sources: 'Источники', review: 'Разбор ответов',
+      answerCorrect: 'Верно.', answerIncorrect: 'Неверно.', allCorrect: 'Городской штамп получен. Москва открыта для свободного исследования.',
+      incorrectSummary: (count) => `Есть неточности: ${count}. Энергия списана только за неверные ответы.`,
+      saveFailed: 'Ответы не сохранились. Попробуйте ещё раз.',
+    },
   },
   en: {
     back: 'Back', backToWorldMap: 'Back to world map', firstTrip: 'Your first trip', pilotTag: 'Russia · pilot',
@@ -193,6 +278,44 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
     source: 'Source', openSource: 'open', truthOrMyth: 'True or false', timeline: 'Timeline',
     correctXp: (xp) => `Correct! +${xp} XP`, tryAgain: 'Not quite. Try again.', saveAnswerFailed: 'Could not save your answer. Please try again.',
     questUnavailable: 'This quest is temporarily unavailable.',
+    moscowCity: 'Moscow',
+    moscowNodeNames: {
+      'moscow-red-square': 'Red Square', 'moscow-spasskaya-tower': 'Spasskaya Tower',
+      'moscow-tsar-bell': 'Tsar Bell', 'moscow-annunciation-cathedral': 'Annunciation Cathedral',
+      'moscow-gum': 'GUM Department Store', 'moscow-zaryadye': 'Zaryadye Park', 'moscow-tretyakov-gallery': 'Tretyakov Gallery',
+      'moscow-bolshoi-theatre': 'Bolshoi Theatre', 'moscow-metro': 'Moscow Metro', 'moscow-vdnh': 'VDNKh',
+    },
+    moscowDistrictNames: {
+      'moscow-kremlin': 'Moscow Kremlin', 'moscow-kitaigorod': 'Kitay-Gorod',
+      'moscow-zamoskvorechye': 'Zamoskvorechye', 'moscow-teatralny': 'Theatre District', 'moscow-vdnh': 'VDNKh',
+    },
+    moscowRouteLabel: 'City route',
+    moscowRouteSummary: (tier, done, required, todayDone, todayGoal, reached) => `Route tier ${tier}: ${done}/${required} stops. Today: ${todayDone}/${todayGoal}${reached ? ' · goal reached' : ''}.`,
+    streakDays: (count) => `${count} days`, routeNodes: 'Moscow route stops',
+    moscowPathUnavailable: (error) => `Moscow route is currently unavailable: ${error}.`, moscowPathLoadFailed: 'Could not load the route', routeFallbackLabel: 'Moscow route',
+    pointNumber: (position) => `Stop ${position}`,
+    nodeStatus: { completed: 'Completed', beginAbove: 'Start above', openQuest: 'Open — play quest', locked: 'Unlocks after the previous stop' },
+    finalRound: 'Moscow · final round', bossCompleted: 'City stamp earned · sandbox unlocked',
+    bossQuestionCount: (count) => `${count} ${count === 1 ? 'question' : 'questions'} · earn city stamp`,
+    bossLocked: 'Unlocks after all route stops',
+    guide: 'your guide', contentLanguageNote: 'Lesson text and questions are currently available only in Russian, the verified server edition.',
+    moscowQuest: {
+      locked: 'This Moscow stop unlocks after the previous quest. The server enforces this requirement.',
+      unavailable: (error) => `The next quest is currently unavailable: ${error}.`, retry: 'try refreshing the page',
+      point: (position) => `Moscow · stop ${position}`, savedStamp: (stamp) => `${stamp} is already in your passport. Open the Moscow route to continue.`,
+      source: 'Source', dailyGoal: (done, goal, reached) => `Today’s goal: ${done}/${goal} stops${reached ? ' — complete' : ''}.`,
+      energyEmpty: 'No energy left — it will recharge tomorrow.', answerAwarded: (xp) => `Correct! +${xp} XP`,
+      answerAlreadyCompleted: 'Correct — this stamp is already in your passport.', answerIncorrect: 'Not quite! One energy used — try again.',
+      saveFailed: 'Your answer could not be saved. Please try again.',
+    },
+    moscowBoss: {
+      unavailable: (error) => `The Moscow final round is currently unavailable: ${error}.`, retry: 'try refreshing the page',
+      completed: (stamp) => `${stamp} is already in your passport. The Moscow sandbox is open.`, question: (number) => `Question ${number}`,
+      submit: 'Check all three answers', energyEmpty: 'No energy left — it will recharge tomorrow.', sources: 'Sources', review: 'Answer review',
+      answerCorrect: 'Correct.', answerIncorrect: 'Incorrect.', allCorrect: 'City stamp earned. Moscow is open for free exploration.',
+      incorrectSummary: (count) => `${count} answer(s) need another look. Energy was deducted only for incorrect answers.`,
+      saveFailed: 'Your answers could not be saved. Please try again.',
+    },
   },
 }
 

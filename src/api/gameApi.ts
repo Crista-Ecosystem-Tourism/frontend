@@ -292,8 +292,9 @@ export async function answerRedSquare(answerKey: string): Promise<OnboardingAnsw
   }))
 }
 
-export async function getMoscowQuest(questId: string): Promise<MoscowQuestState> {
-  return parse<MoscowQuestState>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}`, {
+export async function getMoscowQuest(questId: string, language: 'ru' | 'en' = 'ru'): Promise<MoscowQuestState> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowQuestState>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}?${params}`, {
     headers: getAuthHeaders(),
   }))
 }
@@ -326,8 +327,9 @@ export async function answerCityQuest(cityId: string, questId: string, answerKey
   }))
 }
 
-export async function answerMoscowQuest(questId: string, answerKey: string): Promise<MoscowQuestAnswer> {
-  return parse<MoscowQuestAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}/answer`, {
+export async function answerMoscowQuest(questId: string, answerKey: string, language: 'ru' | 'en' = 'ru'): Promise<MoscowQuestAnswer> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowQuestAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/quests/${questId}/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answer_key: answerKey }),
