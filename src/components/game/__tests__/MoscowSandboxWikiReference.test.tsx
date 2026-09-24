@@ -67,9 +67,46 @@ describe('MoscowSandbox lesson Wiki references', () => {
     render(<MoscowSandbox signedIn refreshKey={0} />)
 
     expect(await screen.findByText('Moscow sandbox')).toBeTruthy()
-    expect(screen.getByText(/Exercise text, facts, and explanations are currently available only in Russian/)).toBeTruthy()
+    expect(screen.getByText(/Interactive exercises and the Moscow Wiki article are currently in Russian/)).toBeTruthy()
     expect(screen.getByRole('region', { name: 'True or myth exercise' })).toBeTruthy()
     expect(screen.getByRole('button', { name: '← Myth' })).toBeTruthy()
     expect(screen.getByText('Русское утверждение')).toBeTruthy()
+    expect(getMoscowSandboxMock).toHaveBeenCalledWith('en')
+  })
+
+  it('shows English story and lesson review while disclosing Russian exercises and Wiki', async () => {
+    useAppMock.mockReturnValue({ language: 'en' })
+    getMoscowSandboxMock.mockResolvedValueOnce({
+      city: { id: 'moscow', name: 'Moscow' },
+      content_language: 'en', lesson_content_language: 'en',
+      activity_content_language: 'ru', wiki_content_language: 'ru',
+      profile: { xp: 100, energy: 5, streak: 1 },
+      city_stamp: { key: 'moscow-city-explorer', title: 'Штамп Москвы', earned_at: '2026-09-24' },
+      lessons: [{
+        id: 'moscow-red-square', position: 1, title: 'Red Square',
+        fact: { text: 'In older Russian, krasny meant beautiful.', source_url: 'https://example.test/fact', source_label: 'Moscow City Government' },
+        question: { id: 'red-square-name', text: 'What did krasny mean?', options: [{ id: 'beautiful', label: 'Beautiful' }] },
+        explanation: 'In older Russian, krasny meant beautiful.',
+        wiki_reference: { slug: 'moscow', version_id: 'wiki-moscow-v1' },
+      }],
+      drill: { title: 'Правда или миф', intro: 'Инструкция на русском', statements: [{ id: 's1', text: 'Русское утверждение' }] },
+      matching: null, timeline: null, word_blocks: null, price_slider: null,
+      story: {
+        title: 'Story: Red Square', eyebrow: 'Story · 1 of 1', image_url: '/story.png',
+        image_alt: 'Illustration of Red Square', media_credit: 'Original Crista illustration',
+        fact: 'A unique English story-card fact.', source_label: 'Moscow City Government',
+        source_url: 'https://example.test/story', note: 'Check the primary source.',
+      },
+      photo_scanner: null, wiki_reference: { slug: 'moscow', version_id: 'wiki-moscow-v1' },
+      practice_recovery: { available: false, used_today: false, amount: 1 },
+    })
+
+    render(<MoscowSandbox signedIn refreshKey={0} />)
+
+    expect(await screen.findByText('Story: Red Square')).toBeTruthy()
+    expect(screen.getByText('A unique English story-card fact.')).toBeTruthy()
+    expect(screen.getByText(/Interactive exercises and the Moscow Wiki article are currently in Russian/)).toBeTruthy()
+    expect(screen.getByText('Инструкция на русском')).toBeTruthy()
+    expect(getMoscowSandboxMock).toHaveBeenCalledWith('en')
   })
 })

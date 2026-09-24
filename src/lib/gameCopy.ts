@@ -320,7 +320,7 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
       saveFailed: 'Ответы не сохранились. Попробуйте ещё раз.',
     },
     moscowSandbox: {
-      contentLanguageNote: 'Тексты, факты и объяснения упражнений сейчас доступны только на русском языке; интерфейс переведён, исходный контент сохранён.',
+      contentLanguageNote: 'Интерактивные упражнения и статья Wiki пока на русском. История и повторение фактов доступны на английском, если сервер вернул опубликованный перевод.',
       unavailable: (error) => `Песочница Москвы пока недоступна: ${error}.`, retry: 'попробуйте обновить страницу',
       eyebrow: 'Свободное исследование', title: 'Песочница Москвы',
       description: 'Городской круг завершён. Возвращайся к фактам, проверяй себя вопросами и открывай первоисточники без новых наград и списания энергии.',
@@ -449,7 +449,7 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
       saveFailed: 'Your answers could not be saved. Please try again.',
     },
     moscowSandbox: {
-      contentLanguageNote: 'Exercise text, facts, and explanations are currently available only in Russian. The interface is translated; source content remains unchanged.',
+      contentLanguageNote: 'Interactive exercises and the Moscow Wiki article are currently in Russian. The story card and lesson review use English when a published translation is available.',
       unavailable: (error) => `The Moscow sandbox is currently unavailable: ${error}.`, retry: 'try refreshing the page',
       eyebrow: 'Free exploration', title: 'Moscow sandbox',
       description: 'You completed the city loop. Revisit facts, test yourself, and open primary sources without earning extra rewards or spending energy.',

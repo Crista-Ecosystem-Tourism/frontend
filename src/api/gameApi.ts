@@ -148,6 +148,10 @@ export type MoscowBossAnswer = {
 
 export type MoscowSandboxState = {
   city: { id: string; name: string }
+  content_language?: 'ru' | 'en'
+  lesson_content_language?: 'ru' | 'en'
+  activity_content_language?: 'ru' | 'en'
+  wiki_content_language?: 'ru' | 'en' | null
   profile: GameProfile
   city_stamp: { key: string; title: string; earned_at: string }
   lessons: Array<{
@@ -346,8 +350,9 @@ export async function getMoscowBoss(language: 'ru' | 'en' = 'ru'): Promise<Mosco
   }))
 }
 
-export async function getMoscowSandbox(): Promise<MoscowSandboxState> {
-  return parse<MoscowSandboxState>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox`, {
+export async function getMoscowSandbox(language: 'ru' | 'en' = 'ru'): Promise<MoscowSandboxState> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowSandboxState>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox?${params}`, {
     headers: getAuthHeaders(),
   }))
 }

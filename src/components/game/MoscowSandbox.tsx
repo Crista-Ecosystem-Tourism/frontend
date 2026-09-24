@@ -35,7 +35,7 @@ export function MoscowSandbox({
   const [error, setError] = useState<string | null>(null)
 
   const refreshPracticeRecovery = () => {
-    getMoscowSandbox().then((result) => setState(result)).catch(() => {
+    getMoscowSandbox(language).then((result) => setState(result)).catch(() => {
       // A completed exercise remains usable if the optional recovery refresh is interrupted.
     })
   }
@@ -43,7 +43,7 @@ export function MoscowSandbox({
   useEffect(() => {
     if (!signedIn) return
     let active = true
-    getMoscowSandbox()
+    getMoscowSandbox(language)
       .then((result) => {
         if (!active) return
         setState(result)
@@ -81,7 +81,9 @@ export function MoscowSandbox({
         </div>
         <Chip size="sm" variant="active"><CheckCircle2 /> {state.city_stamp.title}</Chip>
       </div>
-      {language === 'en' && <p className="mt-4 rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{copy.contentLanguageNote}</p>}
+      {language === 'en' && (state.activity_content_language !== 'en' || state.lesson_content_language !== 'en' || state.content_language !== 'en' || state.wiki_content_language === 'ru') && (
+        <p className="mt-4 rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{copy.contentLanguageNote}</p>
+      )}
       <MoscowWikiArticle reference={state.wiki_reference} />
       {state.story && <StoryCard story={state.story} />}
       {state.drill && <TruthMythDrill drill={state.drill} onCorrect={refreshPracticeRecovery} />}

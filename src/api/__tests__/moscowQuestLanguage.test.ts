@@ -4,6 +4,7 @@ import {
   answerMoscowQuest,
   getMoscowBoss,
   getMoscowQuest,
+  getMoscowSandbox,
   getOnboarding,
 } from '../gameApi'
 
@@ -62,6 +63,15 @@ describe('Moscow quest language API', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringMatching(/\/game\/paths\/moscow\/boss\/answer\?language=en$/),
       expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('requests published sandbox story and lesson editions in the selected language', async () => {
+    await getMoscowSandbox('en')
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/game\/paths\/moscow\/sandbox\?language=en$/),
+      expect.objectContaining({ headers: expect.any(Object) }),
     )
   })
 })
