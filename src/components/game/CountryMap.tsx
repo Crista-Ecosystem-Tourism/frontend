@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import type { GameCountry } from '@/mocks/game'
 import { gameCountryName } from '@/mocks/game'
 import { useApp } from '@/context/AppContext'
+import { getGameCopy } from '@/lib/gameCopy'
 import 'leaflet/dist/leaflet.css'
 
 interface RegionProps {
@@ -43,6 +44,7 @@ function FitCountry({ country }: { country: GameCountry }) {
 
 export function CountryMap({ country, visitedRegionNames }: CountryMapProps) {
   const { language } = useApp()
+  const copy = getGameCopy(language)
   const countryName = gameCountryName(country, language)
   const [data, setData] = useState<RegionCollection | null>(null)
 
@@ -120,9 +122,7 @@ export function CountryMap({ country, visitedRegionNames }: CountryMapProps) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center">
         <p className="font-sans text-sm text-text-muted">
-          {language === 'en'
-            ? `Regions for ${countryName} are not mapped yet`
-            : `Для страны ${countryName} регионы пока не размечены`}
+          {copy.noRegions(countryName)}
         </p>
       </div>
     )

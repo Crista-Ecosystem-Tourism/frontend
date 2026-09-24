@@ -9,8 +9,9 @@ import {
   gameCountryName,
   gameCityName,
 } from '@/mocks/game'
-import { cn, pluralize } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useApp } from '@/context/AppContext'
+import { getGameCopy } from '@/lib/gameCopy'
 
 const categoryIcon: Record<QuestCategory, typeof Landmark> = {
   sights: Landmark,
@@ -89,6 +90,7 @@ export function CountryQuests({
   cityProgress,
 }: CountryQuestsProps) {
   const { language } = useApp()
+  const copy = getGameCopy(language)
   const countryName = gameCountryName(country, language)
   const [activeCityId, setActiveCityId] = useState(country.cities[0]?.id ?? '')
   const city = country.cities.find((c) => c.id === activeCityId) ?? country.cities[0]
@@ -98,10 +100,10 @@ export function CountryQuests({
       <GlassPanel className="flex flex-col items-center justify-center px-8 py-12 text-center">
         <MapPin className="mb-3 h-9 w-9 text-text-muted" aria-hidden="true" />
         <p className="font-sans text-sm text-text-secondary">
-          {countryName} ещё белое пятно на вашей карте
+          {copy.unopenedCountry(countryName)}
         </p>
         <p className="mt-1 max-w-[40ch] font-sans text-xs leading-relaxed text-text-muted">
-          Постройте маршрут в эту страну в разделе Маршрут, и здесь появятся регионы, города и точки квестов.
+          {copy.openCountryHint}
         </p>
       </GlassPanel>
     )
@@ -117,17 +119,17 @@ export function CountryQuests({
           <span>
             <DisplayTitle as="h2" className="!text-3xl">{countryName}</DisplayTitle>
             <span className="mt-0.5 block font-sans text-sm tabular text-text-secondary">
-              Закрыто {progress}%
+              {copy.completedPercent(progress)}
             </span>
           </span>
         </div>
         {allDone ? (
           <Chip variant="active">
             <Trophy />
-            Страна закрыта полностью
+            {copy.countryClosedFully}
           </Chip>
         ) : (
-          <Chip>{pluralize(country.cities.length, 'город', 'города', 'городов')}</Chip>
+          <Chip>{copy.cityCount(country.cities.length)}</Chip>
         )}
       </div>
 
@@ -174,7 +176,7 @@ export function CountryQuests({
 
       <p className="flex items-center gap-2 border-t border-hairline px-5 py-3 font-sans text-xs text-text-muted">
         <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        Категории: {Object.values(questCategoryLabel).join(', ')}
+        {copy.questCategories}: {Object.keys(questCategoryLabel).map((key) => copy.categoryNames[key as QuestCategory]).join(', ')}
       </p>
     </GlassPanel>
   )

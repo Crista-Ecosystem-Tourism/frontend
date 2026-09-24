@@ -9,7 +9,7 @@ const { fetchWorkspaceMock, getPassportMock, setMainViewMock } = vi.hoisted(() =
 }))
 
 vi.mock('@/context/AppContext', () => ({
-  useApp: () => ({ user: { id: 'user-1', name: 'Traveler' }, setMainView: setMainViewMock }),
+  useApp: () => ({ user: { id: 'user-1', name: 'Traveler' }, language: 'ru', setMainView: setMainViewMock }),
 }))
 
 vi.mock('@/api/chatApi', () => ({
