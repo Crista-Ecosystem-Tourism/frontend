@@ -67,4 +67,13 @@ describe('LiveGamePanel Suitcase summary', () => {
     screen.getByRole('button', { name: 'Открыть чемодан' }).click()
     await waitFor(() => expect(setMainViewMock).toHaveBeenCalledWith('suitcase'))
   })
+
+  it('shows a passport error without hiding independently loaded Suitcase data', async () => {
+    getPassportMock.mockRejectedValue(new Error('passport API unavailable'))
+
+    render(<GamePanel onBack={() => undefined} />)
+
+    expect(await screen.findByText('Игровой паспорт временно недоступен.')).toBeTruthy()
+    expect(await screen.findByText('2 активных поездок · 1 целей')).toBeTruthy()
+  })
 })

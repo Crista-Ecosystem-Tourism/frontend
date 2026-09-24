@@ -73,6 +73,8 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null)
   const [bossSelected, setBossSelected] = useState(false)
   const [passport, setPassport] = useState<GamePassport | null>(null)
+  const [passportLoading, setPassportLoading] = useState(false)
+  const [passportError, setPassportError] = useState(false)
   const [suitcase, setSuitcase] = useState<{ trips: SuitcaseTrip[]; goals: SuitcaseGoal[] } | null>(null)
   const [suitcaseError, setSuitcaseError] = useState<string | null>(null)
   const [suitcaseLoading, setSuitcaseLoading] = useState(false)
@@ -81,8 +83,24 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
   const refreshPath = () => setPathVersion((version) => version + 1)
 
   useEffect(() => {
-    if (!signedIn) { setPassport(null); return }
-    getGamePassport().then(setPassport).catch(() => setPassport(null))
+    if (!signedIn) {
+      setPassport(null)
+      setPassportError(false)
+      setPassportLoading(false)
+      return
+    }
+    let current = true
+    setPassportLoading(true)
+    setPassportError(false)
+    getGamePassport()
+      .then((result) => { if (current) setPassport(result) })
+      .catch(() => {
+        if (!current) return
+        setPassport(null)
+        setPassportError(true)
+      })
+      .finally(() => { if (current) setPassportLoading(false) })
+    return () => { current = false }
   }, [signedIn, pathVersion])
 
   useEffect(() => {
@@ -156,7 +174,9 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
         <MoscowSandbox signedIn={signedIn} refreshKey={pathVersion} />
         <CityPilot cityId="st-petersburg" signedIn={signedIn} refreshKey={pathVersion} onCompleted={refreshPath} />
         <CityPilot cityId="sochi" signedIn={signedIn} refreshKey={pathVersion} onCompleted={refreshPath} />
-        {passport && <GlassPanel variant="flat" className="p-4 sm:p-5">
+        {signedIn && passportLoading && <p role="status" className="font-sans text-sm text-text-secondary">Загружаем игровой паспорт…</p>}
+        {signedIn && passportError && <p role="status" className="font-sans text-sm text-text-secondary">Игровой паспорт временно недоступен.</p>}
+        {passport && !passportLoading && !passportError && <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Тревел-паспорт · серверные данные</p>
           <p className="mt-1 font-display text-xl font-semibold text-text">{passport.profile.xp} XP · {passport.stamps.length} штампов</p>
           <p className="mt-2 font-sans text-sm text-text-secondary">{passport.cities.map((city) => `${city.name}: ${city.completed_quests}/${city.required_quest_count}`).join(' · ')}</p>
