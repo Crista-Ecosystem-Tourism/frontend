@@ -111,6 +111,8 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
     return () => { current = false }
   }, [signedIn])
 
+  const activeSuitcaseTrips = suitcase?.trips.filter((trip) => !trip.isArchived) ?? []
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto flex max-w-[1100px] items-center justify-between gap-3 px-5 pb-2 pt-6 sm:px-6">
@@ -168,11 +170,11 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
               {suitcaseError && <p role="status" className="mt-2 font-sans text-sm text-text-secondary">Данные чемодана временно недоступны: {suitcaseError}</p>}
               {!suitcaseLoading && !suitcaseError && suitcase && <>
                 <p className="mt-1 font-display text-lg font-semibold text-text">
-                  {suitcase.trips.filter((trip) => !trip.isArchived).length} активных поездок · {suitcase.goals.length} целей
+                  {activeSuitcaseTrips.length} активных поездок · {suitcase.goals.length} целей
                 </p>
                 <p className="mt-2 font-sans text-sm text-text-secondary">
-                  {suitcase.trips.length
-                    ? suitcase.trips.slice(0, 3).map((trip) => `${trip.city}, ${trip.country}`).join(' · ')
+                  {activeSuitcaseTrips.length
+                    ? activeSuitcaseTrips.slice(0, 3).map((trip) => `${trip.city}, ${trip.country}`).join(' · ')
                     : 'Поездок пока нет.'}
                 </p>
                 {suitcase.goals.length > 0 && <ul className="mt-2 space-y-1 font-sans text-sm text-text-secondary">
