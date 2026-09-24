@@ -39,7 +39,14 @@ function InspirationCard({ onOpen }: { onOpen: () => void }) {
 }
 
 export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
-  const { savedRoutes, loadSavedRoute, setMainView } = useApp()
+  const {
+    savedRoutes,
+    savedRoutesLoading,
+    savedRoutesLoadError,
+    refreshSavedRoutes,
+    loadSavedRoute,
+    setMainView,
+  } = useApp()
   const [search, setSearch] = useState('')
   const [loadingRouteId, setLoadingRouteId] = useState<string | null>(null)
   const [failedRouteId, setFailedRouteId] = useState<string | null>(null)
@@ -100,6 +107,24 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 sm:px-6">
         <div className="mx-auto max-w-[900px]">
+          {savedRoutesLoading && savedRoutes.length === 0 && (
+            <p role="status" className="mb-4 rounded-lg border border-hairline bg-panel p-4 text-sm text-text-secondary">
+              Загружаем сохранённые маршруты...
+            </p>
+          )}
+          {savedRoutesLoadError && (
+            <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
+              <p className="text-sm text-text">Не удалось загрузить список маршрутов. Проверьте соединение и повторите запрос.</p>
+              <button
+                type="button"
+                onClick={() => void refreshSavedRoutes().catch(() => {})}
+                disabled={savedRoutesLoading}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-link hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-60"
+              >
+                {savedRoutesLoading ? 'Загрузка...' : 'Повторить загрузку'}
+              </button>
+            </div>
+          )}
           {failedRouteId && (
             <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4">
               <p className="text-sm text-text">Не удалось загрузить маршрут. Проверьте соединение и попробуйте ещё раз.</p>
@@ -113,7 +138,7 @@ export function SavedRoutesPanel({ onBack }: SavedRoutesPanelProps) {
               </button>
             </div>
           )}
-          {filtered.length > 0 ? (
+          {savedRoutes.length === 0 && (savedRoutesLoading || savedRoutesLoadError) ? null : filtered.length > 0 ? (
             <div className="space-y-2">
               {filtered.map((route) => (
                 <button
