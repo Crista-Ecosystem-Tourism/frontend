@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { answerMoscowQuest, getMoscowQuest, getOnboarding } from '../gameApi'
+import {
+  answerMoscowBoss,
+  answerMoscowQuest,
+  getMoscowBoss,
+  getMoscowQuest,
+  getOnboarding,
+} from '../gameApi'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -38,6 +44,24 @@ describe('Moscow quest language API', () => {
         method: 'POST',
         body: JSON.stringify({ answer_key: 'beautiful' }),
       }),
+    )
+  })
+
+  it('requests the published boss edition in the selected language', async () => {
+    await getMoscowBoss('en')
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/game\/paths\/moscow\/boss\?language=en$/),
+      expect.objectContaining({ headers: expect.any(Object) }),
+    )
+  })
+
+  it('sends the selected boss language for localized feedback', async () => {
+    await answerMoscowBoss([{ question_id: 'boss-q', answer_key: '1489' }], 'en')
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/game\/paths\/moscow\/boss\/answer\?language=en$/),
+      expect.objectContaining({ method: 'POST' }),
     )
   })
 })

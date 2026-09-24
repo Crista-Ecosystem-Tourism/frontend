@@ -116,6 +116,7 @@ export type MoscowPathState = {
 
 export type MoscowBossState = {
   city: { id: string; name: string }
+  content_language?: 'ru' | 'en'
   content: {
     chris: { name: string; intro: string }
     scene: { title: string; mode: string }
@@ -338,8 +339,9 @@ export async function answerMoscowQuest(questId: string, answerKey: string, lang
   }))
 }
 
-export async function getMoscowBoss(): Promise<MoscowBossState> {
-  return parse<MoscowBossState>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss`, {
+export async function getMoscowBoss(language: 'ru' | 'en' = 'ru'): Promise<MoscowBossState> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowBossState>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss?${params}`, {
     headers: getAuthHeaders(),
   }))
 }
@@ -412,8 +414,10 @@ export async function restoreMoscowEnergy(): Promise<MoscowPracticeRecovery> {
 
 export async function answerMoscowBoss(
   answers: Array<{ question_id: string; answer_key: string }>,
+  language: 'ru' | 'en' = 'ru',
 ): Promise<MoscowBossAnswer> {
-  return parse<MoscowBossAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss/answer`, {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowBossAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/boss/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answers }),

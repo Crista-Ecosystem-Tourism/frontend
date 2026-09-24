@@ -34,7 +34,7 @@ export function MoscowBoss({
     if (!signedIn) return
     let active = true
     setView('loading')
-    getMoscowBoss()
+    getMoscowBoss(language)
       .then((result) => {
         if (!active) return
         setState(result)
@@ -64,6 +64,7 @@ export function MoscowBoss({
           question_id: question.id,
           answer_key: answers[question.id] ?? '',
         })),
+        language,
       )
       setState((previous) => previous ? {
         ...previous,
@@ -110,7 +111,7 @@ export function MoscowBoss({
         <p className="mt-3 max-w-2xl font-sans text-sm leading-6 text-text-secondary">{state.content.chris.intro}</p>
       </div>
       <div className="space-y-5 p-5 sm:p-6">
-        {language === 'en' && <p className="rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{copy.contentLanguageNote}</p>}
+        {state.content_language !== language && <p className="rounded bg-panel-2 px-3 py-2 font-sans text-xs text-text-muted">{copy.contentLanguageNote}</p>}
         {state.completed ? (
           <div className="flex items-start gap-3 rounded-md bg-primary/10 p-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
