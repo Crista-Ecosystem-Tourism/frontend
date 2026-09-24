@@ -154,6 +154,7 @@ export type MoscowSandboxState = {
     fact: { text: string; source_url: string; source_label?: string }
     question: { id: string; text: string; options: Array<{ id: string; label: string }> }
     explanation: string
+    wiki_reference: { slug: string; version_id: string } | null
   }>
   drill: {
     title: string

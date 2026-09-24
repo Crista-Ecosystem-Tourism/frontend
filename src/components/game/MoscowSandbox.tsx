@@ -97,6 +97,11 @@ export function MoscowSandbox({
               <a className="inline-flex items-center gap-2 font-sans text-xs text-primary hover:underline" href={lesson.fact.source_url} target="_blank" rel="noreferrer">
                 <BookOpenCheck className="h-4 w-4" /> Источник: {lesson.fact.source_label ?? 'Открыть источник'}
               </a>
+              {lesson.wiki_reference && (
+                <a className="ml-4 inline-flex items-center gap-2 font-sans text-xs text-primary hover:underline" href="#moscow-wiki-article">
+                  <BookOpenCheck className="h-4 w-4" /> Общий контекст города · Wiki {lesson.wiki_reference.version_id}
+                </a>
+              )}
             </div>
           </details>
         ))}
@@ -188,7 +193,7 @@ function MoscowWikiArticle({ reference }: { reference: MoscowSandboxState['wiki_
   if (!article) return null
   const summary = typeof article.body.summary === 'string' ? article.body.summary : null
   return (
-    <section className="mt-5 rounded-md border border-white/10 bg-panel-2/60 p-4 sm:p-5" aria-label="Статья Crista Wiki о Москве">
+    <section id="moscow-wiki-article" className="mt-5 rounded-md border border-white/10 bg-panel-2/60 p-4 sm:p-5" aria-label="Статья Crista Wiki о Москве">
       <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · версия фактов {article.version_id}</p>
       <h3 className="mt-1 font-display text-lg font-semibold text-text">{article.title}</h3>
       {summary && <p className="mt-2 font-sans text-sm leading-6 text-text-secondary">{summary}</p>}
