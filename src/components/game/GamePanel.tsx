@@ -17,10 +17,12 @@ import { MoscowSandbox } from './MoscowSandbox'
 import { CityPilot } from './CityPilot'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
-import { isMockMode } from '@/api/chatApi'
+import { ApiError, isMockMode } from '@/api/chatApi'
 import { gameCountries, findCountry, questCategoryLabel } from '@/mocks/game'
 import { cn } from '@/lib/utils'
 import { getGamePassport, type GamePassport } from '@/api/gameApi'
+import { fetchSuitcaseWorkspace, mapGoalFromApi, mapTripFromApi } from '@/api/suitcaseApi'
+import type { SuitcaseGoal, SuitcaseTrip } from '@/types/suitcase'
 
 type GamePanelProps = {
   onBack: () => void
@@ -71,6 +73,10 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null)
   const [bossSelected, setBossSelected] = useState(false)
   const [passport, setPassport] = useState<GamePassport | null>(null)
+  const [suitcase, setSuitcase] = useState<{ trips: SuitcaseTrip[]; goals: SuitcaseGoal[] } | null>(null)
+  const [suitcaseError, setSuitcaseError] = useState<string | null>(null)
+  const [suitcaseLoading, setSuitcaseLoading] = useState(false)
+  const { setMainView } = useApp()
 
   const refreshPath = () => setPathVersion((version) => version + 1)
 
@@ -78,6 +84,32 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
     if (!signedIn) { setPassport(null); return }
     getGamePassport().then(setPassport).catch(() => setPassport(null))
   }, [signedIn, pathVersion])
+
+  useEffect(() => {
+    if (!signedIn) {
+      setSuitcase(null)
+      setSuitcaseError(null)
+      setSuitcaseLoading(false)
+      return
+    }
+    let current = true
+    setSuitcaseLoading(true)
+    setSuitcaseError(null)
+    fetchSuitcaseWorkspace()
+      .then((workspace) => {
+        if (current) setSuitcase({
+          trips: workspace.trips.map(mapTripFromApi),
+          goals: workspace.goals.map(mapGoalFromApi),
+        })
+      })
+      .catch((error: unknown) => {
+        if (!current) return
+        setSuitcase(null)
+        setSuitcaseError(error instanceof ApiError ? error.detail : 'Не удалось загрузить данные «Моего чемодана».')
+      })
+      .finally(() => { if (current) setSuitcaseLoading(false) })
+    return () => { current = false }
+  }, [signedIn])
 
   return (
     <div className="h-full overflow-y-auto">
@@ -127,6 +159,33 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
           <p className="mt-1 font-display text-xl font-semibold text-text">{passport.profile.xp} XP · {passport.stamps.length} штампов</p>
           <p className="mt-2 font-sans text-sm text-text-secondary">{passport.cities.map((city) => `${city.name}: ${city.completed_quests}/${city.required_quest_count}`).join(' · ')}</p>
           <p className="mt-2 font-sans text-sm text-text-secondary">{passport.routes.length ? `Сохранённые маршруты: ${passport.routes.map((route) => `${route.name} — ${route.destination}`).join(' · ')}` : 'Сохранённых маршрутов пока нет.'}</p>
+        </GlassPanel>}
+        {signedIn && <GlassPanel variant="flat" className="p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Мой чемодан · данные Suitcase</p>
+              {suitcaseLoading && <p className="mt-2 font-sans text-sm text-text-secondary">Загружаем поездки и цели…</p>}
+              {suitcaseError && <p role="status" className="mt-2 font-sans text-sm text-text-secondary">Данные чемодана временно недоступны: {suitcaseError}</p>}
+              {!suitcaseLoading && !suitcaseError && suitcase && <>
+                <p className="mt-1 font-display text-lg font-semibold text-text">
+                  {suitcase.trips.filter((trip) => !trip.isArchived).length} активных поездок · {suitcase.goals.length} целей
+                </p>
+                <p className="mt-2 font-sans text-sm text-text-secondary">
+                  {suitcase.trips.length
+                    ? suitcase.trips.slice(0, 3).map((trip) => `${trip.city}, ${trip.country}`).join(' · ')
+                    : 'Поездок пока нет.'}
+                </p>
+                {suitcase.goals.length > 0 && <ul className="mt-2 space-y-1 font-sans text-sm text-text-secondary">
+                  {suitcase.goals.slice(0, 3).map((goal) => (
+                    <li key={goal.id}>{goal.title}: {goal.current} / {goal.total}</li>
+                  ))}
+                </ul>}
+              </>}
+            </div>
+            <button type="button" onClick={() => setMainView('suitcase')} className="shrink-0 rounded-full border border-white/15 px-3 py-2 font-sans text-sm text-text hover:bg-white/5">
+              Открыть чемодан
+            </button>
+          </div>
         </GlassPanel>}
         <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-sm leading-6 text-text-secondary">
