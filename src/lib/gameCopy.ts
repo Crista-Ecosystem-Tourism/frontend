@@ -137,6 +137,74 @@ interface GameCopy {
     incorrectSummary: (count: number) => string
     saveFailed: string
   }
+  moscowSandbox: {
+    contentLanguageNote: string
+    unavailable: (error: string) => string
+    retry: string
+    eyebrow: string
+    title: string
+    description: string
+    lessonCheck: string
+    sourceFallback: string
+    cityContext: (version: string) => string
+    storyAria: string
+    wikiAria: string
+    wikiEyebrow: (version: string) => string
+    license: (name: string) => string
+    mechanic: string
+    answerSaveFailed: string
+    photoAria: string
+    photoDisclaimer: string
+    hotspot: (number: number) => string
+    recoveryAria: string
+    recoveryEyebrow: string
+    recoveryTitle: string
+    recoveryDescription: string
+    recoveryDone: string
+    recoveryButton: string
+    recoveryAwarded: (amount: number) => string
+    recoveryFailed: string
+    priceAria: string
+    yourEstimate: string
+    yourBid: string
+    checkPrice: string
+    priceClose: string
+    priceTryAgain: string
+    wordAria: string
+    reorderWords: string
+    wordsOrder: string
+    moveWordUp: (word: string) => string
+    moveWordDown: (word: string) => string
+    checkPhrase: string
+    phraseCorrect: string
+    orderIncorrect: string
+    timelineAria: string
+    reorder: string
+    eventsOrder: string
+    moveItemUp: (item: string) => string
+    moveItemDown: (item: string) => string
+    checkTimeline: string
+    timelineCorrect: string
+    itemCorrect: string
+    itemIncorrect: string
+    matchingAria: string
+    matchingInput: string
+    yearFor: (place: string) => string
+    chooseYear: string
+    checkPairs: string
+    pairsCorrect: string
+    pairsIncorrect: string
+    correct: string
+    checkAgain: string
+    truthMythAria: string
+    swipeButtons: string
+    statement: (current: number, total: number) => string
+    myth: string
+    truth: string
+    nextStatement: string
+    accurate: string
+    almost: string
+  }
 }
 
 const copy: Record<InterfaceLanguage, GameCopy> = {
@@ -227,6 +295,33 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
       incorrectSummary: (count) => `Есть неточности: ${count}. Энергия списана только за неверные ответы.`,
       saveFailed: 'Ответы не сохранились. Попробуйте ещё раз.',
     },
+    moscowSandbox: {
+      contentLanguageNote: 'Тексты, факты и объяснения упражнений сейчас доступны только на русском языке; интерфейс переведён, исходный контент сохранён.',
+      unavailable: (error) => `Песочница Москвы пока недоступна: ${error}.`, retry: 'попробуйте обновить страницу',
+      eyebrow: 'Свободное исследование', title: 'Песочница Москвы',
+      description: 'Городской круг завершён. Возвращайся к фактам, проверяй себя вопросами и открывай первоисточники без новых наград и списания энергии.',
+      lessonCheck: 'Проверь себя', sourceFallback: 'Открыть источник', cityContext: (version) => `Общий контекст города · Wiki ${version}`,
+      storyAria: 'Story о Красной площади', wikiAria: 'Статья Crista Wiki о Москве', wikiEyebrow: (version) => `Crista Wiki · версия фактов ${version}`,
+      license: (name) => `Лицензия: ${name}`, mechanic: 'Игровая механика', answerSaveFailed: 'Ответ не сохранился. Попробуйте ещё раз.',
+      photoAria: 'Упражнение фото-сканер', photoDisclaimer: 'Это не распознавание и не загрузка ваших фотографий: выберите область на подготовленном учебном снимке.',
+      hotspot: (number) => `Отметить область ${number} на фотографии`,
+      recoveryAria: 'Восстановление энергии', recoveryEyebrow: 'Повторение', recoveryTitle: 'Верни одну энергию',
+      recoveryDescription: 'Сначала правильно реши любое упражнение выше. Восстановление доступно раз в день и не поднимает энергию выше пяти.',
+      recoveryDone: 'Уже восстановлено', recoveryButton: 'Восстановить +1',
+      recoveryAwarded: (amount) => `+${amount} энергия за повторение. Возвращайся завтра за следующим восстановлением.`,
+      recoveryFailed: 'Не удалось восстановить энергию.',
+      priceAria: 'Упражнение угадать цену', yourEstimate: 'Ваша оценка:', yourBid: 'Ваша ставка', checkPrice: 'Проверить цену',
+      priceClose: 'Близко к ответу.', priceTryAgain: 'Почти.', wordAria: 'Упражнение собрать фразу', reorderWords: 'перестановка слов', wordsOrder: 'Порядок слов',
+      moveWordUp: (word) => `Поднять слово ${word}`, moveWordDown: (word) => `Опустить слово ${word}`, checkPhrase: 'Проверить фразу',
+      phraseCorrect: 'Фраза собрана.', orderIncorrect: 'Порядок пока неточный.', timelineAria: 'Упражнение на хронологию', reorder: 'перестановка',
+      eventsOrder: 'Порядок событий', moveItemUp: (item) => `Поднять ${item}`, moveItemDown: (item) => `Опустить ${item}`,
+      checkTimeline: 'Проверить хронологию', timelineCorrect: 'Хронология собрана.', itemCorrect: 'На месте', itemIncorrect: 'Не на месте',
+      matchingAria: 'Упражнение на сопоставление', matchingInput: 'касание или клавиатура', yearFor: (place) => `Год для ${place}`,
+      chooseYear: 'Выбрать год', checkPairs: 'Проверить пары', pairsCorrect: 'Все пары собраны.', pairsIncorrect: 'Есть неточные пары.',
+      correct: 'Верно.', checkAgain: 'Проверь ещё раз', truthMythAria: 'Упражнение правда или миф', swipeButtons: 'свайп или кнопки',
+      statement: (current, total) => `Утверждение ${current}/${total}`, myth: '← Миф', truth: 'Правда →', nextStatement: 'Следующее утверждение',
+      accurate: 'Точно!', almost: 'Почти.',
+    },
   },
   en: {
     back: 'Back', backToWorldMap: 'Back to world map', firstTrip: 'Your first trip', pilotTag: 'Russia · pilot',
@@ -315,6 +410,33 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
       answerCorrect: 'Correct.', answerIncorrect: 'Incorrect.', allCorrect: 'City stamp earned. Moscow is open for free exploration.',
       incorrectSummary: (count) => `${count} answer(s) need another look. Energy was deducted only for incorrect answers.`,
       saveFailed: 'Your answers could not be saved. Please try again.',
+    },
+    moscowSandbox: {
+      contentLanguageNote: 'Exercise text, facts, and explanations are currently available only in Russian. The interface is translated; source content remains unchanged.',
+      unavailable: (error) => `The Moscow sandbox is currently unavailable: ${error}.`, retry: 'try refreshing the page',
+      eyebrow: 'Free exploration', title: 'Moscow sandbox',
+      description: 'You completed the city loop. Revisit facts, test yourself, and open primary sources without earning extra rewards or spending energy.',
+      lessonCheck: 'Test yourself', sourceFallback: 'Open source', cityContext: (version) => `City overview · Wiki ${version}`,
+      storyAria: 'Red Square story', wikiAria: 'Crista Wiki article about Moscow', wikiEyebrow: (version) => `Crista Wiki · fact version ${version}`,
+      license: (name) => `License: ${name}`, mechanic: 'Game mechanic', answerSaveFailed: 'Your answer could not be saved. Please try again.',
+      photoAria: 'Photo scanner exercise', photoDisclaimer: 'This does not recognize or upload your photos. Select an area in the prepared practice image.',
+      hotspot: (number) => `Select area ${number} in the photo`,
+      recoveryAria: 'Energy recovery', recoveryEyebrow: 'Practice recovery', recoveryTitle: 'Restore one energy point',
+      recoveryDescription: 'Answer any exercise above correctly first. Recovery is available once a day and cannot raise energy above five.',
+      recoveryDone: 'Already restored today', recoveryButton: 'Restore +1',
+      recoveryAwarded: (amount) => `+${amount} energy for practicing. Come back tomorrow for another recovery.`,
+      recoveryFailed: 'Could not restore energy.',
+      priceAria: 'Guess the price exercise', yourEstimate: 'Your estimate:', yourBid: 'Your bid', checkPrice: 'Check price',
+      priceClose: 'Close to the answer.', priceTryAgain: 'Not quite.', wordAria: 'Build a phrase exercise', reorderWords: 'reorder words', wordsOrder: 'Word order',
+      moveWordUp: (word) => `Move ${word} up`, moveWordDown: (word) => `Move ${word} down`, checkPhrase: 'Check phrase',
+      phraseCorrect: 'Phrase assembled.', orderIncorrect: 'The order is not quite right.', timelineAria: 'Timeline exercise', reorder: 'reorder',
+      eventsOrder: 'Event order', moveItemUp: (item) => `Move ${item} up`, moveItemDown: (item) => `Move ${item} down`,
+      checkTimeline: 'Check timeline', timelineCorrect: 'Timeline assembled.', itemCorrect: 'In the right place', itemIncorrect: 'Out of place',
+      matchingAria: 'Matching exercise', matchingInput: 'tap or keyboard', yearFor: (place) => `Year for ${place}`,
+      chooseYear: 'Choose a year', checkPairs: 'Check pairs', pairsCorrect: 'All pairs matched.', pairsIncorrect: 'Some pairs need another look.',
+      correct: 'Correct.', checkAgain: 'Try again', truthMythAria: 'True or myth exercise', swipeButtons: 'swipe or use buttons',
+      statement: (current, total) => `Statement ${current}/${total}`, myth: '← Myth', truth: 'Truth →', nextStatement: 'Next statement',
+      accurate: 'That’s right!', almost: 'Not quite.',
     },
   },
 }

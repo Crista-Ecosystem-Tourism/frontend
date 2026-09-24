@@ -2,9 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MoscowSandbox } from '../MoscowSandbox'
 
-const { getMoscowSandboxMock, getWikiArticleVersionMock } = vi.hoisted(() => ({
+const { getMoscowSandboxMock, getWikiArticleVersionMock, useAppMock } = vi.hoisted(() => ({
   getMoscowSandboxMock: vi.fn(),
   getWikiArticleVersionMock: vi.fn(),
+  useAppMock: vi.fn(),
 }))
 
 vi.mock('@/api/gameApi', () => ({
@@ -17,6 +18,7 @@ vi.mock('@/api/gameApi', () => ({
   answerMoscowPhotoScanner: vi.fn(),
   restoreMoscowEnergy: vi.fn(),
 }))
+vi.mock('@/context/AppContext', () => ({ useApp: useAppMock }))
 
 vi.mock('@/api/wikiApi', () => ({
   getWikiArticleVersion: getWikiArticleVersionMock,
@@ -27,6 +29,8 @@ describe('MoscowSandbox lesson Wiki references', () => {
   beforeEach(() => {
     getMoscowSandboxMock.mockReset()
     getWikiArticleVersionMock.mockReset()
+    useAppMock.mockReset()
+    useAppMock.mockReturnValue({ language: 'ru' })
     getMoscowSandboxMock.mockResolvedValue({
       city: { id: 'moscow', name: 'Москва' },
       profile: { xp: 100, energy: 5, streak: 1 },
@@ -38,7 +42,7 @@ describe('MoscowSandbox lesson Wiki references', () => {
         explanation: 'Объяснение',
         wiki_reference: { slug: 'moscow', version_id: 'wiki-moscow-v1' },
       }],
-      drill: null, matching: null, timeline: null, word_blocks: null,
+      drill: { title: 'Правда или миф', intro: 'Инструкция на русском', statements: [{ id: 's1', text: 'Русское утверждение' }] }, matching: null, timeline: null, word_blocks: null,
       price_slider: null, story: null, photo_scanner: null,
       wiki_reference: { slug: 'moscow', version_id: 'wiki-moscow-v1' },
       practice_recovery: { available: false, used_today: false, amount: 1 },
@@ -56,5 +60,16 @@ describe('MoscowSandbox lesson Wiki references', () => {
     const referenceLink = screen.getByRole('link', { name: /Общий контекст города · Wiki wiki-moscow-v1/ })
     expect(referenceLink.getAttribute('href')).toBe('#moscow-wiki-article')
     expect(await screen.findByText('Контекст Москвы.')).toBeTruthy()
+  })
+
+  it('localizes sandbox controls and discloses unchanged Russian lesson content', async () => {
+    useAppMock.mockReturnValue({ language: 'en' })
+    render(<MoscowSandbox signedIn refreshKey={0} />)
+
+    expect(await screen.findByText('Moscow sandbox')).toBeTruthy()
+    expect(screen.getByText(/Exercise text, facts, and explanations are currently available only in Russian/)).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'True or myth exercise' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '← Myth' })).toBeTruthy()
+    expect(screen.getByText('Русское утверждение')).toBeTruthy()
   })
 })
