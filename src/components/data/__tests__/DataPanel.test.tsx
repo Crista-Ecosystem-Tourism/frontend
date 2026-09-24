@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DataPanel } from '../DataPanel'
 
-const { getWikiArticleMock } = vi.hoisted(() => ({ getWikiArticleMock: vi.fn() }))
+const { getWikiArticleMock, useAppMock } = vi.hoisted(() => ({ getWikiArticleMock: vi.fn(), useAppMock: vi.fn() }))
 const { ApiErrorMock } = vi.hoisted(() => ({ ApiErrorMock: class ApiError extends Error { status: number; detail: string; constructor(status: number, detail: string) { super(detail); this.status = status; this.detail = detail } } }))
 
 vi.mock('@/api/chatApi', () => ({ ApiError: ApiErrorMock }))
@@ -17,7 +17,7 @@ vi.mock('@/api/wikiApi', () => ({
 }))
 
 vi.mock('@/context/AppContext', () => ({
-  useApp: () => ({ user: null }),
+  useApp: useAppMock,
 }))
 
 vi.mock('../CountryCarousel', () => ({
@@ -67,6 +67,8 @@ describe('DataPanel country Wiki publication state', () => {
   beforeEach(() => {
     getWikiArticleMock.mockReset()
     getWikiArticleMock.mockRejectedValue(new Error('offline'))
+    useAppMock.mockReset()
+    useAppMock.mockReturnValue({ user: null, language: 'ru' })
   })
 
   it('shows version and sources for a published country article', async () => {
@@ -140,5 +142,41 @@ describe('DataPanel country Wiki publication state', () => {
     expect(screen.getByText('В опубликованной версии этот раздел пока не заполнен.')).toBeTruthy()
     expect(screen.queryByText('Эпоха самураев и сёгунов, реставрация Мэйдзи, стремительная модернизация после Второй мировой войны.')).toBeNull()
     expect(screen.getByText('Практическая информация в опубликованной версии пока не указана.')).toBeTruthy()
+  })
+
+  it('requests and renders the English edition of a country article', async () => {
+    useAppMock.mockReturnValue({ user: null, language: 'en' })
+    getWikiArticleMock.mockImplementation(async (slug: string, language: string) => {
+      if (slug === 'country-jp' && language === 'en') return {
+        ...japanArticle,
+        title: 'Japan',
+        content_language: 'en',
+        body: {
+          ...japanArticle.body,
+          summary: 'An English-published overview of Japan.',
+          history: 'Japan’s English history section.',
+        },
+      }
+      throw new Error('not published')
+    })
+
+    render(<DataPanel onBack={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Japan' }))
+
+    expect(await screen.findByText('An English-published overview of Japan.')).toBeTruthy()
+    expect(screen.getByText('Japan’s English history section.')).toBeTruthy()
+    expect(getWikiArticleMock).toHaveBeenCalledWith('country-jp', 'en')
+    expect(screen.queryByText(/English edition is not available yet/)).toBeNull()
+  })
+
+  it('discloses a Russian country article when English content falls back', async () => {
+    useAppMock.mockReturnValue({ user: null, language: 'en' })
+    getWikiArticleMock.mockResolvedValue({ ...japanArticle, content_language: 'ru' })
+
+    render(<DataPanel onBack={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Japan' }))
+
+    expect(await screen.findByText(/English edition is not available yet/)).toBeTruthy()
+    expect(screen.getByText('Опубликованная серверная карточка Японии.')).toBeTruthy()
   })
 })

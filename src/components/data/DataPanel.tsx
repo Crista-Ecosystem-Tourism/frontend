@@ -101,17 +101,17 @@ const articles: CountryArticle[] = [
   },
 ]
 
-const categories = [
-  { key: 'history', label: 'История', icon: Landmark },
-  { key: 'cuisine', label: 'Кухня', icon: UtensilsCrossed },
-  { key: 'traditions', label: 'Традиции', icon: Sparkles },
-] as const
+const englishCountryCatalogue: Record<string, Pick<CountryArticle, 'name' | 'tagline' | 'summary'>> = {
+  ru: { name: 'Russia', tagline: 'Across eleven time zones', summary: 'The world’s largest country stretches from the Baltic Sea to the Pacific, with a rich cultural heritage and diverse regional cuisines.' },
+  ge: { name: 'Georgia', tagline: 'Qvevri wine and supra', summary: 'A Caucasus country with long winemaking traditions and a distinctive, regionally varied cuisine.' },
+  jp: { name: 'Japan', tagline: 'Tradition and technology', summary: 'A country where centuries-old traditions and contemporary technology meet.' },
+}
 
-function Header({ onBack, title }: { onBack: () => void; title: string }) {
+function Header({ onBack, title, language = 'ru' }: { onBack: () => void; title: string; language?: 'ru' | 'en' }) {
   return (
     <div className="relative z-10">
       <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 pb-2 pt-6 sm:px-6">
-        <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
+        <IconButton label={language === 'en' ? 'Back' : 'Назад'} variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
           <ArrowLeft />
         </IconButton>
         <h1 className="font-display text-2xl font-semibold text-text">{title}</h1>
@@ -124,10 +124,11 @@ function Header({ onBack, title }: { onBack: () => void; title: string }) {
 function PublishedMoscowArticle({ signedIn }: { signedIn: boolean }) {
   const [article, setArticle] = useState<WikiPublishedArticle | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading')
+  const { language } = useApp()
 
   useEffect(() => {
     let active = true
-    getWikiArticle('moscow').then((result) => {
+    getWikiArticle('moscow', language).then((result) => {
       if (!active) return
       setArticle(result)
       setStatus('ready')
@@ -135,7 +136,7 @@ function PublishedMoscowArticle({ signedIn }: { signedIn: boolean }) {
       if (active) setStatus('unavailable')
     })
     return () => { active = false }
-  }, [])
+  }, [language])
 
   if (status === 'loading') {
     return <GlassPanel className="mb-6 p-4 font-sans text-sm text-text-secondary">Загружаем опубликованную статью Crista Wiki…</GlassPanel>
@@ -153,6 +154,9 @@ function PublishedMoscowArticle({ signedIn }: { signedIn: boolean }) {
     <section className="mb-6 rounded-lg border border-primary/25 bg-primary/5 p-5" aria-label="Опубликованная статья Crista Wiki о Москве">
       <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Crista Wiki · серверная опубликованная версия</p>
       <h2 className="mt-1 font-display text-2xl font-semibold text-text">{article.title}</h2>
+      {language === 'en' && article.content_language !== 'en' && (
+        <p role="status" className="mt-2 font-sans text-xs text-text-muted">The English edition is not available yet; showing the published Russian version.</p>
+      )}
       {summary && <p className="mt-3 max-w-[68ch] font-sans text-sm leading-6 text-text-secondary">{summary}</p>}
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
         {article.sources.map((source) => (
@@ -286,7 +290,15 @@ export function DataPanel({ onBack }: DataPanelProps) {
   const [editorMessage, setEditorMessage] = useState<string | null>(null)
   const [publishedCountry, setPublishedCountry] = useState<WikiPublishedArticle | null>(null)
   const [countryWikiStatus, setCountryWikiStatus] = useState<'idle' | 'loading' | 'published' | 'missing' | 'unavailable'>('idle')
-  const { user } = useApp()
+  const { user, language } = useApp()
+  const categoryLabels = language === 'en'
+    ? ['History', 'Cuisine', 'Traditions']
+    : ['История', 'Кухня', 'Традиции']
+  const categories = [
+    { key: 'history', label: categoryLabels[0], icon: Landmark },
+    { key: 'cuisine', label: categoryLabels[1], icon: UtensilsCrossed },
+    { key: 'traditions', label: categoryLabels[2], icon: Sparkles },
+  ] as const
 
   const base = articles.find((a) => a.id === openId)
   useEffect(() => {
@@ -298,7 +310,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
     let active = true
     setPublishedCountry(null)
     setCountryWikiStatus('loading')
-    getWikiArticle(`country-${base.id}`).then((article) => {
+    getWikiArticle(`country-${base.id}`, language).then((article) => {
       if (!active) return
       if (article.slug === `country-${base.id}`) {
         setPublishedCountry(article)
@@ -313,11 +325,12 @@ export function DataPanel({ onBack }: DataPanelProps) {
       }
     })
     return () => { active = false }
-  }, [base?.id])
+  }, [base?.id, language])
 
   const active = base && publishedCountry?.slug === `country-${base.id}`
     ? {
         ...base,
+        name: publishedCountry.title || base.name,
         summary: textBody(publishedCountry.body, 'summary', 'В опубликованной версии этот раздел пока не заполнен.'),
         history: textBody(publishedCountry.body, 'history', 'В опубликованной версии этот раздел пока не заполнен.'),
         cuisine: textBody(publishedCountry.body, 'cuisine', 'В опубликованной версии этот раздел пока не заполнен.'),
@@ -326,7 +339,10 @@ export function DataPanel({ onBack }: DataPanelProps) {
       }
     : base
 
-  const filtered = articles.filter((a) => a.name.toLowerCase().includes(query.toLowerCase()))
+  const filtered = articles.filter((article) => {
+    const display = language === 'en' ? englishCountryCatalogue[article.id] : article
+    return `${display.name} ${display.tagline} ${display.summary}`.toLowerCase().includes(query.toLowerCase())
+  })
 
   if (editing && base && user) {
     return (
@@ -354,7 +370,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
   if (active) {
     return (
       <div className="h-full overflow-y-auto">
-        <Header onBack={() => setOpenId(null)} title="Crista Wiki" />
+        <Header onBack={() => setOpenId(null)} title="Crista Wiki" language={language} />
 
         <article className="mx-auto w-full max-w-[820px] px-5 pb-8 pt-4 sm:px-6">
           <div className="relative mb-6 aspect-[16/7] overflow-hidden rounded-lg">
@@ -381,6 +397,11 @@ export function DataPanel({ onBack }: DataPanelProps) {
                 ))}
               </div>
             </div>
+          )}
+          {language === 'en' && publishedCountry?.content_language !== 'en' && (
+            <p role="status" className="mb-5 font-sans text-xs text-text-muted">
+              The English edition is not available yet; showing the published Russian version.
+            </p>
           )}
           {countryWikiStatus === 'loading' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">Проверяем опубликованную версию Wiki…</p>}
           {countryWikiStatus === 'missing' && <p className="mb-5 font-sans text-xs text-text-muted">Для этой страны ещё нет опубликованной серверной версии. Ниже показана стартовая карточка каталога.</p>}
@@ -415,10 +436,10 @@ export function DataPanel({ onBack }: DataPanelProps) {
           </GlassPanel>
 
           <h2 className="mb-3 font-display text-xl font-semibold text-text">
-            Практическая информация
+            {language === 'en' ? 'Practical information' : 'Практическая информация'}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            {active.practical.length === 0 && <p className="font-sans text-sm text-text-muted">Практическая информация в опубликованной версии пока не указана.</p>}
+            {active.practical.length === 0 && <p className="font-sans text-sm text-text-muted">{language === 'en' ? 'No practical information is included in this published edition yet.' : 'Практическая информация в опубликованной версии пока не указана.'}</p>}
             {active.practical.map((item) => (
               <div
                 key={item.label}
@@ -454,7 +475,7 @@ export function DataPanel({ onBack }: DataPanelProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <Header onBack={onBack} title="Crista Wiki" />
+      <Header onBack={onBack} title="Crista Wiki" language={language} />
 
       <div className="mx-auto w-full max-w-[1100px] px-5 pb-8 pt-4 sm:px-6">
         <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -499,11 +520,11 @@ export function DataPanel({ onBack }: DataPanelProps) {
           <CountryCarousel
             items={filtered.map((a) => ({
               id: a.id,
-              name: a.name,
+              name: language === 'en' ? englishCountryCatalogue[a.id].name : a.name,
               flag: a.flag,
               cover: a.cover,
-              summary: a.summary,
-              subtitle: a.tagline,
+              summary: language === 'en' ? englishCountryCatalogue[a.id].summary : a.summary,
+              subtitle: language === 'en' ? englishCountryCatalogue[a.id].tagline : a.tagline,
             }))}
             onOpen={(id) => {
               setOpenId(id)

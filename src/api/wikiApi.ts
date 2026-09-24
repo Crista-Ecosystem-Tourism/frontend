@@ -13,6 +13,7 @@ export type WikiPublishedArticle = {
   sources: WikiSource[]
   license: string
   published_at: string | null
+  content_language?: 'ru' | 'en'
 }
 
 export type WikiDraft = {
@@ -35,8 +36,9 @@ async function parse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>
 }
 
-export async function getWikiArticle(slug: string): Promise<WikiPublishedArticle> {
-  return parse<WikiPublishedArticle>(await fetch(`${API_BASE_URL}/wiki/articles/${slug}`))
+export async function getWikiArticle(slug: string, language: 'ru' | 'en' = 'ru'): Promise<WikiPublishedArticle> {
+  const params = new URLSearchParams({ language })
+  return parse<WikiPublishedArticle>(await fetch(`${API_BASE_URL}/wiki/articles/${slug}?${params}`))
 }
 
 export async function getWikiArticleVersion(versionId: string): Promise<WikiPublishedArticle> {
