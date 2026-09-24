@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, MapPin, Crown, ChevronRight, Share2, Compass, Globe, Stamp,
@@ -6,6 +6,10 @@ import {
 } from 'lucide-react'
 import { useApp } from '@/context/AppContext'
 import { useGameProgress } from '@/hooks/useGameProgress'
+import { getGamePassport, type GamePassport } from '@/api/gameApi'
+import { fetchSuitcaseWorkspace, mapTripFromApi, mapGoalFromApi } from '@/api/suitcaseApi'
+import type { SuitcaseGoal, SuitcaseTrip } from '@/types/suitcase'
+import { isMockMode } from '@/api/chatApi'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { GlassPanel, Chip, IconButton, StatTile, DisplayTitle } from '@/components/ui/glass'
@@ -13,13 +17,61 @@ import { Img } from '@/components/ui/Img'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { AppFrame } from '@/components/layout/AppFrame'
 import { gameCountries } from '@/mocks/game'
-import { trips, formatTripDates } from '@/mocks/trips'
+import { trips } from '@/mocks/trips'
 import { getInitials, cn, pluralize } from '@/lib/utils'
+
+type ProfileTripCard = Pick<SuitcaseTrip, 'id' | 'city' | 'country' | 'startDate' | 'endDate' | 'image'> & { title: string }
+
+function formatProfileTripDates(startDate: string, endDate: string): string {
+  const formatter = new Intl.DateTimeFormat('ru', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
+  return `${formatter.format(new Date(startDate))} — ${formatter.format(new Date(endDate))}`
+}
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { user, openModal, chatHistory, savedRoutes } = useApp()
+  const { user, openModal, chatHistory, savedRoutes, setMainView } = useApp()
   const { countryProgress, cityProgress, stats } = useGameProgress()
+  const demoMode = isMockMode()
+  const [passport, setPassport] = useState<GamePassport | null>(null)
+  const [passportLoading, setPassportLoading] = useState(() => !isMockMode())
+  const [passportError, setPassportError] = useState(false)
+  const [passportRetry, setPassportRetry] = useState(0)
+  const [suitcaseTrips, setSuitcaseTrips] = useState<SuitcaseTrip[] | null>(null)
+  const [suitcaseGoals, setSuitcaseGoals] = useState<SuitcaseGoal[]>([])
+  const [suitcaseLoading, setSuitcaseLoading] = useState(() => !isMockMode())
+  const [suitcaseError, setSuitcaseError] = useState(false)
+  const [suitcaseRetry, setSuitcaseRetry] = useState(0)
+
+  useEffect(() => {
+    if (!user || demoMode) return
+    let current = true
+    setPassport(null)
+    setPassportLoading(true)
+    setPassportError(false)
+    getGamePassport()
+      .then((result) => { if (current) setPassport(result) })
+      .catch(() => { if (current) { setPassport(null); setPassportError(true) } })
+      .finally(() => { if (current) setPassportLoading(false) })
+    return () => { current = false }
+  }, [demoMode, passportRetry, user?.id])
+
+  useEffect(() => {
+    if (!user || demoMode) return
+    let current = true
+    setSuitcaseTrips(null)
+    setSuitcaseGoals([])
+    setSuitcaseLoading(true)
+    setSuitcaseError(false)
+    fetchSuitcaseWorkspace()
+      .then((workspace) => {
+        if (!current) return
+        setSuitcaseTrips(workspace.trips.map(mapTripFromApi))
+        setSuitcaseGoals(workspace.goals.map(mapGoalFromApi))
+      })
+      .catch(() => { if (current) { setSuitcaseTrips(null); setSuitcaseError(true) } })
+      .finally(() => { if (current) setSuitcaseLoading(false) })
+    return () => { current = false }
+  }, [demoMode, suitcaseRetry, user?.id])
 
   useEffect(() => {
     if (!user) navigate('/login')
@@ -28,16 +80,31 @@ export function ProfilePage() {
   if (!user) return null
 
   const opened = gameCountries.filter((c) => c.opened)
-  const closedCountries = opened.filter((c) => countryProgress(c.iso) === 100)
+  const closedCountries = demoMode
+    ? opened.filter((c) => countryProgress(c.iso) === 100)
+    : (passport?.cities ?? []).filter((city) => city.required_quest_count > 0 && city.completed_quests >= city.required_quest_count)
 
-  const stampsEarned = opened.reduce((sum, country) => {
+  const demoStampsEarned = demoMode ? opened.reduce((sum, country) => {
     const countryStamp = countryProgress(country.iso) === 100 ? 1 : 0
     const cityStamps = country.cities.filter((city) => cityProgress(country, city.id) === 100).length
     return sum + countryStamp + cityStamps
-  }, 0)
+  }, 0) : 0
 
-  const totalKm = trips.reduce((s, t) => s + t.stats.distanceKm, 0)
-  const totalDays = trips.reduce((s, t) => s + t.stats.days, 0)
+  const stampsEarned = demoMode ? demoStampsEarned : passport?.stamps.length ?? 0
+  const completedQuests = demoMode
+    ? stats.doneQuests
+    : (passport?.cities ?? []).reduce((total, city) => total + city.completed_quests, 0)
+  const totalKm = trips.reduce((total, trip) => total + trip.stats.distanceKm, 0)
+  const totalDays = trips.reduce((total, trip) => total + trip.stats.days, 0)
+  const displayTrips: ProfileTripCard[] = demoMode
+    ? trips.map((trip) => ({
+        id: trip.id, title: trip.title, city: trip.city, country: trip.country,
+        startDate: trip.startDate, endDate: trip.endDate, image: trip.cover,
+      }))
+    : (suitcaseTrips ?? []).filter((trip) => !trip.isArchived).map((trip) => ({
+        id: trip.id, title: `${trip.city}, ${trip.country}`, city: trip.city, country: trip.country,
+        startDate: trip.startDate, endDate: trip.endDate, image: trip.image,
+      }))
 
   const achievements = [
     {
@@ -51,7 +118,7 @@ export function ProfilePage() {
       id: 'traveller',
       icon: Globe,
       label: 'Путешественник',
-      description: 'Одна страна закрыта полностью',
+      description: demoMode ? 'Одна страна закрыта полностью' : 'Один город закрыт полностью',
       unlocked: closedCountries.length >= 1,
     },
     {
@@ -66,7 +133,7 @@ export function ProfilePage() {
       icon: Flame,
       label: 'Постоянство',
       description: 'Десять квестов закрыто',
-      unlocked: stats.doneQuests >= 10,
+      unlocked: completedQuests >= 10,
     },
   ]
 
@@ -138,7 +205,7 @@ export function ProfilePage() {
                     )}
                     <Chip size="sm">
                       <Globe />
-                      <span className="tabular">{closedCountries.length} стран закрыто</span>
+                      <span className="tabular">{closedCountries.length} {demoMode ? 'стран закрыто' : 'городов закрыто'}</span>
                     </Chip>
                   </div>
                 </div>
@@ -154,11 +221,18 @@ export function ProfilePage() {
 
             {/* Статистика */}
             <GlassPanel className="grid grid-cols-2 gap-x-4 gap-y-5 p-5 sm:grid-cols-3 lg:grid-cols-5">
-              <StatTile icon={<Route />} value={`${totalKm} км`} label="пройдено" />
-              <StatTile icon={<CalendarDays />} value={`${totalDays}`} label="дней в пути" />
+              {demoMode ? <>
+                <StatTile icon={<Route />} value={`${totalKm} км`} label="пройдено" />
+                <StatTile icon={<CalendarDays />} value={`${totalDays}`} label="дней в пути" />
+              </> : <>
+                <StatTile icon={<Sparkles />} value={passportLoading ? '…' : `${passport?.profile.xp ?? '—'}`} label="XP" />
+                <StatTile icon={<CalendarDays />} value={suitcaseLoading ? '…' : `${(suitcaseTrips ?? []).filter((trip) => !trip.isArchived).length}`} label="сохранённых поездок" />
+              </>}
               <StatTile icon={<MapPin />} value={`${savedRoutes.length}`} label="маршрутов" />
-              <StatTile icon={<Stamp />} value={`${stampsEarned}`} label="штампов" />
-              <StatTile icon={<Compass />} value={`${chatHistory.length}`} label="чатов" />
+              <StatTile icon={<Stamp />} value={!demoMode && passportLoading ? '…' : `${stampsEarned}`} label="штампов" />
+              {demoMode
+                ? <StatTile icon={<Compass />} value={`${chatHistory.length}`} label="чатов" />
+                : <StatTile icon={<Compass />} value={suitcaseLoading ? '…' : `${suitcaseGoals.length}`} label="целей" />}
             </GlassPanel>
 
             {/* Паспорт */}
@@ -171,7 +245,7 @@ export function ProfilePage() {
               </div>
 
               <GlassPanel className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 lg:grid-cols-4">
-                {gameCountries.slice(0, 8).map((country) => {
+                {demoMode ? gameCountries.slice(0, 8).map((country) => {
                   const p = countryProgress(country.iso)
                   const done = p === 100
                   return (
@@ -205,8 +279,36 @@ export function ProfilePage() {
                       </span>
                     </div>
                   )
+                }) : (passport?.cities ?? []).map((city) => {
+                  const done = city.required_quest_count > 0 && city.completed_quests >= city.required_quest_count
+                  const progress = city.required_quest_count > 0
+                    ? Math.min(100, Math.round(city.completed_quests / city.required_quest_count * 100))
+                    : 0
+                  return (
+                    <div key={city.id} className={cn(
+                      'flex items-center gap-3 rounded-md border p-3',
+                      done ? 'border-primary/40 bg-primary/[0.08]' : 'border-hairline bg-panel'
+                    )}>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-panel-2 text-primary">
+                        <MapPin className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate font-sans text-sm font-medium text-text">{city.name}</span>
+                        <span className="block font-sans text-xs tabular text-text-muted">
+                          {city.completed_quests}/{city.required_quest_count} квестов · {progress}%
+                        </span>
+                      </span>
+                    </div>
+                  )
                 })}
               </GlassPanel>
+              {!demoMode && passportLoading && <p role="status" className="mt-3 text-sm text-text-muted">Загружаем паспорт…</p>}
+              {!demoMode && passportError && <div role="status" className="mt-3 flex items-center gap-3 text-sm text-text-muted">
+                <span>Игровой паспорт временно недоступен.</span>
+                <Button size="sm" variant="secondary" onClick={() => setPassportRetry((version) => version + 1)}>Повторить</Button>
+              </div>}
+              {!demoMode && !passportLoading && !passportError && passport?.cities.length === 0 &&
+                <p className="mt-3 text-sm text-text-muted">Пока нет опубликованных городов.</p>}
             </section>
 
             {/* Достижения */}
@@ -243,23 +345,32 @@ export function ProfilePage() {
               <div className="mb-4 flex items-baseline justify-between gap-4">
                 <h2 className="font-display text-2xl font-semibold text-text">Мои путешествия</h2>
                 <span className="font-sans text-xs tabular text-text-muted">
-                  {pluralize(trips.length, 'поездка', 'поездки', 'поездок')}
+                  {suitcaseLoading && !demoMode ? 'Загрузка…' : pluralize(displayTrips.length, 'поездка', 'поездки', 'поездок')}
                 </span>
               </div>
 
+              {!demoMode && suitcaseError && <div role="status" className="mb-4 flex items-center gap-3 text-sm text-text-muted">
+                <span>Поездки временно недоступны.</span>
+                <Button size="sm" variant="secondary" onClick={() => setSuitcaseRetry((version) => version + 1)}>Повторить</Button>
+              </div>}
+              {!demoMode && !suitcaseLoading && !suitcaseError && displayTrips.length === 0 &&
+                <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-hairline bg-panel p-4">
+                  <p className="font-sans text-sm text-text-muted">Здесь появятся сохранённые поездки.</p>
+                  <Button size="sm" variant="secondary" onClick={() => setMainView('suitcase')}>Открыть чемодан</Button>
+                </div>}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {trips.map((trip) => (
+                {displayTrips.map((trip) => (
                   <article
                     key={trip.id}
                     className="group overflow-hidden rounded-lg border border-hairline bg-panel transition duration-base hover:border-hairline-2"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
-                      <Img
-                        src={trip.cover}
+                      {trip.image ? <Img
+                        src={trip.image}
                         alt={trip.title}
                         className="h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
-                      />
-                      <div className="photo-scrim absolute inset-0" />
+                      /> : <div className="flex h-full items-center justify-center bg-panel-2 text-text-muted"><MapPin className="h-8 w-8" aria-hidden="true" /></div>}
+                      {trip.image && <div className="photo-scrim absolute inset-0" />}
                       <div className="absolute inset-x-0 bottom-0 p-4">
                         <p className="font-display text-xl font-semibold leading-tight text-white">
                           {trip.title}
@@ -270,7 +381,7 @@ export function ProfilePage() {
                         </p>
                       </div>
                     </div>
-                    <p className="p-4 font-sans text-xs text-text-muted">{formatTripDates(trip)}</p>
+                    <p className="p-4 font-sans text-xs text-text-muted">{formatProfileTripDates(trip.startDate, trip.endDate)}</p>
                   </article>
                 ))}
               </div>
