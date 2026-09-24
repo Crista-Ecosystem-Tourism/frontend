@@ -89,7 +89,7 @@ function RewardCell({
             unlocked ? 'text-text' : 'text-text-secondary'
           )}
         >
-          {reward.title}
+          {language === 'en' ? reward.titleEn : reward.title}
         </p>
       </div>
     </div>
@@ -124,9 +124,11 @@ export function BattlePass({ points, isPremium, onUpgrade, language }: BattlePas
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-hairline p-5">
         <div className="min-w-0">
           <h2 className="font-display text-3xl font-semibold leading-tight text-text">
-            {pass.name}
+            {language === 'en' ? pass.nameEn : pass.name}
           </h2>
-          <p className="mt-1 font-sans text-sm text-text-secondary">{pass.subtitle}</p>
+          <p className="mt-1 font-sans text-sm text-text-secondary">
+            {language === 'en' ? pass.subtitleEn : pass.subtitle}
+          </p>
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
