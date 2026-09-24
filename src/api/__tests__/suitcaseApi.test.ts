@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/api/chatApi'
 import {
+  createSuitcaseExpense,
+  createSuitcaseGoal,
   fetchSuitcaseWorkspace,
   mapExpenseFromApi,
   mapGoalFromApi,
   mapTripFromApi,
+  patchSuitcaseGoal,
 } from '@/api/suitcaseApi'
 
 const mockFetch = vi.fn()
@@ -114,5 +117,86 @@ describe('Suitcase API row mappers', () => {
       total: 5,
       color: 'blue',
     })
+  })
+})
+
+describe('Suitcase goal and expense mutations', () => {
+  it('creates a goal with the authenticated JSON contract', async () => {
+    const payload = { title: 'Visit 8 museums', current: 0, total: 8, color: '#336699' }
+    const goal = { id: 'goal-2', ...payload }
+    mockFetch.mockResolvedValueOnce(jsonResponse(goal))
+
+    await expect(createSuitcaseGoal(payload)).resolves.toEqual(goal)
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/suitcase\/goals$/),
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Authorization: 'Bearer suitcase-test-token',
+        },
+        body: JSON.stringify(payload),
+      }),
+    )
+  })
+
+  it('patches only the requested goal progress and maps server failures', async () => {
+    const updated = { id: 'goal/with space', title: 'Visit museums', current: 3, total: 8, color: '#336699' }
+    mockFetch.mockResolvedValueOnce(jsonResponse(updated))
+
+    await expect(patchSuitcaseGoal(updated.id, { current: 3 })).resolves.toEqual(updated)
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/suitcase\/goals\/goal%2Fwith%20space$/),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ current: 3 }),
+      }),
+    )
+
+    mockFetch.mockResolvedValueOnce(jsonResponse({ detail: 'goal unavailable' }, 503))
+    await expect(patchSuitcaseGoal('goal-1', { current: 1 })).rejects.toMatchObject({
+      status: 503,
+      detail: 'goal unavailable',
+    })
+  })
+
+  it('creates an expense under its trip with no client-owned trip field in the body', async () => {
+    const payload = {
+      tripId: 'trip-4',
+      title: 'Museum ticket',
+      amount: 12,
+      category: 'culture',
+      date: '2026-09-24',
+      currency: 'EUR',
+    }
+    const expense = {
+      id: 'expense-2',
+      trip_id: payload.tripId,
+      title: payload.title,
+      amount: payload.amount,
+      category: payload.category,
+      date: payload.date,
+      currency: payload.currency,
+    }
+    mockFetch.mockResolvedValueOnce(jsonResponse(expense))
+
+    await expect(createSuitcaseExpense('trip-4', payload)).resolves.toEqual(expense)
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/suitcase\/trips\/trip-4\/expenses$/),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          amount: 12,
+          category: 'culture',
+          title: 'Museum ticket',
+          date: '2026-09-24',
+          currency: 'EUR',
+        }),
+      }),
+    )
   })
 })
