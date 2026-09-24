@@ -51,6 +51,15 @@ const georgiaArticle = {
   sources: [{ label: 'ЮНЕСКО: квеври', url: 'https://ich.unesco.org/en/decisions/8.COM/8.13' }],
 }
 
+const russiaArticle = {
+  ...japanArticle,
+  version_id: 'wiki-country-ru-v1',
+  slug: 'country-ru',
+  title: 'Россия',
+  body: { ...japanArticle.body, summary: 'Опубликованная серверная карточка России.' },
+  sources: [{ label: 'МЧС России: 112', url: 'https://mchs.gov.ru/deyatelnost/bezopasnost-grazhdan/kak-pravilno-vyzvat-skoruyu_5' }],
+}
+
 describe('DataPanel country Wiki publication state', () => {
   beforeEach(() => {
     getWikiArticleMock.mockReset()
@@ -82,6 +91,19 @@ describe('DataPanel country Wiki publication state', () => {
 
     expect(await screen.findByText('Опубликованная серверная карточка Грузии.')).toBeTruthy()
     expect(screen.getByText(/версия wiki-country-ge-v1/)).toBeTruthy()
+  })
+
+  it('loads the published Russia card using its country slug', async () => {
+    getWikiArticleMock.mockImplementation(async (slug: string) => {
+      if (slug === 'country-ru') return russiaArticle
+      throw new Error('not published')
+    })
+
+    render(<DataPanel onBack={() => undefined} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Россия' }))
+
+    expect(await screen.findByText('Опубликованная серверная карточка России.')).toBeTruthy()
+    expect(screen.getByText(/версия wiki-country-ru-v1/)).toBeTruthy()
   })
 
   it('does not present the fallback country copy as a published article when Wiki is unavailable', async () => {
