@@ -18,18 +18,20 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { AppFrame } from '@/components/layout/AppFrame'
 import { gameCountries } from '@/mocks/game'
 import { trips } from '@/mocks/trips'
-import { getInitials, cn, pluralize } from '@/lib/utils'
+import { getInitials, cn } from '@/lib/utils'
+import { getProfileCopy } from '@/lib/settingsCopy'
 
 type ProfileTripCard = Pick<SuitcaseTrip, 'id' | 'city' | 'country' | 'startDate' | 'endDate' | 'image'> & { title: string }
 
-function formatProfileTripDates(startDate: string, endDate: string): string {
-  const formatter = new Intl.DateTimeFormat('ru', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
+function formatProfileTripDates(startDate: string, endDate: string, language: 'ru' | 'en'): string {
+  const formatter = new Intl.DateTimeFormat(language === 'ru' ? 'ru-RU' : 'en-US', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' })
   return `${formatter.format(new Date(startDate))} — ${formatter.format(new Date(endDate))}`
 }
 
 export function ProfilePage() {
   const navigate = useNavigate()
-  const { user, openModal, chatHistory, savedRoutes, setMainView } = useApp()
+  const { user, openModal, chatHistory, savedRoutes, setMainView, language } = useApp()
+  const copy = getProfileCopy(language)
   const { countryProgress, cityProgress, stats } = useGameProgress()
   const demoMode = isMockMode()
   const [passport, setPassport] = useState<GamePassport | null>(null)
@@ -110,29 +112,29 @@ export function ProfilePage() {
     {
       id: 'explorer',
       icon: Compass,
-      label: 'Исследователь',
-      description: 'Пять маршрутов сохранено',
+      label: copy.explorer,
+      description: copy.explorerDescription,
       unlocked: savedRoutes.length >= 5,
     },
     {
       id: 'traveller',
       icon: Globe,
-      label: 'Путешественник',
-      description: demoMode ? 'Одна страна закрыта полностью' : 'Один город закрыт полностью',
+      label: copy.traveller,
+      description: demoMode ? copy.countryComplete : copy.cityComplete,
       unlocked: closedCountries.length >= 1,
     },
     {
       id: 'collector',
       icon: Stamp,
-      label: 'Коллекционер',
-      description: 'Пять штампов в паспорте',
+      label: copy.collector,
+      description: copy.collectorDescription,
       unlocked: stampsEarned >= 5,
     },
     {
       id: 'streak',
       icon: Flame,
-      label: 'Постоянство',
-      description: 'Десять квестов закрыто',
+      label: copy.consistency,
+      description: copy.consistencyDescription,
       unlocked: completedQuests >= 10,
     },
   ]
@@ -142,8 +144,8 @@ export function ProfilePage() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `Профиль ${user.name}`,
-          text: `Профиль ${user.name} в Crista`,
+          title: copy.profileShareTitle(user.name),
+          text: copy.profileShareText(user.name),
           url,
         })
       } else {
@@ -164,16 +166,16 @@ export function ProfilePage() {
           <div className="relative z-10">
             <div className="mx-auto flex max-w-[1000px] items-center justify-between gap-3 px-5 pb-2 pt-6 sm:px-6">
               <div className="flex min-w-0 items-center gap-3">
-                <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={() => navigate('/')}>
+                <IconButton label={copy.back} variant="ghost" size="sm" className="-ml-2" onClick={() => navigate('/')}>
                   <ArrowLeft />
                 </IconButton>
-                <h1 className="truncate font-display text-2xl font-semibold text-text">Профиль</h1>
+                <h1 className="truncate font-display text-2xl font-semibold text-text">{copy.title}</h1>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <IconButton label="Поделиться профилем" variant="ghost" onClick={handleShare}>
+                <IconButton label={copy.share} variant="ghost" onClick={handleShare}>
                   <Share2 />
                 </IconButton>
-                <IconButton label="Настройки" variant="ghost" onClick={() => navigate('/settings')}>
+                <IconButton label={copy.settings} variant="ghost" onClick={() => navigate('/settings')}>
                   <Settings />
                 </IconButton>
               </div>
@@ -198,14 +200,14 @@ export function ProfilePage() {
                     {user.subscription === 'premium' ? (
                       <Chip variant="active" size="sm">
                         <Crown />
-                        Премиум
+                        {copy.premium}
                       </Chip>
                     ) : (
-                      <Chip size="sm">Бесплатный план</Chip>
+                      <Chip size="sm">{copy.free}</Chip>
                     )}
                     <Chip size="sm">
                       <Globe />
-                      <span className="tabular">{!demoMode && passportError ? '—' : closedCountries.length} {demoMode ? 'стран закрыто' : 'городов закрыто'}</span>
+                      <span className="tabular">{!demoMode && passportError ? '—' : closedCountries.length} {demoMode ? copy.countriesClosed : copy.citiesClosed}</span>
                     </Chip>
                   </div>
                 </div>
@@ -213,7 +215,7 @@ export function ProfilePage() {
                 {user.subscription !== 'premium' && (
                   <Button onClick={() => openModal('subscription')}>
                     <Sparkles />
-                    Оформить премиум
+                    {copy.premiumCta}
                   </Button>
                 )}
               </div>
@@ -222,25 +224,25 @@ export function ProfilePage() {
             {/* Статистика */}
             <GlassPanel className="grid grid-cols-2 gap-x-4 gap-y-5 p-5 sm:grid-cols-3 lg:grid-cols-5">
               {demoMode ? <>
-                <StatTile icon={<Route />} value={`${totalKm} км`} label="пройдено" />
-                <StatTile icon={<CalendarDays />} value={`${totalDays}`} label="дней в пути" />
+                <StatTile icon={<Route />} value={copy.distanceValue(totalKm)} label={copy.distance} />
+                <StatTile icon={<CalendarDays />} value={`${totalDays}`} label={copy.days} />
               </> : <>
                 <StatTile icon={<Sparkles />} value={passportLoading ? '…' : `${passport?.profile.xp ?? '—'}`} label="XP" />
-                <StatTile icon={<CalendarDays />} value={suitcaseLoading ? '…' : suitcaseError ? '—' : `${(suitcaseTrips ?? []).filter((trip) => !trip.isArchived).length}`} label="сохранённых поездок" />
+                <StatTile icon={<CalendarDays />} value={suitcaseLoading ? '…' : suitcaseError ? '—' : `${(suitcaseTrips ?? []).filter((trip) => !trip.isArchived).length}`} label={copy.savedTrips} />
               </>}
-              <StatTile icon={<MapPin />} value={`${savedRoutes.length}`} label="маршрутов" />
-              <StatTile icon={<Stamp />} value={!demoMode && passportLoading ? '…' : !demoMode && passportError ? '—' : `${stampsEarned}`} label="штампов" />
+              <StatTile icon={<MapPin />} value={`${savedRoutes.length}`} label={copy.routes} />
+              <StatTile icon={<Stamp />} value={!demoMode && passportLoading ? '…' : !demoMode && passportError ? '—' : `${stampsEarned}`} label={copy.stamps} />
               {demoMode
-                ? <StatTile icon={<Compass />} value={`${chatHistory.length}`} label="чатов" />
-                : <StatTile icon={<Compass />} value={suitcaseLoading ? '…' : suitcaseError ? '—' : `${suitcaseGoals.length}`} label="целей" />}
+                ? <StatTile icon={<Compass />} value={`${chatHistory.length}`} label={copy.chats} />
+                : <StatTile icon={<Compass />} value={suitcaseLoading ? '…' : suitcaseError ? '—' : `${suitcaseGoals.length}`} label={copy.goals} />}
             </GlassPanel>
 
             {/* Паспорт */}
             <section>
               <div className="mb-4 flex items-baseline justify-between gap-4">
-                <h2 className="font-display text-2xl font-semibold text-text">Тревел-паспорт</h2>
+                <h2 className="font-display text-2xl font-semibold text-text">{copy.passport}</h2>
                 <span className="font-sans text-xs tabular text-text-muted">
-                  {pluralize(stampsEarned, 'штамп', 'штампа', 'штампов')}
+                  {copy.stampCount(stampsEarned)}
                 </span>
               </div>
 
@@ -274,7 +276,7 @@ export function ProfilePage() {
                             done ? 'text-primary' : 'text-text-muted'
                           )}
                         >
-                          {country.opened ? `${p}%` : 'белое пятно'}
+                          {country.opened ? `${p}%` : copy.blankSpot}
                         </span>
                       </span>
                     </div>
@@ -295,26 +297,26 @@ export function ProfilePage() {
                       <span className="min-w-0">
                         <span className="block truncate font-sans text-sm font-medium text-text">{city.name}</span>
                         <span className="block font-sans text-xs tabular text-text-muted">
-                          {city.completed_quests}/{city.required_quest_count} квестов · {progress}%
+                          {city.completed_quests}/{city.required_quest_count} {copy.quests} · {progress}%
                         </span>
                       </span>
                     </div>
                   )
                 })}
               </GlassPanel>
-              {!demoMode && passportLoading && <p role="status" className="mt-3 text-sm text-text-muted">Загружаем паспорт…</p>}
+              {!demoMode && passportLoading && <p role="status" className="mt-3 text-sm text-text-muted">{copy.passportLoading}</p>}
               {!demoMode && passportError && <div role="status" className="mt-3 flex items-center gap-3 text-sm text-text-muted">
-                <span>Игровой паспорт временно недоступен.</span>
-                <Button size="sm" variant="secondary" onClick={() => setPassportRetry((version) => version + 1)}>Повторить</Button>
+                <span>{copy.passportUnavailable}</span>
+                <Button size="sm" variant="secondary" onClick={() => setPassportRetry((version) => version + 1)}>{copy.retry}</Button>
               </div>}
               {!demoMode && !passportLoading && !passportError && passport?.cities.length === 0 &&
-                <p className="mt-3 text-sm text-text-muted">Пока нет опубликованных городов.</p>}
+                <p className="mt-3 text-sm text-text-muted">{copy.noCities}</p>}
             </section>
 
             {/* Достижения */}
             <section>
-              <h2 className="mb-4 font-display text-2xl font-semibold text-text">Достижения</h2>
-              {!demoMode && passportError ? <p className="text-sm text-text-muted">Достижения временно недоступны вместе с игровым паспортом.</p> :
+              <h2 className="mb-4 font-display text-2xl font-semibold text-text">{copy.achievements}</h2>
+              {!demoMode && passportError ? <p className="text-sm text-text-muted">{copy.achievementsUnavailable}</p> :
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {achievements.map((a) => (
                   <GlassPanel
@@ -334,7 +336,7 @@ export function ProfilePage() {
                       {a.description}
                     </p>
                     {!a.unlocked && (
-                      <p className="mt-2 font-sans text-[11px] text-text-muted">Ещё не открыто</p>
+                      <p className="mt-2 font-sans text-[11px] text-text-muted">{copy.locked}</p>
                     )}
                   </GlassPanel>
                 ))}
@@ -345,20 +347,20 @@ export function ProfilePage() {
             {/* Поездки */}
             <section>
               <div className="mb-4 flex items-baseline justify-between gap-4">
-                <h2 className="font-display text-2xl font-semibold text-text">Мои путешествия</h2>
+                <h2 className="font-display text-2xl font-semibold text-text">{copy.trips}</h2>
                 <span className="font-sans text-xs tabular text-text-muted">
-                  {suitcaseLoading && !demoMode ? 'Загрузка…' : !demoMode && suitcaseError ? '—' : pluralize(displayTrips.length, 'поездка', 'поездки', 'поездок')}
+                  {suitcaseLoading && !demoMode ? copy.loading : !demoMode && suitcaseError ? '—' : copy.tripCount(displayTrips.length)}
                 </span>
               </div>
 
               {!demoMode && suitcaseError && <div role="status" className="mb-4 flex items-center gap-3 text-sm text-text-muted">
-                <span>Поездки временно недоступны.</span>
-                <Button size="sm" variant="secondary" onClick={() => setSuitcaseRetry((version) => version + 1)}>Повторить</Button>
+                <span>{copy.tripsUnavailable}</span>
+                <Button size="sm" variant="secondary" onClick={() => setSuitcaseRetry((version) => version + 1)}>{copy.retry}</Button>
               </div>}
               {!demoMode && !suitcaseLoading && !suitcaseError && displayTrips.length === 0 &&
                 <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-hairline bg-panel p-4">
-                  <p className="font-sans text-sm text-text-muted">Здесь появятся сохранённые поездки.</p>
-                  <Button size="sm" variant="secondary" onClick={() => setMainView('suitcase')}>Открыть чемодан</Button>
+                  <p className="font-sans text-sm text-text-muted">{copy.noTrips}</p>
+                  <Button size="sm" variant="secondary" onClick={() => setMainView('suitcase')}>{copy.openSuitcase}</Button>
                 </div>}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {displayTrips.map((trip) => (
@@ -383,7 +385,7 @@ export function ProfilePage() {
                         </p>
                       </div>
                     </div>
-                    <p className="p-4 font-sans text-xs text-text-muted">{formatProfileTripDates(trip.startDate, trip.endDate)}</p>
+                    <p className="p-4 font-sans text-xs text-text-muted">{formatProfileTripDates(trip.startDate, trip.endDate, language)}</p>
                   </article>
                 ))}
               </div>
@@ -392,8 +394,8 @@ export function ProfilePage() {
             {/* Переходы */}
             <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
               {[
-                { label: 'Настройки аккаунта', to: '/settings' },
-                { label: 'Поддержка', to: '/support' },
+                { label: copy.settingsLink, to: '/settings' },
+                { label: copy.support, to: '/support' },
               ].map((row) => (
                 <button
                   key={row.to}

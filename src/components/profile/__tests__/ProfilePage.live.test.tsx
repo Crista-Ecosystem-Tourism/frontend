@@ -2,10 +2,11 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProfilePage } from '../ProfilePage'
 
-const { getPassportMock, fetchWorkspaceMock, setMainViewMock } = vi.hoisted(() => ({
+const { getPassportMock, fetchWorkspaceMock, setMainViewMock, appState } = vi.hoisted(() => ({
   getPassportMock: vi.fn(),
   fetchWorkspaceMock: vi.fn(),
   setMainViewMock: vi.fn(),
+  appState: { language: 'ru' as 'ru' | 'en' },
 }))
 
 vi.mock('react-router-dom', () => ({ useNavigate: () => vi.fn() }))
@@ -16,6 +17,8 @@ vi.mock('@/context/AppContext', () => ({
     chatHistory: [],
     savedRoutes: [],
     setMainView: setMainViewMock,
+    language: appState.language,
+    setLanguage: vi.fn(),
   }),
 }))
 vi.mock('@/hooks/useGameProgress', () => ({
@@ -36,6 +39,7 @@ vi.mock('@/components/layout/AppFrame', () => ({ AppFrame: ({ children }: { chil
 vi.mock('@/components/ui/Img', () => ({ Img: ({ alt }: { alt: string }) => <img alt={alt} /> }))
 
 beforeEach(() => {
+  appState.language = 'ru'
   getPassportMock.mockReset()
   fetchWorkspaceMock.mockReset()
   setMainViewMock.mockReset()
@@ -84,5 +88,16 @@ describe('ProfilePage live data', () => {
 
     expect(await screen.findByText('70')).toBeTruthy()
     expect(fetchWorkspaceMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders the live passport in the selected English language', async () => {
+    appState.language = 'en'
+    render(<ProfilePage />)
+
+    expect(await screen.findByRole('heading', { name: 'Profile' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Travel passport' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Achievements' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'My trips' })).toBeTruthy()
+    expect(await screen.findByText('October 1, 2026 — October 5, 2026')).toBeTruthy()
   })
 })

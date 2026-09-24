@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getSettingsCopy } from '../settingsCopy'
+import { getNavigationCopy, getSettingsCopy } from '../settingsCopy'
 
 describe('settings page translations', () => {
   it('provides a complete English copy for the settings page and delete dialog', () => {
@@ -14,5 +14,11 @@ describe('settings page translations', () => {
   it('keeps Russian as the default-language copy', () => {
     expect(getSettingsCopy('ru').title).toBe('Настройки')
     expect(getSettingsCopy('ru').delete).toBe('Удалить')
+  })
+
+  it('uses the account language for shared navigation labels', () => {
+    expect(getNavigationCopy('en').explore).toBe('Explore the world')
+    expect(getNavigationCopy('en').accountSettings).toBe('Account settings')
+    expect(getNavigationCopy('ru').explore).toBe('Изучение мира')
   })
 })

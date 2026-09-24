@@ -1,5 +1,73 @@
 export type InterfaceLanguage = 'ru' | 'en'
 
+const navigationCopy = {
+  ru: {
+    explore: 'Изучение мира', wiki: 'Crista Wiki', routes: 'AI-маршруты', passport: 'Паспорт',
+    switchToEnglish: 'Переключить на английский', switchToRussian: 'Переключить на русский',
+    lightTheme: 'Светлая тема', darkTheme: 'Тёмная тема', premium: 'Премиум', freePlan: 'Бесплатный план',
+    accountSettings: 'Настройки аккаунта', support: 'Поддержка', logout: 'Выйти', closeMenu: 'Закрыть меню',
+    newChat: 'Новый чат', signIn: 'Войти в аккаунт', profile: (name: string) => `Профиль: ${name}`,
+  },
+  en: {
+    explore: 'Explore the world', wiki: 'Crista Wiki', routes: 'AI itineraries', passport: 'Passport',
+    switchToEnglish: 'Switch to English', switchToRussian: 'Switch to Russian',
+    lightTheme: 'Light theme', darkTheme: 'Dark theme', premium: 'Premium', freePlan: 'Free plan',
+    accountSettings: 'Account settings', support: 'Support', logout: 'Sign out', closeMenu: 'Close menu',
+    newChat: 'New chat', signIn: 'Sign in', profile: (name: string) => `Profile: ${name}`,
+  },
+} satisfies Record<InterfaceLanguage, Record<string, unknown>>
+
+const profileCopy = {
+  ru: {
+    back: 'Назад', title: 'Профиль', share: 'Поделиться профилем', settings: 'Настройки',
+    premium: 'Премиум', free: 'Бесплатный план', countriesClosed: 'стран закрыто', citiesClosed: 'городов закрыто',
+    premiumCta: 'Оформить премиум',
+    distance: 'пройдено', days: 'дней в пути', savedTrips: 'сохранённых поездок', routes: 'маршрутов',
+    stamps: 'штампов', goals: 'целей', chats: 'чатов', passport: 'Тревел-паспорт',
+    achievements: 'Достижения', trips: 'Мои путешествия', loading: 'Загрузка…', passportLoading: 'Загружаем паспорт…',
+    passportUnavailable: 'Игровой паспорт временно недоступен.', achievementsUnavailable: 'Достижения временно недоступны вместе с игровым паспортом.',
+    noCities: 'Пока нет опубликованных городов.', tripsUnavailable: 'Поездки временно недоступны.',
+    noTrips: 'Здесь появятся сохранённые поездки.', openSuitcase: 'Открыть чемодан', retry: 'Повторить',
+    settingsLink: 'Настройки аккаунта', support: 'Поддержка', blankSpot: 'белое пятно', quests: 'квестов',
+    locked: 'Ещё не открыто', explorer: 'Исследователь', explorerDescription: 'Пять маршрутов сохранено',
+    traveller: 'Путешественник', countryComplete: 'Одна страна закрыта полностью', cityComplete: 'Один город закрыт полностью',
+    collector: 'Коллекционер', collectorDescription: 'Пять штампов в паспорте', consistency: 'Постоянство',
+    consistencyDescription: 'Десять квестов закрыто', profileShareTitle: (name: string) => `Профиль ${name}`,
+    profileShareText: (name: string) => `Профиль ${name} в Crista`,
+    stampCount: (count: number) => `${count} ${count === 1 ? 'штамп' : count >= 2 && count <= 4 ? 'штампа' : 'штампов'}`,
+    tripCount: (count: number) => `${count} ${count === 1 ? 'поездка' : count >= 2 && count <= 4 ? 'поездки' : 'поездок'}`,
+    distanceValue: (km: number) => `${km} км`,
+  },
+  en: {
+    back: 'Back', title: 'Profile', share: 'Share profile', settings: 'Settings',
+    premium: 'Premium', free: 'Free plan', countriesClosed: 'countries completed', citiesClosed: 'cities completed',
+    premiumCta: 'Get Premium',
+    distance: 'distance traveled', days: 'days traveling', savedTrips: 'saved trips', routes: 'routes',
+    stamps: 'stamps', goals: 'goals', chats: 'chats', passport: 'Travel passport',
+    achievements: 'Achievements', trips: 'My trips', loading: 'Loading…', passportLoading: 'Loading passport…',
+    passportUnavailable: 'Game passport is temporarily unavailable.', achievementsUnavailable: 'Achievements are temporarily unavailable with the game passport.',
+    noCities: 'No published cities yet.', tripsUnavailable: 'Trips are temporarily unavailable.',
+    noTrips: 'Your saved trips will appear here.', openSuitcase: 'Open trips', retry: 'Retry',
+    settingsLink: 'Account settings', support: 'Support', blankSpot: 'undiscovered', quests: 'quests',
+    locked: 'Not unlocked yet', explorer: 'Explorer', explorerDescription: 'Save five itineraries',
+    traveller: 'Traveler', countryComplete: 'Complete one country', cityComplete: 'Complete one city',
+    collector: 'Collector', collectorDescription: 'Earn five passport stamps', consistency: 'Consistency',
+    consistencyDescription: 'Complete ten quests', profileShareTitle: (name: string) => `${name}'s profile`,
+    profileShareText: (name: string) => `${name}'s profile on Crista`,
+    stampCount: (count: number) => `${count} ${count === 1 ? 'stamp' : 'stamps'}`,
+    tripCount: (count: number) => `${count} ${count === 1 ? 'trip' : 'trips'}`,
+    distanceValue: (km: number) => `${km} km`,
+  },
+}
+
+export function getNavigationCopy(language: InterfaceLanguage) {
+  return navigationCopy[language]
+}
+
+export function getProfileCopy(language: InterfaceLanguage) {
+  return profileCopy[language]
+}
+
 const settingsCopy = {
   ru: {
     back: 'Назад',
@@ -81,7 +149,7 @@ const settingsCopy = {
     delete: 'Delete',
     pageLabel: 'Crista settings',
   },
-} satisfies Record<InterfaceLanguage, Record<string, string>>
+} satisfies Record<InterfaceLanguage, Record<string, unknown>>
 
 export function getSettingsCopy(language: InterfaceLanguage) {
   return settingsCopy[language]
