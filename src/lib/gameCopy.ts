@@ -76,6 +76,20 @@ interface GameCopy {
   emptyPage: string
   firstStampHint: string
   passportDisclaimer: string
+  pilotLabel: string
+  cityPilotNames: Record<'st-petersburg' | 'sochi', string>
+  pilotNodeNames: Record<string, string>
+  pilotNodeStates: { completed: string; unlocked: string; locked: string }
+  pilotComplete: string
+  pilotContentLanguageNote: string
+  source: string
+  openSource: string
+  truthOrMyth: string
+  timeline: string
+  correctXp: (xp: number) => string
+  tryAgain: string
+  saveAnswerFailed: string
+  questUnavailable: string
 }
 
 const copy: Record<InterfaceLanguage, GameCopy> = {
@@ -116,6 +130,18 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
     countrySeals: 'Печати за закрытые страны', visitMarks: 'Отметки о посещении', page: (number) => `Страница ${number}`,
     share: 'Поделиться', emptyPage: 'Страница пока чистая', firstStampHint: 'Закройте все квесты города, чтобы получить первый штамп.',
     passportDisclaimer: 'Штамп за город выдаётся при закрытии всех его квестов, за страну — при закрытии всех городов. Это документ Crista, не связанный с государственными паспортами.',
+    pilotLabel: 'Контентный пилот · серверный путь', cityPilotNames: { 'st-petersburg': 'Санкт-Петербург', sochi: 'Сочи' },
+    pilotNodeNames: {
+      'spb-hermitage': 'Эрмитаж', 'spb-peterhof': 'Петергоф', 'spb-collection': 'Коллекция Эрмитажа',
+      'spb-fountains': 'Фонтаны Петергофа', 'spb-peterhof-history': 'Первое упоминание Петергофа',
+      'sochi-national-park': 'Сочинский национальный парк', 'sochi-dendrarium': 'Дендрарий', 'sochi-forest': 'Горные леса',
+      'sochi-mzymta': 'Река Мзымта', 'sochi-park-area': 'Площадь национального парка',
+    }, pilotNodeStates: { completed: 'Пройдено', unlocked: 'Открыто', locked: 'Закрыто' },
+    pilotComplete: 'Маршрут завершён. Все факты сохранены с первоисточниками.',
+    pilotContentLanguageNote: 'Тексты фактов и вопросов пока доступны только на русском — это проверенное серверное издание.',
+    source: 'Источник', openSource: 'открыть', truthOrMyth: 'Правда или миф', timeline: 'Временная шкала',
+    correctXp: (xp) => `Верно! +${xp} XP`, tryAgain: 'Почти! Попробуйте ещё раз.', saveAnswerFailed: 'Не удалось сохранить ответ. Попробуйте ещё раз.',
+    questUnavailable: 'Квест пока недоступен.',
   },
   en: {
     back: 'Back', backToWorldMap: 'Back to world map', firstTrip: 'Your first trip', pilotTag: 'Russia · pilot',
@@ -154,6 +180,19 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
     countrySeals: 'Seals for completed countries', visitMarks: 'Visit stamps', page: (number) => `Page ${number}`,
     share: 'Share', emptyPage: 'This page is still blank', firstStampHint: 'Complete every quest in a city to earn your first stamp.',
     passportDisclaimer: 'Earn a city stamp by completing all its quests, and a country seal by completing all its cities. This Crista document is not a government passport.',
+    pilotLabel: 'Content pilot · server path', cityPilotNames: { 'st-petersburg': 'Saint Petersburg', sochi: 'Sochi' },
+    pilotNodeNames: {
+      'spb-hermitage': 'The Hermitage', 'spb-peterhof': 'Peterhof', 'spb-collection': 'The Hermitage collection',
+      'spb-fountains': 'Peterhof fountains', 'spb-peterhof-history': 'The first mention of Peterhof',
+      'sochi-national-park': 'Sochi National Park', 'sochi-dendrarium': 'Sochi Arboretum', 'sochi-forest': 'Mountain forests',
+      'sochi-mzymta': 'Mzymta River', 'sochi-park-area': 'National park area',
+    },
+    pilotNodeStates: { completed: 'Completed', unlocked: 'Open', locked: 'Locked' },
+    pilotComplete: 'Route complete. All facts include their original sources.',
+    pilotContentLanguageNote: 'Fact and question text is currently available only in Russian, the verified server edition.',
+    source: 'Source', openSource: 'open', truthOrMyth: 'True or false', timeline: 'Timeline',
+    correctXp: (xp) => `Correct! +${xp} XP`, tryAgain: 'Not quite. Try again.', saveAnswerFailed: 'Could not save your answer. Please try again.',
+    questUnavailable: 'This quest is temporarily unavailable.',
   },
 }
 
