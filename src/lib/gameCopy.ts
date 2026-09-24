@@ -449,7 +449,7 @@ const copy: Record<InterfaceLanguage, GameCopy> = {
       saveFailed: 'Your answers could not be saved. Please try again.',
     },
     moscowSandbox: {
-      contentLanguageNote: 'Interactive exercises and the Moscow Wiki article are currently in Russian. The story card and lesson review use English when a published translation is available.',
+      contentLanguageNote: 'The Moscow Wiki article is currently in Russian; the game, story and lesson content use published English editions.',
       unavailable: (error) => `The Moscow sandbox is currently unavailable: ${error}.`, retry: 'try refreshing the page',
       eyebrow: 'Free exploration', title: 'Moscow sandbox',
       description: 'You completed the city loop. Revisit facts, test yourself, and open primary sources without earning extra rewards or spending energy.',

@@ -360,8 +360,10 @@ export async function getMoscowSandbox(language: 'ru' | 'en' = 'ru'): Promise<Mo
 export async function answerMoscowTruthMyth(
   statementId: string,
   answerKey: 'truth' | 'myth',
+  language: 'ru' | 'en' = 'ru',
 ): Promise<TruthMythAnswer> {
-  return parse<TruthMythAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/truth-myth/answer`, {
+  const params = new URLSearchParams({ language })
+  return parse<TruthMythAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/truth-myth/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ statement_id: statementId, answer_key: answerKey }),
@@ -370,40 +372,46 @@ export async function answerMoscowTruthMyth(
 
 export async function answerMoscowMatching(
   answers: Array<{ pair_id: string; choice_id: string }>,
+  language: 'ru' | 'en' = 'ru',
 ): Promise<MoscowMatchingAnswer> {
-  return parse<MoscowMatchingAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/matching/answer`, {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowMatchingAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/matching/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ answers }),
   }))
 }
 
-export async function answerMoscowTimeline(orderedIds: string[]): Promise<MoscowTimelineAnswer> {
-  return parse<MoscowTimelineAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/timeline/answer`, {
+export async function answerMoscowTimeline(orderedIds: string[], language: 'ru' | 'en' = 'ru'): Promise<MoscowTimelineAnswer> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowTimelineAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/timeline/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ ordered_ids: orderedIds }),
   }))
 }
 
-export async function answerMoscowWordBlocks(orderedIds: string[]): Promise<MoscowWordBlocksAnswer> {
-  return parse<MoscowWordBlocksAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/word-blocks/answer`, {
+export async function answerMoscowWordBlocks(orderedIds: string[], language: 'ru' | 'en' = 'ru'): Promise<MoscowWordBlocksAnswer> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowWordBlocksAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/word-blocks/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ ordered_ids: orderedIds }),
   }))
 }
 
-export async function answerMoscowPriceSlider(value: number): Promise<MoscowPriceSliderAnswer> {
-  return parse<MoscowPriceSliderAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/price-slider/answer`, {
+export async function answerMoscowPriceSlider(value: number, language: 'ru' | 'en' = 'ru'): Promise<MoscowPriceSliderAnswer> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowPriceSliderAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/price-slider/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ value }),
   }))
 }
 
-export async function answerMoscowPhotoScanner(hotspotId: string): Promise<MoscowPhotoScannerAnswer> {
-  return parse<MoscowPhotoScannerAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/photo-scanner/answer`, {
+export async function answerMoscowPhotoScanner(hotspotId: string, language: 'ru' | 'en' = 'ru'): Promise<MoscowPhotoScannerAnswer> {
+  const params = new URLSearchParams({ language })
+  return parse<MoscowPhotoScannerAnswer>(await fetch(`${API_BASE_URL}/game/paths/moscow/sandbox/photo-scanner/answer?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
     body: JSON.stringify({ hotspot_id: hotspotId }),

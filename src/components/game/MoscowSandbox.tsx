@@ -147,7 +147,7 @@ function PhotoScannerDrill({ photoScanner, onCorrect }: { photoScanner: NonNulla
     setAnswering(true)
     setFeedback(null)
     try {
-      const result = await answerMoscowPhotoScanner(hotspotId)
+      const result = await answerMoscowPhotoScanner(hotspotId, language)
       setFeedback(`${result.correct ? copy.accurate : copy.almost} ${result.explanation}`)
       if (result.correct) onCorrect()
     } catch (error) {
@@ -272,7 +272,7 @@ function PriceSliderDrill({ priceSlider, onCorrect }: { priceSlider: NonNullable
     setAnswering(true)
     setFeedback(null)
     try {
-      const result = await answerMoscowPriceSlider(value)
+      const result = await answerMoscowPriceSlider(value, language)
       setFeedback(`${result.correct ? copy.priceClose : copy.priceTryAgain} ${result.explanation}`)
       if (result.correct) onCorrect()
     } catch (error) {
@@ -338,7 +338,7 @@ function WordBlocksDrill({ wordBlocks, onCorrect }: { wordBlocks: NonNullable<Mo
     setAnswering(true)
     setFeedback(null)
     try {
-      const result = await answerMoscowWordBlocks(blocks.map((block) => block.id))
+      const result = await answerMoscowWordBlocks(blocks.map((block) => block.id), language)
       setFeedback(`${result.correct ? copy.phraseCorrect : copy.orderIncorrect} ${result.explanation}`)
       if (result.correct) onCorrect()
     } catch (error) {
@@ -397,7 +397,7 @@ function TimelineDrill({ timeline, onCorrect }: { timeline: NonNullable<MoscowSa
     setAnswering(true)
     setFeedback(null)
     try {
-      const result = await answerMoscowTimeline(items.map((item) => item.id))
+      const result = await answerMoscowTimeline(items.map((item) => item.id), language)
       const explanations = result.feedback.map((item) => `${item.correct ? copy.itemCorrect : copy.itemIncorrect}: ${item.explanation}`)
       setFeedback(`${result.correct ? copy.timelineCorrect : copy.orderIncorrect} ${explanations.join(' ')}`)
       if (result.correct) onCorrect()
@@ -453,7 +453,7 @@ function MatchingDrill({ matching, onCorrect }: { matching: NonNullable<MoscowSa
       const result = await answerMoscowMatching(matching.pairs.map((pair) => ({
         pair_id: pair.id,
         choice_id: answers[pair.id],
-      })))
+      })), language)
       const explanations = result.feedback.map((item) => `${item.correct ? copy.correct : copy.checkAgain}: ${item.explanation}`)
       setFeedback(`${result.correct ? copy.pairsCorrect : copy.pairsIncorrect} ${explanations.join(' ')}`)
       if (result.correct) onCorrect()
@@ -522,7 +522,7 @@ function TruthMythDrill({ drill, onCorrect }: { drill: NonNullable<MoscowSandbox
     setAnswering(true)
     setFeedback(null)
     try {
-      const result = await answerMoscowTruthMyth(statement.id, answerKey)
+      const result = await answerMoscowTruthMyth(statement.id, answerKey, language)
       setFeedback(`${result.correct ? copy.correct : copy.almost} ${result.explanation}`)
       if (result.correct) onCorrect()
     } catch (error) {

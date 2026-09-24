@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   answerMoscowBoss,
+  answerMoscowMatching,
+  answerMoscowPhotoScanner,
+  answerMoscowPriceSlider,
   answerMoscowQuest,
+  answerMoscowTimeline,
+  answerMoscowTruthMyth,
+  answerMoscowWordBlocks,
   getMoscowBoss,
   getMoscowQuest,
   getMoscowSandbox,
@@ -73,5 +79,21 @@ describe('Moscow quest language API', () => {
       expect.stringMatching(/\/game\/paths\/moscow\/sandbox\?language=en$/),
       expect.objectContaining({ headers: expect.any(Object) }),
     )
+  })
+
+  it('sends the selected locale for feedback from every sandbox exercise', async () => {
+    for (let index = 0; index < 6; index += 1) {
+      mockFetch.mockResolvedValueOnce(new Response('{}', { status: 200 }))
+    }
+    await answerMoscowTruthMyth('statement', 'truth', 'en')
+    await answerMoscowMatching([{ pair_id: 'pair', choice_id: 'choice' }], 'en')
+    await answerMoscowTimeline(['a', 'b', 'c'], 'en')
+    await answerMoscowWordBlocks(['a', 'b', 'c', 'd'], 'en')
+    await answerMoscowPriceSlider(50, 'en')
+    await answerMoscowPhotoScanner('hotspot', 'en')
+
+    const urls = mockFetch.mock.calls.map(([url]) => String(url))
+    expect(urls).toHaveLength(6)
+    expect(urls.every((url) => url.endsWith('?language=en'))).toBe(true)
   })
 })
