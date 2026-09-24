@@ -47,7 +47,7 @@ function RewardCell({
   return (
     <div
       className={cn(
-        'flex h-[132px] flex-col justify-between rounded-md border p-3 transition duration-base',
+        'flex h-[164px] flex-col justify-between rounded-md border p-3 transition duration-base',
         unlocked
           ? premium
             ? 'border-accent/40 bg-accent/[0.09]'
@@ -90,6 +90,9 @@ function RewardCell({
           )}
         >
           {language === 'en' ? reward.titleEn : reward.title}
+        </p>
+        <p className="mt-1 line-clamp-2 font-sans text-[10px] leading-snug text-text-muted">
+          {language === 'en' ? reward.detailEn : reward.detail}
         </p>
       </div>
     </div>
