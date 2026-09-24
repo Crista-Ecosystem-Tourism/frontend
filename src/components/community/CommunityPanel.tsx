@@ -1,9 +1,14 @@
-import { ArrowLeft, Heart, MapPin, Play, Trophy, Medal, Flame, UserPlus, Crown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowLeft, Heart, MapPin, Play, Trophy, Medal, UserPlus, Crown, Copy, RotateCw, UserRoundX } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { GlassPanel, Chip, IconButton } from '@/components/ui/glass'
 import { Img } from '@/components/ui/Img'
 import { cn } from '@/lib/utils'
+import { useApp } from '@/context/AppContext'
+import { isLoggedIn } from '@/api/authApi'
+import { acceptFriendInvite, createFriendInvite, listFriends, removeFriend, type Friend } from '@/api/socialApi'
 
 type CommunityPanelProps = {
   onBack: () => void
@@ -56,21 +61,158 @@ const leaderboard = [
   { rank: 5, name: 'Соня Рахимова', countries: 7, avatar: '' },
 ]
 
-const friends = [
-  { name: 'Аня Ковалёва', progress: 62, racing: true },
-  { name: 'Пётр Соловьёв', progress: 40, racing: false },
-  { name: 'Лена Мирошник', progress: 81, racing: true },
-]
+function FriendsSection({ language }: { language: 'ru' | 'en' }) {
+  const en = language === 'en'
+  const [friends, setFriends] = useState<Friend[]>([])
+  const [loading, setLoading] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [inviteLink, setInviteLink] = useState<string | null>(null)
+  const [inviteCode, setInviteCode] = useState<string | null>(null)
+  const signedIn = isLoggedIn()
+
+  const refreshFriends = async () => {
+    if (!signedIn) return
+    setLoading(true)
+    setError(null)
+    try {
+      setFriends(await listFriends())
+    } catch {
+      setError(en ? 'Could not load your friends.' : 'Не удалось загрузить список друзей.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('friend-invite')
+    setInviteCode(code)
+    void refreshFriends()
+  }, [signedIn])
+
+  const createInvite = async () => {
+    setBusy(true)
+    setError(null)
+    setNotice(null)
+    try {
+      const invite = await createFriendInvite()
+      const url = new URL(window.location.href)
+      url.hash = new URLSearchParams({ 'friend-invite': invite.invite_code }).toString()
+      setInviteLink(url.toString())
+      setNotice(en ? 'Invite link created. It expires in 7 days.' : 'Ссылка-приглашение создана и действует 7 дней.')
+    } catch {
+      setError(en ? 'Could not create an invite. Try again later.' : 'Не удалось создать приглашение. Попробуйте позже.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const acceptInvite = async () => {
+    if (!inviteCode) return
+    setBusy(true)
+    setError(null)
+    setNotice(null)
+    try {
+      await acceptFriendInvite(inviteCode)
+      setInviteCode(null)
+      setInviteLink(null)
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+      setNotice(en ? 'Friend added.' : 'Друг добавлен.')
+      await refreshFriends()
+    } catch {
+      setError(en ? 'This invite is invalid, expired, or already used.' : 'Приглашение недействительно, истекло или уже использовано.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const copyInvite = async () => {
+    if (!inviteLink) return
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setNotice(en ? 'Invite link copied.' : 'Ссылка скопирована.')
+    } catch {
+      setNotice(en ? 'Copy the link from the field above.' : 'Скопируйте ссылку из поля выше.')
+    }
+  }
+
+  const onRemoveFriend = async (friend: Friend) => {
+    setBusy(true)
+    setError(null)
+    try {
+      await removeFriend(friend.id)
+      setFriends((items) => items.filter((item) => item.id !== friend.id))
+      setNotice(en ? 'Friend removed.' : 'Друг удалён.')
+    } catch {
+      setError(en ? 'Could not remove this friend.' : 'Не удалось удалить друга.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!signedIn) {
+    return <GlassPanel className="p-5 text-sm text-text-secondary">{en ? 'Sign in to manage friends and invitations.' : 'Войдите, чтобы управлять друзьями и приглашениями.'}</GlassPanel>
+  }
+
+  return (
+    <div className="space-y-3">
+      {inviteCode && (
+        <GlassPanel className="space-y-3 border-primary/25 p-4">
+          <p className="font-sans text-sm text-text">{en ? 'You have a friend invitation.' : 'Вас пригласили в друзья.'}</p>
+          <Button size="sm" onClick={() => void acceptInvite()} disabled={busy}>
+            <UserPlus />{en ? 'Accept invitation' : 'Принять приглашение'}
+          </Button>
+        </GlassPanel>
+      )}
+
+      <GlassPanel className="space-y-3 p-4">
+        <div>
+          <h2 className="font-sans text-sm font-semibold text-text">{en ? 'Invite a friend' : 'Пригласить друга'}</h2>
+          <p className="mt-1 font-sans text-xs text-text-muted">{en ? 'Invite links expire after 7 days and can be used once.' : 'Ссылка действует 7 дней и принимается только один раз.'}</p>
+        </div>
+        <Button size="sm" variant="secondary" onClick={() => void createInvite()} disabled={busy}>
+          <UserPlus />{busy ? (en ? 'Please wait…' : 'Подождите…') : (en ? 'Create invite link' : 'Создать ссылку-приглашение')}
+        </Button>
+        {inviteLink && <div className="flex flex-col gap-2 sm:flex-row">
+          <input aria-label={en ? 'Friend invite link' : 'Ссылка-приглашение'} readOnly value={inviteLink} className="h-10 min-w-0 flex-1 rounded-md border border-hairline bg-panel px-3 font-sans text-xs text-text" />
+          <Button size="sm" variant="ghost" onClick={() => void copyInvite()}><Copy />{en ? 'Copy' : 'Скопировать'}</Button>
+        </div>}
+      </GlassPanel>
+
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-sans text-sm font-semibold text-text">{en ? 'Your friends' : 'Ваши друзья'}</h2>
+        <Button size="sm" variant="ghost" onClick={() => void refreshFriends()} disabled={loading}><RotateCw />{en ? 'Refresh' : 'Обновить'}</Button>
+      </div>
+      {loading && <p role="status" className="text-sm text-text-muted">{en ? 'Loading friends…' : 'Загружаем друзей…'}</p>}
+      {error && <div className="flex items-center justify-between gap-3"><p role="alert" className="text-sm text-error">{error}</p><Button size="sm" variant="ghost" onClick={() => void refreshFriends()}>{en ? 'Retry' : 'Повторить'}</Button></div>}
+      {!loading && !error && friends.length === 0 && <GlassPanel className="p-5 text-sm text-text-muted">{en ? 'No friends yet. Create a link to invite someone.' : 'Пока друзей нет. Создайте ссылку, чтобы пригласить знакомого.'}</GlassPanel>}
+      {friends.map((friend) => (
+        <GlassPanel key={friend.id} className="flex items-center gap-3 p-4">
+          <Avatar className="h-10 w-10 border border-hairline"><AvatarFallback className="bg-panel-2 text-sm text-text-secondary">{(friend.name || 'C').slice(0, 2)}</AvatarFallback></Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-sans text-sm font-semibold text-text">{friend.name || (en ? 'Crista traveler' : 'Путешественник Crista')}</p>
+            <p className="font-sans text-xs text-text-muted">{en ? 'Friend since' : 'В друзьях с'} {new Date(friend.friends_since).toLocaleDateString(en ? 'en' : 'ru')}</p>
+          </div>
+          <IconButton label={en ? `Remove ${friend.name || 'friend'}` : `Удалить ${friend.name || 'друга'}`} variant="ghost" size="sm" disabled={busy} onClick={() => void onRemoveFriend(friend)}><UserRoundX /></IconButton>
+        </GlassPanel>
+      ))}
+      {notice && <p role="status" className="text-sm text-text-secondary">{notice}</p>}
+    </div>
+  )
+}
 
 export function CommunityPanel({ onBack }: CommunityPanelProps) {
+  const { language } = useApp()
+  const en = language === 'en'
   return (
     <div className="h-full overflow-y-auto">
       <div className="relative z-10">
         <div className="mx-auto flex max-w-[1100px] items-center gap-3 px-5 pb-2 pt-6 sm:px-6">
-          <IconButton label="Назад" variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
+          <IconButton label={en ? 'Back' : 'Назад'} variant="ghost" size="sm" className="-ml-2" onClick={onBack}>
             <ArrowLeft />
           </IconButton>
-          <h1 className="font-display text-2xl font-semibold text-text">Сообщество</h1>
+          <h1 className="font-display text-2xl font-semibold text-text">{en ? 'Community' : 'Сообщество'}</h1>
         </div>
       </div>
 
@@ -79,7 +221,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
           <TabsList className="h-auto w-full flex-wrap justify-start gap-1 rounded-md border border-hairline bg-panel p-1 sm:w-fit">
             <TabsTrigger value="routes" className="rounded-sm px-4 py-2">Маршруты звёзд и друзей</TabsTrigger>
             <TabsTrigger value="leaderboard" className="rounded-sm px-4 py-2">Лидерборд</TabsTrigger>
-            <TabsTrigger value="friends" className="rounded-sm px-4 py-2">Друзья</TabsTrigger>
+          <TabsTrigger value="friends" className="rounded-sm px-4 py-2">{en ? 'Friends' : 'Друзья'}</TabsTrigger>
           </TabsList>
 
           {/* Маршруты */}
@@ -167,38 +309,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
 
           {/* Друзья */}
           <TabsContent value="friends" className="mt-6 outline-none">
-            <div className="space-y-3">
-              {friends.map((friend) => (
-                <GlassPanel key={friend.name} className="flex items-center gap-4 p-4">
-                  <Avatar className="h-10 w-10 border border-hairline">
-                    <AvatarFallback className="bg-panel-2 text-sm text-text-secondary">
-                      {friend.name.slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1.5 flex items-center justify-between gap-2">
-                      <p className="truncate font-sans text-sm font-semibold text-text">{friend.name}</p>
-                      {friend.racing && (
-                        <span className="flex shrink-0 items-center gap-1 font-sans text-[10px] font-bold uppercase tracking-wide text-primary">
-                          <Flame className="h-3 w-3" aria-hidden="true" /> Гонка
-                        </span>
-                      )}
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-panel-2">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${friend.progress}%` }} />
-                    </div>
-                  </div>
-                  <span className="w-9 shrink-0 text-right font-sans text-xs font-bold tabular text-text-muted">
-                    {friend.progress}%
-                  </span>
-                </GlassPanel>
-              ))}
-
-              <button className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-hairline-2 p-4 font-sans text-sm font-semibold text-text-secondary transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-                <UserPlus className="h-4 w-4" aria-hidden="true" />
-                Пригласить друга и открыть страну вместе
-              </button>
-            </div>
+            <FriendsSection language={language} />
           </TabsContent>
         </Tabs>
 
