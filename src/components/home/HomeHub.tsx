@@ -18,7 +18,7 @@ import { useGameProgress } from '@/hooks/useGameProgress'
 import { getHomeCopy } from '@/lib/homeCopy'
 import { BattlePass } from './BattlePass'
 import { DailyQuiz } from '@/components/game/DailyQuiz'
-import { gameCountries } from '@/mocks/game'
+import { gameCountries, gameCountryName, weeklyTrackTitle } from '@/mocks/game'
 
 interface HomeHubProps {
   onSend: (message: string) => void
@@ -200,6 +200,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
   // Фокус берём из игры: первая открытая страна, которую ещё не закрыли
   const focus =
     gameCountries.find((c) => c.opened && countryProgress(c.iso) < 100) ?? gameCountries[0]
+  const focusName = gameCountryName(focus, language)
   const focusProgress = countryProgress(focus.iso)
   const savings = focus.savings
   const savedPercent = savings ? Math.round((savings.current / savings.target) * 100) : 0
@@ -265,7 +266,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
                   </p>
                   <p className="mt-1 flex items-center gap-2 truncate font-display text-2xl font-semibold text-text">
                     <span aria-hidden="true">{focus.flag}</span>
-                    {focus.name}
+                    {focusName}
                   </p>
                 </div>
                 <div className="relative shrink-0">
@@ -277,7 +278,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
               </div>
               <p className="mt-3 font-sans text-sm leading-relaxed text-text-secondary">
                 {focus.weekly
-                  ? copy.weeklyLesson(focus.weekly.title, focus.weekly.lesson, focus.weekly.totalLessons)
+                  ? copy.weeklyLesson(weeklyTrackTitle(focus.weekly, language), focus.weekly.lesson, focus.weekly.totalLessons)
                   : copy.lockedWeekly}
               </p>
               <Button
@@ -320,7 +321,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
             <GlassPanel variant="photo" className="p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="font-sans text-sm font-semibold text-text">
-                  {copy.studying(focus.name)}
+                  {copy.studying(focusName)}
                 </p>
                 <button
                   onClick={() => setMainView('game')}
@@ -332,7 +333,7 @@ export function HomeHub({ onSend }: HomeHubProps) {
 
               <DailyQuiz
                 countryIso={focus.iso}
-                countryName={focus.name}
+                countryName={focusName}
                 answeredIds={answeredQuizIds}
                 onAnswer={answerQuiz}
                 onReset={() => resetQuiz(focus.iso)}

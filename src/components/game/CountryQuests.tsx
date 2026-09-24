@@ -6,8 +6,11 @@ import {
   type GameCountry,
   type QuestCategory,
   type QuestPoint,
+  gameCountryName,
+  gameCityName,
 } from '@/mocks/game'
 import { cn, pluralize } from '@/lib/utils'
+import { useApp } from '@/context/AppContext'
 
 const categoryIcon: Record<QuestCategory, typeof Landmark> = {
   sights: Landmark,
@@ -85,6 +88,8 @@ export function CountryQuests({
   progress,
   cityProgress,
 }: CountryQuestsProps) {
+  const { language } = useApp()
+  const countryName = gameCountryName(country, language)
   const [activeCityId, setActiveCityId] = useState(country.cities[0]?.id ?? '')
   const city = country.cities.find((c) => c.id === activeCityId) ?? country.cities[0]
 
@@ -93,7 +98,7 @@ export function CountryQuests({
       <GlassPanel className="flex flex-col items-center justify-center px-8 py-12 text-center">
         <MapPin className="mb-3 h-9 w-9 text-text-muted" aria-hidden="true" />
         <p className="font-sans text-sm text-text-secondary">
-          {country.name} ещё белое пятно на вашей карте
+          {countryName} ещё белое пятно на вашей карте
         </p>
         <p className="mt-1 max-w-[40ch] font-sans text-xs leading-relaxed text-text-muted">
           Постройте маршрут в эту страну в разделе Маршрут, и здесь появятся регионы, города и точки квестов.
@@ -110,7 +115,7 @@ export function CountryQuests({
         <div className="flex items-center gap-3">
           <span className="text-3xl leading-none" aria-hidden="true">{country.flag}</span>
           <span>
-            <DisplayTitle as="h2" className="!text-3xl">{country.name}</DisplayTitle>
+            <DisplayTitle as="h2" className="!text-3xl">{countryName}</DisplayTitle>
             <span className="mt-0.5 block font-sans text-sm tabular text-text-secondary">
               Закрыто {progress}%
             </span>
@@ -144,7 +149,7 @@ export function CountryQuests({
                   : 'text-text-secondary hover:bg-panel-2 hover:text-text'
               )}
             >
-              {c.name}
+              {gameCityName(c, language)}
               <span className={cn('text-xs tabular', active ? 'text-white/75' : 'text-text-muted')}>
                 {p}%
               </span>

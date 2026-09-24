@@ -1,8 +1,9 @@
 import { ArrowLeft, Share2, Stamp as StampIcon, Lock, Globe2 } from 'lucide-react'
 import { Chip, IconButton } from '@/components/ui/glass'
 import { Button } from '@/components/ui/button'
-import { gameCountries, type GameCountry } from '@/mocks/game'
+import { gameCountries, gameCountryName, gameCityName, type GameCountry } from '@/mocks/game'
 import { cn } from '@/lib/utils'
+import { useApp } from '@/context/AppContext'
 
 interface TravelPassportProps {
   onBack: () => void
@@ -68,7 +69,7 @@ function Stamp({ stamp }: { stamp: StampData }) {
  * Гербовая печать за полностью закрытую страну. Крупнее городских штампов:
  * двойное кольцо, звёзды по краю и дата закрытия, как на визовом оттиске.
  */
-function CountrySeal({ country, tilt }: { country: GameCountry; tilt: number }) {
+function CountrySeal({ country, tilt, language }: { country: GameCountry; tilt: number; language: 'ru' | 'en' }) {
   return (
     <div
       className="relative flex aspect-square items-center justify-center rounded-full border-[3px] border-[#1A6F7C]/75 bg-[#1A6F7C]/10 p-2 text-center text-[#12545E] transition-transform duration-slow ease-standard hover:rotate-0"
@@ -80,7 +81,7 @@ function CountrySeal({ country, tilt }: { country: GameCountry; tilt: number }) 
       <span className="relative flex flex-col items-center leading-none">
         <span className="text-lg" aria-hidden="true">{country.flag}</span>
         <span className="mt-1 font-display text-[15px] font-semibold uppercase tracking-tight">
-          {country.name}
+          {gameCountryName(country, language)}
         </span>
         <span className="mt-1 font-sans text-[8px] uppercase tracking-[0.14em] opacity-80">
           закрыта
@@ -99,6 +100,7 @@ export function TravelPassport({
   cityProgress,
   ownerName,
 }: TravelPassportProps) {
+  const { language } = useApp()
   const opened = gameCountries.filter((c) => c.opened)
 
   const stamps: StampData[] = []
@@ -106,7 +108,7 @@ export function TravelPassport({
     const cp = countryProgress(country.iso)
     stamps.push({
       id: `country-${country.iso}`,
-      title: country.name,
+      title: gameCountryName(country, language),
       subtitle: cp === 100 ? 'страна закрыта' : `${cp}% пройдено`,
       earned: cp === 100,
       major: true,
@@ -116,7 +118,7 @@ export function TravelPassport({
       const p = cityProgress(country, city.id)
       stamps.push({
         id: `city-${city.id}`,
-        title: city.name,
+        title: gameCityName(city, language),
         subtitle: p === 100 ? 'город закрыт' : `${p}%`,
         earned: p === 100,
         major: false,
@@ -215,7 +217,7 @@ export function TravelPassport({
                   </p>
                   <div className="grid grid-cols-3 gap-3">
                     {closedCountries.map((c, i) => (
-                      <CountrySeal key={c.iso} country={c} tilt={((i % 3) - 1) * 5} />
+                      <CountrySeal key={c.iso} country={c} tilt={((i % 3) - 1) * 5} language={language} />
                     ))}
                   </div>
                 </div>

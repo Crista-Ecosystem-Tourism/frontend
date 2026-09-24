@@ -18,7 +18,7 @@ import { CityPilot } from './CityPilot'
 import { useGameProgress } from '@/hooks/useGameProgress'
 import { useApp } from '@/context/AppContext'
 import { ApiError, isMockMode } from '@/api/chatApi'
-import { gameCountries, findCountry, questCategoryLabel } from '@/mocks/game'
+import { gameCountries, findCountry, gameCountryName, questCategoryLabel, weeklyTrackTitle } from '@/mocks/game'
 import { cn } from '@/lib/utils'
 import { getGamePassport, type GamePassport } from '@/api/gameApi'
 import { fetchSuitcaseWorkspace, mapGoalFromApi, mapTripFromApi } from '@/api/suitcaseApi'
@@ -229,6 +229,7 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
 }
 
 function DemoGamePanel({ onBack, userName }: GamePanelProps & { userName: string | null }) {
+  const { language } = useApp()
   const [selectedIso, setSelectedIso] = useState<string>('RU')
   const [showPassport, setShowPassport] = useState(false)
   const [openCountry, setOpenCountry] = useState<string | null>(null)
@@ -244,6 +245,7 @@ function DemoGamePanel({ onBack, userName }: GamePanelProps & { userName: string
 
   // Фокус, треки и копилка следуют за выбранной на карте страной
   const focus = country
+  const focusName = gameCountryName(focus, language)
   const focusProgress = progress
   const weekly = country.weekly
   const savings = country.savings
@@ -360,7 +362,7 @@ function DemoGamePanel({ onBack, userName }: GamePanelProps & { userName: string
                 <span className="block font-sans text-xs uppercase tracking-wide text-text-muted">
                   Фокус страны
                 </span>
-                <DisplayTitle as="h2" className="!text-3xl">{focus.name}</DisplayTitle>
+                <DisplayTitle as="h2" className="!text-3xl">{focusName}</DisplayTitle>
                 <span className="mt-0.5 block font-sans text-sm tabular text-text-secondary">
                   {focusProgress}% закрыто
                 </span>
@@ -376,7 +378,7 @@ function DemoGamePanel({ onBack, userName }: GamePanelProps & { userName: string
           <div className="mb-5 grid gap-4 sm:grid-cols-2">
             <DailyQuiz
               countryIso={country.iso}
-              countryName={country.name}
+              countryName={gameCountryName(country, language)}
               answeredIds={answeredQuizIds}
               onAnswer={answerQuiz}
               onReset={() => resetQuiz(country.iso)}
@@ -392,7 +394,7 @@ function DemoGamePanel({ onBack, userName }: GamePanelProps & { userName: string
               </div>
               {weekly ? (
                 <>
-                  <p className="mb-3 font-sans text-sm font-medium text-text">{weekly.title}</p>
+                  <p className="mb-3 font-sans text-sm font-medium text-text">{weeklyTrackTitle(weekly, language)}</p>
                   <div className="mb-1.5 h-1.5 overflow-hidden rounded-full bg-panel-2">
                     <div className="h-full rounded-full bg-accent" style={{ width: `${weekly.percent}%` }} />
                   </div>
@@ -410,7 +412,7 @@ function DemoGamePanel({ onBack, userName }: GamePanelProps & { userName: string
 
           {/* Категории считаются из реальных квестов выбранной страны */}
           <p className="mb-2.5 font-sans text-xs text-text-muted">
-            Категории по стране {country.name}
+            {language === 'en' ? `Progress by category for ${gameCountryName(country, language)}` : `Категории по стране ${country.name}`}
           </p>
           <div className="space-y-2.5">
             {(Object.keys(questCategoryLabel) as Array<keyof typeof questCategoryLabel>).map((key) => (

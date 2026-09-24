@@ -3,7 +3,8 @@ import { GlassPanel, Chip, IconButton } from '@/components/ui/glass'
 import { CountryMap } from './CountryMap'
 import { CountryQuests } from './CountryQuests'
 import { DailyQuiz } from './DailyQuiz'
-import { questCategoryLabel, type GameCountry, type QuestCategory } from '@/mocks/game'
+import { gameCountryName, questCategoryLabel, type GameCountry, type QuestCategory } from '@/mocks/game'
+import { useApp } from '@/context/AppContext'
 import { cn } from '@/lib/utils'
 
 interface CountryPageProps {
@@ -39,6 +40,8 @@ export function CountryPage({
   onResetQuiz,
   quizStreak,
 }: CountryPageProps) {
+  const { language } = useApp()
+  const countryName = gameCountryName(country, language)
   // Регион считается открытым, если в его городе закрыт хотя бы один квест
   const visitedRegions = country.cities
     .filter((city) => city.quests.some((q) => isDone(q.id)))
@@ -54,7 +57,7 @@ export function CountryPage({
             </IconButton>
             <span className="text-2xl leading-none" aria-hidden="true">{country.flag}</span>
             <h1 className="truncate font-display text-2xl font-semibold text-text">
-              {country.name}
+              {countryName}
             </h1>
           </div>
           {progress === 100 ? (
@@ -100,7 +103,7 @@ export function CountryPage({
           <h2 className="mb-4 font-display text-xl font-semibold text-text">Вопрос дня</h2>
           <DailyQuiz
             countryIso={country.iso}
-            countryName={country.name}
+            countryName={countryName}
             answeredIds={answeredQuizIds}
             onAnswer={onAnswerQuiz}
             onReset={onResetQuiz}

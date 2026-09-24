@@ -4,6 +4,8 @@ import { latLngBounds, type Layer, type PathOptions } from 'leaflet'
 import type { Feature, Geometry } from 'geojson'
 import { Loader2 } from 'lucide-react'
 import type { GameCountry } from '@/mocks/game'
+import { gameCountryName } from '@/mocks/game'
+import { useApp } from '@/context/AppContext'
 import 'leaflet/dist/leaflet.css'
 
 interface RegionProps {
@@ -40,6 +42,8 @@ function FitCountry({ country }: { country: GameCountry }) {
 }
 
 export function CountryMap({ country, visitedRegionNames }: CountryMapProps) {
+  const { language } = useApp()
+  const countryName = gameCountryName(country, language)
   const [data, setData] = useState<RegionCollection | null>(null)
 
   // Границы регионов весят почти мегабайт: грузим их только когда открыли страну
@@ -116,7 +120,9 @@ export function CountryMap({ country, visitedRegionNames }: CountryMapProps) {
     return (
       <div className="flex h-full items-center justify-center px-6 text-center">
         <p className="font-sans text-sm text-text-muted">
-          Для страны {country.name} регионы пока не размечены
+          {language === 'en'
+            ? `Regions for ${countryName} are not mapped yet`
+            : `Для страны ${countryName} регионы пока не размечены`}
         </p>
       </div>
     )
