@@ -68,6 +68,35 @@ export function getProfileCopy(language: InterfaceLanguage) {
   return profileCopy[language]
 }
 
+const authCopy = {
+  ru: {
+    loginTitle: 'Войдите, чтобы продолжить', registerTitle: 'Создайте аккаунт',
+    loginDescription: 'Войдите, чтобы сохранить маршрут и получить персональные рекомендации',
+    registerDescription: 'Регистрация бесплатна и займёт несколько секунд', loginTab: 'Вход',
+    registerTab: 'Регистрация', email: 'Эл. почта', password: 'Пароль', name: 'Ваше имя',
+    passwordHint: 'Пароль (мин. 6 символов)', loggingIn: 'Входим…', login: 'Войти',
+    creating: 'Создаём…', createAccount: 'Создать аккаунт', termsLead: 'Нажимая кнопку, вы соглашаетесь с',
+    terms: 'условиями использования', requiredCredentials: 'Введите email и пароль', requiredName: 'Введите имя',
+    requiredEmail: 'Введите email', shortPassword: 'Пароль минимум 6 символов', loginError: 'Ошибка входа',
+    registerError: 'Ошибка регистрации',
+  },
+  en: {
+    loginTitle: 'Sign in to continue', registerTitle: 'Create an account',
+    loginDescription: 'Sign in to save your itinerary and get personalized recommendations',
+    registerDescription: 'Registration is free and takes just a few seconds', loginTab: 'Sign in',
+    registerTab: 'Sign up', email: 'Email', password: 'Password', name: 'Your name',
+    passwordHint: 'Password (at least 6 characters)', loggingIn: 'Signing in…', login: 'Sign in',
+    creating: 'Creating…', createAccount: 'Create account', termsLead: 'By continuing, you agree to the',
+    terms: 'Terms of Use', requiredCredentials: 'Enter your email and password', requiredName: 'Enter your name',
+    requiredEmail: 'Enter your email', shortPassword: 'Password must be at least 6 characters', loginError: 'Sign-in failed',
+    registerError: 'Registration failed',
+  },
+} satisfies Record<InterfaceLanguage, Record<string, string>>
+
+export function getAuthCopy(language: InterfaceLanguage) {
+  return authCopy[language]
+}
+
 const settingsCopy = {
   ru: {
     back: 'Назад',

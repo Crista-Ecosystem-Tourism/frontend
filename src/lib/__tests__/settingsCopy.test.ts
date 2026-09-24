@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getNavigationCopy, getSettingsCopy } from '../settingsCopy'
+import { getAuthCopy, getNavigationCopy, getSettingsCopy } from '../settingsCopy'
 
 describe('settings page translations', () => {
   it('provides a complete English copy for the settings page and delete dialog', () => {
@@ -20,5 +20,10 @@ describe('settings page translations', () => {
     expect(getNavigationCopy('en').explore).toBe('Explore the world')
     expect(getNavigationCopy('en').accountSettings).toBe('Account settings')
     expect(getNavigationCopy('ru').explore).toBe('Изучение мира')
+  })
+
+  it('provides localized sign-in validation copy', () => {
+    expect(getAuthCopy('en').requiredCredentials).toBe('Enter your email and password')
+    expect(getAuthCopy('ru').shortPassword).toBe('Пароль минимум 6 символов')
   })
 })
