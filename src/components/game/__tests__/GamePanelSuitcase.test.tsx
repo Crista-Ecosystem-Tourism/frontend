@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GamePanel } from '../GamePanel'
 
@@ -72,7 +72,7 @@ describe('LiveGamePanel Suitcase summary', () => {
     expect(screen.getByText('Сохранённые маршруты: Северный маршрут — Санкт-Петербург')).toBeTruthy()
     expect(fetchWorkspaceMock).toHaveBeenCalledTimes(1)
 
-    screen.getByRole('button', { name: 'Открыть чемодан' }).click()
+    fireEvent.click(screen.getByRole('button', { name: 'Открыть чемодан' }))
     await waitFor(() => expect(setMainViewMock).toHaveBeenCalledWith('suitcase'))
   })
 
@@ -94,5 +94,37 @@ describe('LiveGamePanel Suitcase summary', () => {
     expect(screen.getByText('Загружаем игровой паспорт…')).toBeTruthy()
     resolvePassport({ profile: { xp: 0, energy: 5, streak: 0 }, stamps: [], cities: [], routes: [] })
     expect(await screen.findByText('0 XP · 0 штампов')).toBeTruthy()
+  })
+
+  it('retries the passport independently and recovers from an API error', async () => {
+    getPassportMock
+      .mockRejectedValueOnce(new Error('temporary passport error'))
+      .mockResolvedValueOnce({ profile: { xp: 70, energy: 5, streak: 1 }, stamps: [], cities: [], routes: [] })
+
+    render(<GamePanel onBack={() => undefined} />)
+    expect(await screen.findByText('Игровой паспорт временно недоступен.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку паспорта' }))
+
+    expect(await screen.findByText('70 XP · 0 штампов')).toBeTruthy()
+    expect(getPassportMock).toHaveBeenCalledTimes(2)
+    expect(fetchWorkspaceMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries Suitcase independently and recovers without refetching the passport', async () => {
+    fetchWorkspaceMock
+      .mockRejectedValueOnce(new Error('temporary Suitcase error'))
+      .mockResolvedValueOnce({
+        trips: [{ id: 'trip-4', city: 'Нара', country: 'Япония', is_archived: false }],
+        goals: [],
+      })
+
+    render(<GamePanel onBack={() => undefined} />)
+    expect(await screen.findByText(/Данные чемодана временно недоступны/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку чемодана' }))
+
+    expect(await screen.findByText('1 активных поездок · 0 целей')).toBeTruthy()
+    expect(screen.getByText('Нара, Япония')).toBeTruthy()
+    expect(fetchWorkspaceMock).toHaveBeenCalledTimes(2)
+    expect(getPassportMock).toHaveBeenCalledTimes(1)
   })
 })

@@ -75,9 +75,11 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
   const [passport, setPassport] = useState<GamePassport | null>(null)
   const [passportLoading, setPassportLoading] = useState(false)
   const [passportError, setPassportError] = useState(false)
+  const [passportRefreshVersion, setPassportRefreshVersion] = useState(0)
   const [suitcase, setSuitcase] = useState<{ trips: SuitcaseTrip[]; goals: SuitcaseGoal[] } | null>(null)
   const [suitcaseError, setSuitcaseError] = useState<string | null>(null)
   const [suitcaseLoading, setSuitcaseLoading] = useState(false)
+  const [suitcaseRefreshVersion, setSuitcaseRefreshVersion] = useState(0)
   const { setMainView } = useApp()
 
   const refreshPath = () => setPathVersion((version) => version + 1)
@@ -101,7 +103,7 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
       })
       .finally(() => { if (current) setPassportLoading(false) })
     return () => { current = false }
-  }, [signedIn, pathVersion])
+  }, [signedIn, pathVersion, passportRefreshVersion])
 
   useEffect(() => {
     if (!signedIn) {
@@ -127,7 +129,7 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
       })
       .finally(() => { if (current) setSuitcaseLoading(false) })
     return () => { current = false }
-  }, [signedIn])
+  }, [signedIn, suitcaseRefreshVersion])
 
   const activeSuitcaseTrips = suitcase?.trips.filter((trip) => !trip.isArchived) ?? []
 
@@ -175,7 +177,10 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
         <CityPilot cityId="st-petersburg" signedIn={signedIn} refreshKey={pathVersion} onCompleted={refreshPath} />
         <CityPilot cityId="sochi" signedIn={signedIn} refreshKey={pathVersion} onCompleted={refreshPath} />
         {signedIn && passportLoading && <p role="status" className="font-sans text-sm text-text-secondary">Загружаем игровой паспорт…</p>}
-        {signedIn && passportError && <p role="status" className="font-sans text-sm text-text-secondary">Игровой паспорт временно недоступен.</p>}
+        {signedIn && passportError && <div role="status" className="flex flex-wrap items-center gap-2 font-sans text-sm text-text-secondary">
+          <span>Игровой паспорт временно недоступен.</span>
+          <button type="button" onClick={() => setPassportRefreshVersion((version) => version + 1)} className="text-primary underline underline-offset-2">Повторить загрузку паспорта</button>
+        </div>}
         {passport && !passportLoading && !passportError && <GlassPanel variant="flat" className="p-4 sm:p-5">
           <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Тревел-паспорт · серверные данные</p>
           <p className="mt-1 font-display text-xl font-semibold text-text">{passport.profile.xp} XP · {passport.stamps.length} штампов</p>
@@ -187,7 +192,10 @@ function LiveGamePanel({ onBack, signedIn }: GamePanelProps & { signedIn: boolea
             <div>
               <p className="font-sans text-xs uppercase tracking-wide text-text-muted">Мой чемодан · данные Suitcase</p>
               {suitcaseLoading && <p className="mt-2 font-sans text-sm text-text-secondary">Загружаем поездки и цели…</p>}
-              {suitcaseError && <p role="status" className="mt-2 font-sans text-sm text-text-secondary">Данные чемодана временно недоступны: {suitcaseError}</p>}
+              {suitcaseError && <div role="status" className="mt-2 flex flex-wrap items-center gap-2 font-sans text-sm text-text-secondary">
+                <span>Данные чемодана временно недоступны: {suitcaseError}</span>
+                <button type="button" onClick={() => setSuitcaseRefreshVersion((version) => version + 1)} className="text-primary underline underline-offset-2">Повторить загрузку чемодана</button>
+              </div>}
               {!suitcaseLoading && !suitcaseError && suitcase && <>
                 <p className="mt-1 font-display text-lg font-semibold text-text">
                   {activeSuitcaseTrips.length} активных поездок · {suitcase.goals.length} целей
