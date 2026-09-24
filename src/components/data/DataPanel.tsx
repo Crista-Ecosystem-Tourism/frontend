@@ -284,19 +284,32 @@ export function DataPanel({ onBack }: DataPanelProps) {
   const [editing, setEditing] = useState(false)
   const [editorMessage, setEditorMessage] = useState<string | null>(null)
   const [publishedCountry, setPublishedCountry] = useState<WikiPublishedArticle | null>(null)
+  const [countryWikiStatus, setCountryWikiStatus] = useState<'idle' | 'loading' | 'published' | 'missing' | 'unavailable'>('idle')
   const { user } = useApp()
 
   const base = articles.find((a) => a.id === openId)
   useEffect(() => {
     if (!base) {
       setPublishedCountry(null)
+      setCountryWikiStatus('idle')
       return
     }
     let active = true
+    setPublishedCountry(null)
+    setCountryWikiStatus('loading')
     getWikiArticle(`country-${base.id}`).then((article) => {
-      if (active) setPublishedCountry(article)
+      if (!active) return
+      if (article.slug === `country-${base.id}`) {
+        setPublishedCountry(article)
+        setCountryWikiStatus('published')
+      } else {
+        setCountryWikiStatus('missing')
+      }
     }).catch(() => {
-      if (active) setPublishedCountry(null)
+      if (active) {
+        setPublishedCountry(null)
+        setCountryWikiStatus('unavailable')
+      }
     })
     return () => { active = false }
   }, [base?.id])
@@ -357,8 +370,20 @@ export function DataPanel({ onBack }: DataPanelProps) {
             {active.summary}
           </p>
           {publishedCountry?.slug === `country-${active.id}` && (
-            <p className="mb-5 font-sans text-xs text-text-muted">Crista Wiki · опубликованная серверная версия · лицензия: {publishedCountry.license}</p>
+            <div className="mb-5">
+              <p className="font-sans text-xs text-text-muted">Crista Wiki · версия {publishedCountry.version_id} · лицензия: {publishedCountry.license}</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                {publishedCountry.sources.map((source) => (
+                  <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-sans text-xs text-primary hover:underline">
+                    <BookOpenCheck className="h-3.5 w-3.5" /> {source.label}
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
+          {countryWikiStatus === 'loading' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">Проверяем опубликованную версию Wiki…</p>}
+          {countryWikiStatus === 'missing' && <p className="mb-5 font-sans text-xs text-text-muted">Для этой страны ещё нет опубликованной серверной версии. Ниже показана стартовая карточка каталога.</p>}
+          {countryWikiStatus === 'unavailable' && <p role="status" className="mb-5 font-sans text-xs text-text-muted">Серверная Wiki недоступна; ниже показана стартовая карточка, не подтверждённая публикация.</p>}
 
           <div className="mb-5 flex w-fit gap-1 rounded-md border border-hairline bg-panel p-1">
             {categories.map((cat) => (
