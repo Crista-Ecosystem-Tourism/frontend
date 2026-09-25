@@ -1,0 +1,95 @@
+import { useEffect, useState } from 'react'
+import { CalendarDays, MapPin, Route } from 'lucide-react'
+import { ApiError } from '@/api/chatApi'
+import { fetchPublicTripMiniSite, type PublicTripMiniSite } from '@/api/suitcaseApi'
+import { SuitcaseJourneyMap, type JourneyMarker } from '@/components/suitcase/SuitcaseJourneyMap'
+
+export function PublicTripMiniSite({ slug }: { slug: string }) {
+  const [page, setPage] = useState<PublicTripMiniSite | null>(null)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setPage(null)
+    setError('')
+    fetchPublicTripMiniSite(slug)
+      .then((result) => { if (active) setPage(result) })
+      .catch((reason: unknown) => {
+        if (!active) return
+        const status = reason instanceof ApiError
+          ? reason.status
+          : (typeof reason === 'object' && reason !== null && 'status' in reason ? reason.status : undefined)
+        setError(status === 404
+          ? 'Эта страница не найдена: владелец мог отозвать доступ.'
+          : 'Не удалось загрузить страницу поездки.')
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [slug])
+
+  useEffect(() => {
+    if (!page) return
+    const previousTitle = document.title
+    document.title = `${page.snapshot.title} — Crista`
+    let robots: HTMLMetaElement | null = null
+    if (page.visibility === 'link') {
+      robots = document.createElement('meta')
+      robots.name = 'robots'
+      robots.content = 'noindex, nofollow'
+      document.head.appendChild(robots)
+    }
+    return () => {
+      document.title = previousTitle
+      robots?.remove()
+    }
+  }, [page])
+
+  if (loading) return <main className="min-h-screen bg-background p-8 text-center text-text-secondary">Загружаю поездку…</main>
+  if (error || !page) return <main className="min-h-screen bg-background p-8 text-center text-text-secondary"><h1 className="text-xl font-semibold text-text">Мини-сайт поездки</h1><p className="mt-3">{error || 'Страница недоступна.'}</p></main>
+
+  const { snapshot } = page
+  const markers: JourneyMarker[] = snapshot.points.map((point, index) => ({
+    id: `${index}`,
+    title: point.name || `Точка ${index + 1}`,
+    subtitle: point.note || snapshot.city,
+    lat: point.latitude,
+    lng: point.longitude,
+  }))
+  const dates = `${snapshot.start_date.slice(0, 10)} — ${snapshot.end_date.slice(0, 10)}`
+
+  return <main className="min-h-screen bg-background px-4 py-8 text-text sm:px-8">
+    <article className="mx-auto max-w-4xl space-y-7">
+      <header>
+        {snapshot.cover && <img src={snapshot.cover} alt={snapshot.title} className="mb-6 max-h-[28rem] w-full rounded-2xl object-cover" />}
+        <p className="flex items-center gap-2 text-sm text-text-secondary"><MapPin className="h-4 w-4" />{snapshot.city}, {snapshot.country}</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold sm:text-5xl">{snapshot.title}</h1>
+        <p className="mt-3 text-sm text-text-secondary">{snapshot.summary}</p>
+        <p className="mt-3 flex items-center gap-2 text-sm text-text-muted"><CalendarDays className="h-4 w-4" />{dates}</p>
+      </header>
+
+      <section aria-label="Статистика поездки" className="grid grid-cols-3 gap-3 rounded-2xl border border-border bg-surface-light p-4 text-center">
+        <div><p className="font-semibold tabular-nums">{snapshot.stats.days}</p><p className="text-xs text-text-muted">дней</p></div>
+        <div><p className="font-semibold tabular-nums">{snapshot.stats.places_visited}</p><p className="text-xs text-text-muted">мест</p></div>
+        <div className="flex flex-col items-center"><p className="flex items-center gap-1 font-semibold tabular-nums"><Route className="h-4 w-4" />{snapshot.stats.distance_km} км</p><p className="text-xs text-text-muted">по прямой между точками</p></div>
+      </section>
+
+      {markers.length > 0 && <section aria-label="Карта поездки" className="space-y-3">
+        <h2 className="text-xl font-semibold">Маршрут</h2>
+        <SuitcaseJourneyMap markers={markers} className="h-80" />
+        <ol className="space-y-2">{snapshot.points.map((point, index) => <li key={`${index}-${point.name || ''}`} className="rounded-xl border border-border bg-surface-light p-3">
+          <p className="font-medium">{point.name || `Точка ${index + 1}`}</p>
+          {point.note && <p className="mt-1 text-sm text-text-secondary">{point.note}</p>}
+          {point.photos && point.photos.length > 0 && <div className="mt-3 grid grid-cols-2 gap-2">{point.photos.map((photo, photoIndex) => <img key={`${photo}-${photoIndex}`} src={photo} alt={`${point.name || `Точка ${index + 1}`}, фото ${photoIndex + 1}`} loading="lazy" className="max-h-56 w-full rounded-lg object-cover" />)}</div>}
+        </li>)}</ol>
+      </section>}
+
+      {snapshot.photos.length > 0 && <section className="space-y-3">
+        <h2 className="text-xl font-semibold">Фотографии</h2>
+        <div className="grid gap-3 sm:grid-cols-2">{snapshot.photos.map((photo, index) => <img key={`${photo}-${index}`} src={photo} alt={`Фото поездки ${index + 1}`} loading="lazy" className="max-h-96 w-full rounded-xl object-cover" />)}</div>
+      </section>}
+      <footer className="border-t border-border pt-4 text-xs text-text-muted">Опубликовано владельцем поездки через Crista.</footer>
+    </article>
+  </main>
+}

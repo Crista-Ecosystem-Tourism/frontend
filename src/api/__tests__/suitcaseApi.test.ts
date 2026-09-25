@@ -3,11 +3,15 @@ import { ApiError } from '@/api/chatApi'
 import {
   createSuitcaseExpense,
   createSuitcaseGoal,
+  fetchPublicTripMiniSite,
   fetchSuitcaseWorkspace,
+  getTripMiniSite,
   mapExpenseFromApi,
   mapGoalFromApi,
   mapTripFromApi,
   patchSuitcaseGoal,
+  publishTripMiniSite,
+  revokeTripMiniSite,
 } from '@/api/suitcaseApi'
 
 const mockFetch = vi.fn()
@@ -198,5 +202,37 @@ describe('Suitcase goal and expense mutations', () => {
         }),
       }),
     )
+  })
+})
+
+describe('trip mini-site consent and access', () => {
+  it('reads and publishes an owner mini-site only with an explicit consent payload', async () => {
+    const state = { published: true, slug: 'unpredictable-token', visibility: 'link', consented_at: '2026-09-25T12:00:00Z' }
+    mockFetch.mockResolvedValueOnce(jsonResponse({ published: false, slug: null, visibility: null, consented_at: null }))
+      .mockResolvedValueOnce(jsonResponse(state))
+
+    await expect(getTripMiniSite('trip/1')).resolves.toMatchObject({ published: false })
+    await expect(publishTripMiniSite('trip/1', 'link')).resolves.toEqual(state)
+
+    expect(mockFetch).toHaveBeenNthCalledWith(2,
+      expect.stringMatching(/\/suitcase\/trips\/trip%2F1\/mini-site$/),
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ Authorization: 'Bearer suitcase-test-token' }),
+        body: JSON.stringify({ visibility: 'link', consent_to_publish: true }),
+      }),
+    )
+  })
+
+  it('revokes access and loads the public snapshot without auth headers', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({ ok: true }))
+      .mockResolvedValueOnce(jsonResponse({ visibility: 'link', snapshot: { title: 'Moscow' } }))
+
+    await expect(revokeTripMiniSite('trip-1')).resolves.toBeUndefined()
+    await expect(fetchPublicTripMiniSite('secret slug')).resolves.toMatchObject({
+      visibility: 'link', snapshot: { title: 'Moscow' },
+    })
+    expect(mockFetch).toHaveBeenNthCalledWith(1, expect.stringMatching(/\/suitcase\/trips\/trip-1\/mini-site$/), expect.objectContaining({ method: 'DELETE' }))
+    expect(mockFetch).toHaveBeenNthCalledWith(2, expect.stringMatching(/\/t\/secret%20slug$/), { headers: { Accept: 'application/json' } })
   })
 })

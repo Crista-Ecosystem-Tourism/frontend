@@ -61,6 +61,39 @@ export type ApiSuitcaseWorkspace = {
   goals: ApiSuitcaseGoalRow[]
 }
 
+export type MiniSitePoint = {
+  latitude: number
+  longitude: number
+  name?: string
+  note?: string
+  photos?: string[]
+}
+
+export type TripMiniSiteSnapshot = {
+  title: string
+  city: string
+  country: string
+  start_date: string
+  end_date: string
+  cover: string | null
+  summary: string
+  photos: string[]
+  points: MiniSitePoint[]
+  stats: { days: number; places_visited: number; distance_km: number }
+}
+
+export type TripMiniSiteState = {
+  published: boolean
+  slug: string | null
+  visibility: 'public' | 'link' | null
+  consented_at: string | null
+}
+
+export type PublicTripMiniSite = {
+  visibility: 'public' | 'link'
+  snapshot: TripMiniSiteSnapshot
+}
+
 export function mapTripFromApi(r: ApiSuitcaseTripRow): SuitcaseTrip {
   return {
     id: r.id,
@@ -158,6 +191,40 @@ export async function deleteSuitcaseTrip(tripId: string): Promise<void> {
     headers: { Accept: 'application/json', ...getAuthHeaders() },
   })
   await parseResponse<{ ok: boolean }>(response)
+}
+
+export async function getTripMiniSite(tripId: string): Promise<TripMiniSiteState> {
+  const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/mini-site`, {
+    headers: { Accept: 'application/json', ...getAuthHeaders() },
+  })
+  return parseResponse<TripMiniSiteState>(response)
+}
+
+export async function publishTripMiniSite(
+  tripId: string,
+  visibility: 'public' | 'link',
+): Promise<TripMiniSiteState> {
+  const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/mini-site`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ visibility, consent_to_publish: true }),
+  })
+  return parseResponse<TripMiniSiteState>(response)
+}
+
+export async function revokeTripMiniSite(tripId: string): Promise<void> {
+  const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/mini-site`, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json', ...getAuthHeaders() },
+  })
+  await parseResponse<{ ok: boolean }>(response)
+}
+
+export async function fetchPublicTripMiniSite(slug: string): Promise<PublicTripMiniSite> {
+  const response = await fetch(`${SUITCASE_API_BASE_URL}/t/${encodeURIComponent(slug)}`, {
+    headers: { Accept: 'application/json' },
+  })
+  return parseResponse<PublicTripMiniSite>(response)
 }
 
 export async function createSuitcaseExpense(
