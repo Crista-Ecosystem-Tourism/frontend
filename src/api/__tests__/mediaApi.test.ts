@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { deleteMedia, fetchMediaPreview, getMyMedia, uploadQuestMedia } from '../mediaApi'
+import { deleteMedia, fetchMediaFile, fetchMediaPreview, getMyMedia, uploadQuestMedia } from '../mediaApi'
 
 vi.mock('../authApi', () => ({ getAuthHeaders: () => ({ Authorization: 'Bearer test' }) }))
 
@@ -20,13 +20,16 @@ describe('mediaApi', () => {
   it('loads private previews with auth and deletes only by asset id', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response('jpeg', { status: 200, headers: { 'Content-Type': 'image/jpeg' } }))
+      .mockResolvedValueOnce(new Response('mp4', { status: 200, headers: { 'Content-Type': 'video/mp4' } }))
       .mockResolvedValueOnce(new Response(null, { status: 204 }))
-    const asset = { id: 'private-1', preview_url: '/media/private-1/preview' } as Parameters<typeof fetchMediaPreview>[0]
+    const asset = { id: 'private-1', preview_url: '/media/private-1/preview', file_url: '/media/private-1/file' } as Parameters<typeof fetchMediaPreview>[0]
     expect(await (await fetchMediaPreview(asset)).text()).toBe('jpeg')
+    expect(await (await fetchMediaFile(asset)).text()).toBe('mp4')
     await deleteMedia(asset.id)
     expect(fetchMock.mock.calls[0][1]?.headers).toEqual({ Authorization: 'Bearer test' })
-    expect(fetchMock.mock.calls[1][0]).toContain('/media/private-1')
-    expect(fetchMock.mock.calls[1][1]?.method).toBe('DELETE')
+    expect(fetchMock.mock.calls[1][0]).toContain('/media/private-1/file')
+    expect(fetchMock.mock.calls[2][0]).toContain('/media/private-1')
+    expect(fetchMock.mock.calls[2][1]?.method).toBe('DELETE')
   })
 
   it('requests the caller-owned library', async () => {
