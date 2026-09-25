@@ -88,10 +88,8 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
         {busy ? 'Сохраняю…' : 'Отозвать публикацию'}
       </button>
     </div> : <>
-      {site?.draft_ready ? <div className="rounded-lg bg-surface p-3 text-xs text-text-secondary">
-        <p className="font-medium text-text">Черновик подготовлен и виден только вам</p>
-        <p className="mt-1">{site.draft_snapshot?.points.length ?? 0} точек · {site.draft_snapshot?.photos.length ?? 0} фото. Публикации ещё нет — сначала выберите доступ и подтвердите согласие.</p>
-      </div> : !site?.completed_at ? <div className="space-y-2 rounded-lg bg-surface p-3">
+      {site?.draft_snapshot && <DraftSnapshotPreview snapshot={site.draft_snapshot} persisted={Boolean(site.draft_ready)} />}
+      {!site?.completed_at ? <div className="space-y-2 rounded-lg bg-surface p-3">
         <p className="text-xs text-text-secondary">Завершение подготовит приватный черновик. Само по себе оно не создаёт публичную страницу.</p>
         <button type="button" disabled={busy} onClick={() => void complete()} className="rounded-lg border border-border px-3 py-2 text-xs text-text disabled:opacity-50">
           {busy ? 'Готовлю черновик…' : 'Завершить поездку и подготовить черновик'}
@@ -107,7 +105,7 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
       </label>
       <label className="flex items-start gap-2 rounded-lg bg-surface p-3 text-xs leading-relaxed text-text-secondary">
         <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-        Я согласен(на) опубликовать перечисленные выше данные. Посетители смогут сохранить страницу и фотографии; внешние HTTPS-фото загружаются с указанных сайтов.
+        Я проверил(а) предпросмотр выше и согласен(на) опубликовать показанные данные. Внешние HTTPS-фото останутся на исходных сайтах.
       </label>
       <button type="button" disabled={busy || !consent} onClick={() => void publish()} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white disabled:opacity-50">
         {busy ? 'Публикую…' : 'Опубликовать snapshot'}
@@ -115,4 +113,46 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
     </>}
     {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
   </section>
+}
+
+function DraftSnapshotPreview({
+  snapshot,
+  persisted,
+}: {
+  snapshot: NonNullable<TripMiniSiteState['draft_snapshot']>
+  persisted: boolean
+}) {
+  const photos = [...new Set([snapshot.cover, ...snapshot.photos, ...snapshot.points.flatMap((point) => point.photos ?? [])].filter((url): url is string => Boolean(url)))]
+  return <details open className="rounded-lg border border-border bg-surface p-3 text-xs text-text-secondary">
+    <summary className="cursor-pointer font-medium text-text">
+      {persisted ? 'Приватный черновик — предпросмотр данных' : 'Предпросмотр данных перед публикацией'}
+    </summary>
+    <div aria-label="Предпросмотр мини-сайта" className="mt-3 space-y-3">
+      <div>
+        <h3 className="font-semibold text-text">{snapshot.title}</h3>
+        <p>{snapshot.start_date} — {snapshot.end_date}</p>
+        {snapshot.summary && <p className="mt-1 whitespace-pre-wrap">{snapshot.summary}</p>}
+      </div>
+      <p>Статистика: {snapshot.stats.days} дн. · {snapshot.stats.places_visited} мест · {snapshot.stats.distance_km.toLocaleString('ru-RU')} км</p>
+      <div>
+        <h4 className="font-medium text-text">Точки маршрута ({snapshot.points.length})</h4>
+        {snapshot.points.length ? <ol className="mt-1 list-decimal space-y-2 pl-5">
+          {snapshot.points.map((point, index) => <li key={`${point.latitude},${point.longitude},${index}`}>
+            <p>{point.name || 'Точка маршрута'} · {point.latitude}, {point.longitude}</p>
+            {point.note && <p className="whitespace-pre-wrap">{point.note}</p>}
+          </li>)}
+        </ol> : <p>Точек маршрута нет.</p>}
+      </div>
+      <div>
+        <h4 className="font-medium text-text">Фото ({photos.length})</h4>
+        {photos.length ? <ul className="mt-1 space-y-1">
+          {photos.map((url) => <li key={url} className="break-all">
+            <a href={url} target="_blank" rel="noreferrer" className="text-primary underline">{url}</a>
+          </li>)}
+        </ul> : <p>Фото нет.</p>}
+        <p className="mt-1">Ссылки открываются только по нажатию; предпросмотр не загружает изображения с внешних сайтов.</p>
+      </div>
+      {persisted && <p className="font-medium text-text">Черновик виден только вам. Публичной страницы пока нет.</p>}
+    </div>
+  </details>
 }
