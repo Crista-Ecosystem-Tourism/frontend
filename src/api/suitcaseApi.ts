@@ -84,9 +84,12 @@ export type TripMiniSiteSnapshot = {
 
 export type TripMiniSiteState = {
   published: boolean
+  draft_ready?: boolean
   slug: string | null
   visibility: 'public' | 'link' | null
   consented_at: string | null
+  completed_at?: string | null
+  draft_snapshot?: TripMiniSiteSnapshot | null
 }
 
 export type PublicTripMiniSite = {
@@ -195,6 +198,14 @@ export async function deleteSuitcaseTrip(tripId: string): Promise<void> {
 
 export async function getTripMiniSite(tripId: string): Promise<TripMiniSiteState> {
   const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/mini-site`, {
+    headers: { Accept: 'application/json', ...getAuthHeaders() },
+  })
+  return parseResponse<TripMiniSiteState>(response)
+}
+
+export async function completeTripForMiniSite(tripId: string): Promise<TripMiniSiteState> {
+  const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/complete`, {
+    method: 'POST',
     headers: { Accept: 'application/json', ...getAuthHeaders() },
   })
   return parseResponse<TripMiniSiteState>(response)

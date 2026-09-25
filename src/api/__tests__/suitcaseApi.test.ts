@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/api/chatApi'
 import {
+  completeTripForMiniSite,
   createSuitcaseExpense,
   createSuitcaseGoal,
   fetchPublicTripMiniSite,
@@ -206,6 +207,16 @@ describe('Suitcase goal and expense mutations', () => {
 })
 
 describe('trip mini-site consent and access', () => {
+  it('prepares a private draft through the authenticated completion endpoint', async () => {
+    const draft = { published: false, draft_ready: true, completed_at: '2026-09-25T12:00:00Z', slug: null, visibility: null, consented_at: null, draft_snapshot: { title: 'Rome' } }
+    mockFetch.mockResolvedValueOnce(jsonResponse(draft))
+    await expect(completeTripForMiniSite('trip/2')).resolves.toEqual(draft)
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/suitcase\/trips\/trip%2F2\/complete$/),
+      expect.objectContaining({ method: 'POST', headers: expect.objectContaining({ Authorization: 'Bearer suitcase-test-token' }) }),
+    )
+  })
+
   it('reads and publishes an owner mini-site only with an explicit consent payload', async () => {
     const state = { published: true, slug: 'unpredictable-token', visibility: 'link', consented_at: '2026-09-25T12:00:00Z' }
     mockFetch.mockResolvedValueOnce(jsonResponse({ published: false, slug: null, visibility: null, consented_at: null }))

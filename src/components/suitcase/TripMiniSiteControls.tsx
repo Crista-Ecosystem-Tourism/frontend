@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ApiError } from '@/api/chatApi'
 import {
+  completeTripForMiniSite,
   getTripMiniSite,
   publishTripMiniSite,
   revokeTripMiniSite,
@@ -39,13 +40,22 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
     } finally { setBusy(false) }
   }
 
+  const complete = async () => {
+    setBusy(true)
+    setError('')
+    try { setSite(await completeTripForMiniSite(tripId)) }
+    catch (reason) {
+      setError(reason instanceof ApiError ? reason.detail : 'Не удалось подготовить черновик поездки')
+    } finally { setBusy(false) }
+  }
+
   const revoke = async () => {
     if (!window.confirm('Отозвать публикацию? Ссылка сразу перестанет открываться.')) return
     setBusy(true)
     setError('')
     try {
       await revokeTripMiniSite(tripId)
-      setSite({ published: false, slug: null, visibility: null, consented_at: null })
+      setSite({ published: false, draft_ready: false, slug: null, visibility: null, consented_at: null })
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.detail : 'Не удалось отозвать публикацию')
     } finally { setBusy(false) }
@@ -78,6 +88,15 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
         {busy ? 'Сохраняю…' : 'Отозвать публикацию'}
       </button>
     </div> : <>
+      {site?.draft_ready ? <div className="rounded-lg bg-surface p-3 text-xs text-text-secondary">
+        <p className="font-medium text-text">Черновик подготовлен и виден только вам</p>
+        <p className="mt-1">{site.draft_snapshot?.points.length ?? 0} точек · {site.draft_snapshot?.photos.length ?? 0} фото. Публикации ещё нет — сначала выберите доступ и подтвердите согласие.</p>
+      </div> : !site?.completed_at ? <div className="space-y-2 rounded-lg bg-surface p-3">
+        <p className="text-xs text-text-secondary">Завершение подготовит приватный черновик. Само по себе оно не создаёт публичную страницу.</p>
+        <button type="button" disabled={busy} onClick={() => void complete()} className="rounded-lg border border-border px-3 py-2 text-xs text-text disabled:opacity-50">
+          {busy ? 'Готовлю черновик…' : 'Завершить поездку и подготовить черновик'}
+        </button>
+      </div> : null}
       <label className="flex items-start gap-2 text-xs text-text-secondary">
         <input type="radio" name={`trip-visibility-${tripId}`} checked={visibility === 'link'} onChange={() => setVisibility('link')} />
         Доступ только по непредсказуемой ссылке
