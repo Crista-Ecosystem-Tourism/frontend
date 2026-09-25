@@ -8,6 +8,10 @@ const { answerCityQuestMock, getCityPathMock, getCityQuestMock, useAppMock } = v
   getCityQuestMock: vi.fn(),
   useAppMock: vi.fn(),
 }))
+const { getPublishedTipsMock, getMyTipsMock, getTipReviewQueueMock, getTipReportsMock, getTipAuditMock } = vi.hoisted(() => ({
+  getPublishedTipsMock: vi.fn(), getMyTipsMock: vi.fn(), getTipReviewQueueMock: vi.fn(),
+  getTipReportsMock: vi.fn(), getTipAuditMock: vi.fn(),
+}))
 const englishQuest = {
   quest: { id: 'spb-hermitage', kind: 'quiz', position: 1, prerequisite_quest_id: null },
   content: {
@@ -28,12 +32,24 @@ vi.mock('@/api/gameApi', () => ({
   answerCityQuest: answerCityQuestMock,
 }))
 vi.mock('@/context/AppContext', () => ({ useApp: useAppMock }))
+vi.mock('@/api/tipApi', () => ({
+  createTipDraft: vi.fn(), decideTip: vi.fn(), deleteTipDraft: vi.fn(),
+  getPublishedTips: getPublishedTipsMock, getMyTips: getMyTipsMock,
+  getTipReviewQueue: getTipReviewQueueMock, getTipReports: getTipReportsMock,
+  getTipAudit: getTipAuditMock, reportTip: vi.fn(), resolveTipReport: vi.fn(),
+  submitTip: vi.fn(), updateTipDraft: vi.fn(),
+}))
 
 describe('CityPilot localization boundary', () => {
   beforeEach(() => {
     getCityPathMock.mockReset()
     getCityQuestMock.mockReset()
     answerCityQuestMock.mockReset()
+    getPublishedTipsMock.mockReset().mockResolvedValue([])
+    getMyTipsMock.mockReset().mockResolvedValue([])
+    getTipReviewQueueMock.mockReset().mockResolvedValue([])
+    getTipReportsMock.mockReset().mockResolvedValue([])
+    getTipAuditMock.mockReset().mockResolvedValue([])
     useAppMock.mockReset()
     getCityPathMock.mockResolvedValue({
       city: { id: 'st-petersburg', name: 'Санкт-Петербург', tier: 1, required_quest_count: 1, completion_stamp: null },
@@ -67,7 +83,7 @@ describe('CityPilot localization boundary', () => {
     expect(screen.getByText('Open')).toBeTruthy()
     expect(getCityPathMock).toHaveBeenCalledWith('st-petersburg')
     getCityQuestMock.mockResolvedValueOnce(englishQuest)
-    fireEvent.click(screen.getByRole('button', { name: /The Hermitage/ }))
+    fireEvent.click(screen.getByRole('button', { name: /1\. The HermitageOpen/ }))
     expect(getCityQuestMock).toHaveBeenCalledWith('st-petersburg', 'spb-hermitage', 'en')
     expect(await screen.findByText('The Hermitage dates the museum’s founding to 1764.')).toBeTruthy()
     expect(screen.getByText('In what year was it founded?')).toBeTruthy()
@@ -83,8 +99,24 @@ describe('CityPilot localization boundary', () => {
     render(<CityPilot cityId="st-petersburg" signedIn refreshKey={0} onCompleted={() => undefined} />)
 
     expect(await screen.findByText('Санкт-Петербург')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: /Эрмитаж/ }))
+    fireEvent.click(screen.getByRole('button', { name: /1\. ЭрмитажОткрыто/ }))
     expect(await screen.findByText('Проверенный факт')).toBeTruthy()
     expect(screen.queryByText(/verified server edition/)).toBeNull()
+  })
+
+  it('keeps tips accessible from an already completed location node', async () => {
+    useAppMock.mockReturnValue({ language: 'en', user: null })
+    getCityPathMock.mockResolvedValueOnce({
+      city: { id: 'st-petersburg', name: 'Санкт-Петербург', tier: 1, required_quest_count: 1, completion_stamp: null },
+      profile: { xp: 0, energy: 5, streak: 0 },
+      daily: { timezone: 'Europe/Moscow', streak: 0, completed_quests: 1, goal: 1, goal_reached: true },
+      nodes: [{ id: 'spb-hermitage', kind: 'quiz', position: 1, completed: true, unlocked: true, prerequisite_quest_id: null, district: null }],
+      boss: null,
+    })
+    render(<CityPilot cityId="st-petersburg" signedIn refreshKey={0} onCompleted={() => undefined} />)
+    await screen.findByText('Saint Petersburg')
+    fireEvent.click(screen.getByRole('button', { name: 'Tips for The Hermitage' }))
+    expect(await screen.findByText('No published tips yet.')).toBeTruthy()
+    expect(getPublishedTipsMock).toHaveBeenCalledWith('spb-hermitage')
   })
 })
