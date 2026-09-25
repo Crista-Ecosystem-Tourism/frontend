@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CommunityPanel } from '../CommunityPanel'
 
-const { acceptMock, addMemberMock, changeRoleMock, claimSharedQuestMock, createMock, createSharedQuestMock, createTeamMock, listMock, listSharedCatalogMock, listSharedQuestsMock, listTeamsMock, removeMock, removeTeamMemberMock } = vi.hoisted(() => ({
+const { acceptMock, addMemberMock, changeRoleMock, claimSharedQuestMock, createMock, createSharedQuestMock, createTeamMock, getLeagueMock, joinLeagueMock, listMock, listSharedCatalogMock, listSharedQuestsMock, listTeamsMock, removeMock, removeTeamMemberMock } = vi.hoisted(() => ({
   acceptMock: vi.fn(),
   addMemberMock: vi.fn(),
   changeRoleMock: vi.fn(),
@@ -11,6 +11,8 @@ const { acceptMock, addMemberMock, changeRoleMock, claimSharedQuestMock, createM
   createMock: vi.fn(),
   createSharedQuestMock: vi.fn(),
   createTeamMock: vi.fn(),
+  getLeagueMock: vi.fn(),
+  joinLeagueMock: vi.fn(),
   listMock: vi.fn(),
   listSharedCatalogMock: vi.fn(),
   listSharedQuestsMock: vi.fn(),
@@ -29,6 +31,8 @@ vi.mock('@/api/socialApi', () => ({
   createFriendInvite: createMock,
   createSharedTeamQuest: createSharedQuestMock,
   createTeam: createTeamMock,
+  getWeeklyLeague: getLeagueMock,
+  joinWeeklyLeague: joinLeagueMock,
   listFriends: listMock,
   listSharedQuestCatalog: listSharedCatalogMock,
   listSharedTeamQuests: listSharedQuestsMock,
@@ -48,6 +52,11 @@ describe('CommunityPanel social features', () => {
       invite_id: 'invite-1', invite_code: 'a'.repeat(43), expires_at: '2026-10-01T00:00:00Z',
     })
     createTeamMock.mockReset()
+    getLeagueMock.mockReset().mockResolvedValue({ joined: false, season_id: '2026-W39', starts_at: '2026-09-21T00:00:00Z', ends_at: '2026-09-28T00:00:00Z', members: [] })
+    joinLeagueMock.mockReset().mockResolvedValue({
+      joined: true, season_id: '2026-W39', starts_at: '2026-09-21T00:00:00Z', ends_at: '2026-09-28T00:00:00Z', rank: 1, participant_count: 1,
+      members: [{ user_id: 'owner-1', name: 'You', rank: 1, place: 1, weekly_xp: 25, projected_rank: 1, projected_movement: 'held', is_self: true }],
+    })
     createSharedQuestMock.mockReset().mockResolvedValue({ id: 'shared-1' })
     listMock.mockReset().mockResolvedValue([])
     listSharedCatalogMock.mockReset().mockResolvedValue([])
@@ -149,5 +158,18 @@ describe('CommunityPanel social features', () => {
     await user.click(await screen.findByRole('button', { name: 'Check progress' }))
     expect(claimSharedQuestMock).toHaveBeenCalledWith('team-1', 'shared-1', 'en')
     expect(await screen.findByText('Shared quest completed; one-time bonuses credited to 2 participants.')).toBeTruthy()
+  })
+
+  it('joins the server-backed weekly league and shows authoritative XP', async () => {
+    const user = userEvent.setup()
+    render(<CommunityPanel onBack={() => undefined} />)
+
+    await user.click(screen.getByRole('tab', { name: 'Лидерборд' }))
+    expect(await screen.findByRole('button', { name: 'Join weekly league' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Join weekly league' }))
+
+    expect(joinLeagueMock).toHaveBeenCalledOnce()
+    expect(await screen.findByText('Rank 1 of 10 · 1 participants')).toBeTruthy()
+    expect(screen.getByText('25 XP')).toBeTruthy()
   })
 })

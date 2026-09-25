@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { ArrowLeft, Heart, MapPin, Play, Trophy, Medal, UserPlus, Crown, Copy, RotateCw, UserRoundX } from 'lucide-react'
+import { ArrowLeft, Heart, MapPin, Play, Trophy, UserPlus, Copy, RotateCw, UserRoundX } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { GlassPanel, Chip, IconButton } from '@/components/ui/glass'
 import { Img } from '@/components/ui/Img'
-import { cn } from '@/lib/utils'
 import { useApp } from '@/context/AppContext'
 import { isLoggedIn } from '@/api/authApi'
 import {
@@ -16,6 +15,8 @@ import {
   createSharedTeamQuest,
   createFriendInvite,
   createTeam,
+  getWeeklyLeague,
+  joinWeeklyLeague,
   listFriends,
   listSharedQuestCatalog,
   listSharedTeamQuests,
@@ -26,6 +27,7 @@ import {
   type SharedQuestCatalogItem,
   type SharedTeamQuest,
   type SocialTeam,
+  type WeeklyLeague,
 } from '@/api/socialApi'
 
 type CommunityPanelProps = {
@@ -71,13 +73,87 @@ const starRoutes = [
   },
 ]
 
-const leaderboard = [
-  { rank: 1, name: 'Максим Терентьев', countries: 14, avatar: '' },
-  { rank: 2, name: 'Ирина Власова', countries: 11, avatar: '' },
-  { rank: 3, name: 'Вы', countries: 9, avatar: '', isMe: true },
-  { rank: 4, name: 'Данила Панов', countries: 8, avatar: '' },
-  { rank: 5, name: 'Соня Рахимова', countries: 7, avatar: '' },
-]
+function LeagueSection({ language }: { language: 'ru' | 'en' }) {
+  const en = language === 'en'
+  const signedIn = isLoggedIn()
+  const [league, setLeague] = useState<WeeklyLeague | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const refresh = useCallback(async () => {
+    if (!signedIn) return
+    setLoading(true)
+    setError(null)
+    try {
+      setLeague(await getWeeklyLeague())
+    } catch {
+      setError(en ? 'Could not load the weekly league.' : 'Не удалось загрузить недельную лигу.')
+    } finally {
+      setLoading(false)
+    }
+  }, [en, signedIn])
+
+  useEffect(() => { void refresh() }, [refresh])
+
+  const join = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      setLeague(await joinWeeklyLeague())
+    } catch {
+      setError(en ? 'Could not join the weekly league.' : 'Не удалось вступить в недельную лигу.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!signedIn) return <p className="rounded-lg border border-hairline p-4 text-sm text-text-secondary">
+    {en ? 'Sign in to join the weekly league.' : 'Войдите, чтобы вступить в недельную лигу.'}
+  </p>
+
+  return <section aria-label={en ? 'Weekly league' : 'Недельная лига'} className="space-y-4">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 className="font-display text-xl font-semibold text-text">{en ? 'Weekly league' : 'Недельная лига'}</h2>
+        {league && <p className="mt-1 text-xs text-text-muted">{league.season_id} · {en ? 'UTC week' : 'неделя UTC'}</p>}
+      </div>
+      <Button variant="ghost" size="sm" disabled={loading || busy} onClick={() => void refresh()}>
+        <RotateCw className="mr-2 h-4 w-4" aria-hidden="true" />{en ? 'Refresh' : 'Обновить'}
+      </Button>
+    </div>
+    {error && <p role="alert" className="text-sm text-error">{error}</p>}
+    {loading && !league && <p role="status" className="text-sm text-text-muted">{en ? 'Loading league…' : 'Загружаю лигу…'}</p>}
+    {league && !league.joined && <GlassPanel className="space-y-3">
+      <p className="text-sm text-text-secondary">{en ? 'Join to count server-verified XP earned this week. Your score is visible to you and accepted friends.' : 'Вступите, чтобы учитывать серверный XP за эту неделю. Ваш результат виден вам и принятым друзьям.'}</p>
+      <Button disabled={busy} onClick={() => void join()}>{busy ? (en ? 'Joining…' : 'Вступаю…') : (en ? 'Join weekly league' : 'Вступить в недельную лигу')}</Button>
+    </GlassPanel>}
+    {league?.joined && <>
+      <p className="text-sm text-text-secondary">
+        {en ? `Rank ${league.rank} of 10 · ${league.participant_count} participants` : `Ранг ${league.rank} из 10 · участников: ${league.participant_count}`}
+      </p>
+      <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
+        {league.members.map((member) => <div key={member.user_id} className={`flex items-center gap-3 px-4 py-3 ${member.is_self ? 'bg-primary/[0.07]' : ''}`}>
+          <span className="w-12 shrink-0 text-sm font-semibold tabular text-text-secondary">#{member.place}</span>
+          <div className="min-w-0 flex-1">
+            <p className={`truncate text-sm font-semibold ${member.is_self ? 'text-primary' : 'text-text'}`}>
+              {member.name || (member.is_self ? (en ? 'You' : 'Вы') : (en ? 'Friend' : 'Друг'))}
+            </p>
+            <p className="text-xs text-text-muted">
+              {member.projected_movement === 'promoted'
+                ? (en ? `Promoted to rank ${member.projected_rank}` : `Переход на ранг ${member.projected_rank}`)
+                : member.projected_movement === 'relegated'
+                  ? (en ? `Would move to rank ${member.projected_rank}` : `Переход на ранг ${member.projected_rank}`)
+                  : (en ? `Holds rank ${member.rank}` : `Сохранение ранга ${member.rank}`)}
+            </p>
+          </div>
+          <span className="shrink-0 text-sm font-semibold tabular text-text">{member.weekly_xp} XP</span>
+        </div>)}
+        {league.members.length === 0 && <p className="p-4 text-sm text-text-muted">{en ? 'No league members yet.' : 'Пока участников нет.'}</p>}
+      </GlassPanel>
+    </>}
+  </section>
+}
 
 function FriendsSection({ language, userId }: { language: 'ru' | 'en'; userId?: string }) {
   const en = language === 'en'
@@ -535,38 +611,7 @@ export function CommunityPanel({ onBack }: CommunityPanelProps) {
 
           {/* Лидерборд */}
           <TabsContent value="leaderboard" className="mt-6 outline-none">
-            <GlassPanel className="divide-y divide-hairline overflow-hidden p-0">
-              {leaderboard.map((row) => (
-                <div
-                  key={row.rank}
-                  className={cn('flex items-center gap-4 px-4 py-3.5', row.isMe && 'bg-primary/[0.07]')}
-                >
-                  <span
-                    className={cn(
-                      'flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-sans text-xs font-bold tabular',
-                      row.rank <= 3 ? 'bg-primary/15 text-primary' : 'bg-panel-2 text-text-muted'
-                    )}
-                  >
-                    {row.rank <= 3 ? <Medal className="h-3.5 w-3.5" aria-hidden="true" /> : row.rank}
-                  </span>
-                  <Avatar className="h-9 w-9 border border-hairline">
-                    <AvatarImage src={row.avatar} />
-                    <AvatarFallback className="bg-panel-2 text-xs text-text-secondary">
-                      {row.name.slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className={cn('truncate font-sans text-sm font-semibold text-text', row.isMe && 'text-primary')}>
-                      {row.name}
-                    </p>
-                    <p className="font-sans text-xs tabular text-text-muted">
-                      {row.countries} стран закрыто
-                    </p>
-                  </div>
-                  {row.rank === 1 && <Crown className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
-                </div>
-              ))}
-            </GlassPanel>
+            <LeagueSection language={language} />
           </TabsContent>
 
           {/* Друзья */}

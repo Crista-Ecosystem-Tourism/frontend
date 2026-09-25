@@ -50,6 +50,27 @@ export type SharedTeamQuest = {
   participants: Array<{ id: string; name: string | null; completed: boolean }>
 }
 
+export type WeeklyLeagueMember = {
+  user_id: string
+  name: string | null
+  rank: number
+  place: number
+  weekly_xp: number
+  projected_rank: number
+  projected_movement: 'promoted' | 'held' | 'relegated'
+  is_self: boolean
+}
+
+export type WeeklyLeague = {
+  joined: boolean
+  season_id: string
+  starts_at: string
+  ends_at: string
+  rank?: number
+  participant_count?: number
+  members: WeeklyLeagueMember[]
+}
+
 async function parse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let detail = `HTTP ${response.status}`
@@ -61,6 +82,17 @@ async function parse<T>(response: Response): Promise<T> {
 
 export async function listFriends(): Promise<Friend[]> {
   return parse<Friend[]>(await fetch(`${API_BASE_URL}/social/friends`, { headers: getAuthHeaders() }))
+}
+
+export async function getWeeklyLeague(): Promise<WeeklyLeague> {
+  return parse(await fetch(`${API_BASE_URL}/social/league`, { headers: getAuthHeaders() }))
+}
+
+export async function joinWeeklyLeague(): Promise<WeeklyLeague> {
+  return parse(await fetch(`${API_BASE_URL}/social/league/join`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  }))
 }
 
 export async function createFriendInvite(): Promise<FriendInvite> {
