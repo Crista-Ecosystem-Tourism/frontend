@@ -210,10 +210,10 @@ describe('trip mini-site consent and access', () => {
   it('prepares a private draft through the authenticated completion endpoint', async () => {
     const draft = { published: false, draft_ready: true, completed_at: '2026-09-25T12:00:00Z', slug: null, visibility: null, consented_at: null, draft_snapshot: { title: 'Rome' } }
     mockFetch.mockResolvedValueOnce(jsonResponse(draft))
-    await expect(completeTripForMiniSite('trip/2')).resolves.toEqual(draft)
+    await expect(completeTripForMiniSite('trip/2', 'signed-ticket')).resolves.toEqual(draft)
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringMatching(/\/suitcase\/trips\/trip%2F2\/complete$/),
-      expect.objectContaining({ method: 'POST', headers: expect.objectContaining({ Authorization: 'Bearer suitcase-test-token' }) }),
+      expect.objectContaining({ method: 'POST', headers: expect.objectContaining({ Authorization: 'Bearer suitcase-test-token' }), body: JSON.stringify({ game_stamp_ticket: 'signed-ticket' }) }),
     )
   })
 
@@ -223,14 +223,14 @@ describe('trip mini-site consent and access', () => {
       .mockResolvedValueOnce(jsonResponse(state))
 
     await expect(getTripMiniSite('trip/1')).resolves.toMatchObject({ published: false })
-    await expect(publishTripMiniSite('trip/1', 'link')).resolves.toEqual(state)
+    await expect(publishTripMiniSite('trip/1', 'link', 'signed-ticket')).resolves.toEqual(state)
 
     expect(mockFetch).toHaveBeenNthCalledWith(2,
       expect.stringMatching(/\/suitcase\/trips\/trip%2F1\/mini-site$/),
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({ Authorization: 'Bearer suitcase-test-token' }),
-        body: JSON.stringify({ visibility: 'link', consent_to_publish: true }),
+        body: JSON.stringify({ visibility: 'link', consent_to_publish: true, game_stamp_ticket: 'signed-ticket' }),
       }),
     )
   })

@@ -291,6 +291,14 @@ export async function getGamePassport(): Promise<GamePassport> {
   }))
 }
 
+export async function createMiniSiteStampTicket(stampKeys: string[]): Promise<{ ticket: string }> {
+  return parse<{ ticket: string }>(await fetch(`${API_BASE_URL}/game/passport/mini-site-ticket`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ stamp_keys: stampKeys }),
+  }))
+}
+
 export async function answerRedSquare(answerKey: string): Promise<OnboardingAnswer> {
   return parse<OnboardingAnswer>(await fetch(`${API_BASE_URL}/game/onboarding/red-square/answer`, {
     method: 'POST',

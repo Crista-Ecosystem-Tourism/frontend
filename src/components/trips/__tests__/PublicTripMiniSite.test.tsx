@@ -25,12 +25,16 @@ describe('PublicTripMiniSite', () => {
         title: 'Moscow, Russia', city: 'Moscow', country: 'Russia', start_date: '2026-09-01', end_date: '2026-09-03',
         cover: null, summary: 'A city walk', photos: [],
         points: [{ latitude: 55.75, longitude: 37.61, name: 'Red Square', note: 'Arrived early' }],
+        game_stamps: [{ key: 'red-square', title: 'Red Square explorer', earned_at: '2026-09-02T10:00:00Z', fact: 'The square was established in the 15th century.', source_label: 'History source', source_url: 'https://history.example.test/red-square' }],
         stats: { days: 3, places_visited: 1, distance_km: 0 },
       },
     })
     render(<PublicTripMiniSite slug="secret" />)
     expect(await screen.findByRole('heading', { name: 'Moscow, Russia' })).toBeTruthy()
     expect(screen.getByText('Red Square')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Игровые отметки' })).toBeTruthy()
+    expect(screen.getByText('The square was established in the 15th century.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'History source' }).getAttribute('rel')).toBe('noopener noreferrer')
     expect(screen.getByTestId('public-trip-map')).toBeTruthy()
     expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex, nofollow')
     expect(document.querySelector('link[rel="canonical"]')).toBeNull()

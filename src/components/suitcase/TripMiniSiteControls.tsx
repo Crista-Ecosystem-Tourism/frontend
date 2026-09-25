@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ApiError } from '@/api/chatApi'
+import { createMiniSiteStampTicket, getGamePassport, type GamePassport } from '@/api/gameApi'
 import {
   completeTripForMiniSite,
   getTripMiniSite,
@@ -16,6 +17,10 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+  const [passport, setPassport] = useState<GamePassport | null>(null)
+  const [selectedStamps, setSelectedStamps] = useState<string[]>([])
+  const [previewStampKeys, setPreviewStampKeys] = useState<string[]>([])
+  const [passportError, setPassportError] = useState('')
 
   useEffect(() => {
     let active = true
@@ -24,20 +29,38 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
     setVisibility('link')
     setConsent(false)
     setEditing(false)
+    setPassport(null)
+    setSelectedStamps([])
+    setPreviewStampKeys([])
+    setPassportError('')
     getTripMiniSite(tripId)
-      .then((current) => { if (active) { setSite(current); if (current.visibility) setVisibility(current.visibility) } })
+      .then((current) => {
+        if (active) {
+          setSite(current)
+          if (current.visibility) setVisibility(current.visibility)
+          const keys = (current.preview_snapshot?.game_stamps ?? current.draft_snapshot?.game_stamps ?? []).map((stamp) => stamp.key)
+          setSelectedStamps(keys)
+          setPreviewStampKeys(keys)
+        }
+      })
       .catch((reason: unknown) => {
         if (active) setError(reason instanceof ApiError ? reason.detail : 'Не удалось загрузить настройки публикации')
+      })
+    getGamePassport()
+      .then((result) => { if (active) setPassport(result) })
+      .catch((reason: unknown) => {
+        if (active) setPassportError(reason instanceof ApiError ? reason.detail : 'Не удалось загрузить игровые отметки')
       })
     return () => { active = false }
   }, [tripId])
 
   const publish = async () => {
-    if (!consent) return
+    if (!consent || !sameStampSelection) return
     setBusy(true)
     setError('')
     try {
-      setSite(await publishTripMiniSite(tripId, visibility))
+      const ticket = selectedStamps.length ? (await createMiniSiteStampTicket(selectedStamps)).ticket : undefined
+      setSite(await publishTripMiniSite(tripId, visibility, ticket))
       setConsent(false)
       setEditing(false)
     } catch (reason) {
@@ -48,11 +71,18 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
   const complete = async () => {
     setBusy(true)
     setError('')
-    try { setSite(await completeTripForMiniSite(tripId)) }
+    try {
+      const ticket = selectedStamps.length ? (await createMiniSiteStampTicket(selectedStamps)).ticket : undefined
+      setSite(await completeTripForMiniSite(tripId, ticket))
+      setPreviewStampKeys([...selectedStamps].sort())
+    }
     catch (reason) {
       setError(reason instanceof ApiError ? reason.detail : 'Не удалось подготовить черновик поездки')
     } finally { setBusy(false) }
   }
+
+  const sameStampSelection = selectedStamps.length === previewStampKeys.length
+    && [...selectedStamps].sort().every((key, index) => key === [...previewStampKeys].sort()[index])
 
   const revoke = async () => {
     if (!window.confirm('Отозвать публикацию? Ссылка сразу перестанет открываться.')) return
@@ -85,7 +115,7 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
       <h2 className="text-sm font-semibold text-text">Мини-сайт поездки</h2>
       <p className="mt-1 text-xs leading-relaxed text-text-muted">
         Публикация создаёт отдельный snapshot. Он включает город и даты, заметки, координаты и названия точек,
-        фотографии по HTTPS и счётчики дней/мест/дистанции. Расходы и данные аккаунта не публикуются.
+        фотографии по HTTPS, выбранные игровые отметки и счётчики дней/мест/дистанции. Расходы и данные аккаунта не публикуются.
         Повторная публикация обновит snapshot и заменит прежнюю ссылку.
       </p>
     </div>
@@ -111,6 +141,22 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
           {busy ? 'Готовлю черновик…' : 'Завершить поездку и подготовить черновик'}
         </button>
       </div> : null}
+      <fieldset className="space-y-2 rounded-lg border border-border bg-surface p-3" disabled={busy}>
+        <legend className="px-1 text-xs font-medium text-text">Игровые отметки (необязательно)</legend>
+        {passportError && <p role="status" className="text-xs text-text-muted">{passportError}. Отметки можно не добавлять.</p>}
+        {!passport && !passportError && <p className="text-xs text-text-muted">Загружаю паспорт…</p>}
+        {passport?.stamps.length === 0 && <p className="text-xs text-text-muted">В паспорте пока нет отметок.</p>}
+        {(passport?.stamps.length ?? 0) > 20 && <p className="text-xs text-text-muted">Можно выбрать до 20 отметок.</p>}
+        {passport?.stamps.map((stamp) => <label key={stamp.key} className="flex items-start gap-2 text-xs text-text-secondary">
+          <input type="checkbox" checked={selectedStamps.includes(stamp.key)} disabled={!selectedStamps.includes(stamp.key) && selectedStamps.length >= 20} onChange={(event) => setSelectedStamps((current) => event.target.checked ? [...current, stamp.key] : current.filter((key) => key !== stamp.key))} />
+          <span>{stamp.title} · {new Date(stamp.earned_at).toLocaleDateString('ru-RU')}</span>
+        </label>)}
+        <p className="text-xs leading-relaxed text-text-muted">Выбранные отметки, игровые факты и ссылки на источники попадут в предпросмотр; они станут доступными посетителям только после отдельного согласия на публикацию.</p>
+      </fieldset>
+      {!sameStampSelection && <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-text-secondary">
+        <p>Состав отметок изменён — сначала обновите предпросмотр, чтобы проверить факты и источники.</p>
+        <button type="button" disabled={busy} onClick={() => void complete()} className="mt-2 rounded-lg border border-border px-3 py-2 text-text disabled:opacity-50">Обновить предпросмотр</button>
+      </div>}
       {url && editing && <p className="rounded-lg bg-surface p-3 text-xs text-text-secondary">Старая ссылка пока продолжает работать. После подтверждения она заменится новой.</p>}
       <label className="flex items-start gap-2 text-xs text-text-secondary">
         <input type="radio" name={`trip-visibility-${tripId}`} checked={visibility === 'link'} onChange={() => setVisibility('link')} />
@@ -121,10 +167,10 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
         Публично: страницу смогут открыть все, у кого есть URL; поисковики могут её индексировать
       </label>
       <label className="flex items-start gap-2 rounded-lg bg-surface p-3 text-xs leading-relaxed text-text-secondary">
-        <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+        <input type="checkbox" checked={consent} disabled={!sameStampSelection} onChange={(event) => setConsent(event.target.checked)} />
         Я проверил(а) предпросмотр выше и согласен(на) опубликовать показанные данные. Внешние HTTPS-фото останутся на исходных сайтах.
       </label>
-      <button type="button" disabled={busy || !consent} onClick={() => void publish()} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white disabled:opacity-50">
+      <button type="button" disabled={busy || !consent || !sameStampSelection} onClick={() => void publish()} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white disabled:opacity-50">
         {busy ? 'Сохраняю…' : url ? 'Обновить после согласия' : 'Опубликовать snapshot'}
       </button>
       {url && editing && <button type="button" disabled={busy} onClick={() => { setEditing(false); setConsent(false) }} className="ml-2 rounded-lg border border-border px-3 py-2 text-xs text-text disabled:opacity-50">
@@ -163,6 +209,14 @@ function DraftSnapshotPreview({
           </li>)}
         </ol> : <p>Точек маршрута нет.</p>}
       </div>
+      {(snapshot.game_stamps?.length ?? 0) > 0 && <div>
+        <h4 className="font-medium text-text">Игровые отметки ({snapshot.game_stamps?.length})</h4>
+        <ul className="mt-1 space-y-2">{snapshot.game_stamps?.map((stamp) => <li key={stamp.key}>
+          <p>{stamp.title} · {new Date(stamp.earned_at).toLocaleDateString('ru-RU')}</p>
+          <p className="whitespace-pre-wrap">{stamp.fact}</p>
+          {stamp.source_url && <a href={stamp.source_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">{stamp.source_label || 'Источник'}</a>}
+        </li>)}</ul>
+      </div>}
       <div>
         <h4 className="font-medium text-text">Фото ({photos.length})</h4>
         {photos.length ? <ul className="mt-1 space-y-1">

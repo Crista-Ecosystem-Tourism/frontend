@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { completeTripForMiniSite, getTripMiniSite, publishTripMiniSite, revokeTripMiniSite } from '@/api/suitcaseApi'
+import { createMiniSiteStampTicket, getGamePassport } from '@/api/gameApi'
 import { TripMiniSiteControls } from '../TripMiniSiteControls'
 
 vi.mock('@/api/suitcaseApi', () => ({
@@ -9,11 +10,17 @@ vi.mock('@/api/suitcaseApi', () => ({
   publishTripMiniSite: vi.fn(),
   revokeTripMiniSite: vi.fn(),
 }))
+vi.mock('@/api/gameApi', () => ({
+  createMiniSiteStampTicket: vi.fn(),
+  getGamePassport: vi.fn(),
+}))
 
 const getSite = vi.mocked(getTripMiniSite)
 const complete = vi.mocked(completeTripForMiniSite)
 const publish = vi.mocked(publishTripMiniSite)
 const revoke = vi.mocked(revokeTripMiniSite)
+const getPassport = vi.mocked(getGamePassport)
+const stampTicket = vi.mocked(createMiniSiteStampTicket)
 const sampleSnapshot = {
   title: 'Rome, Italy', city: 'Rome', country: 'Italy', start_date: '2026-09-20', end_date: '2026-09-25',
   cover: 'https://photos.example/cover.jpg', summary: 'A quiet week',
@@ -24,6 +31,8 @@ const sampleSnapshot = {
 
 beforeEach(() => {
   getSite.mockReset().mockResolvedValue({ published: false, slug: null, visibility: null, consented_at: null })
+  getPassport.mockReset().mockResolvedValue({ profile: { xp: 0, energy: 5, streak: 0 }, stamps: [], cities: [], routes: [] })
+  stampTicket.mockReset().mockResolvedValue({ ticket: 'signed-ticket' })
   complete.mockReset().mockResolvedValue({ published: false, draft_ready: true, slug: null, visibility: null, consented_at: null, completed_at: '2026-09-25T12:00:00Z', draft_snapshot: sampleSnapshot, preview_snapshot: sampleSnapshot })
   publish.mockReset().mockResolvedValue({ published: true, slug: 'secret-123', visibility: 'link', consented_at: '2026-09-25T12:00:00Z' })
   revoke.mockReset().mockResolvedValue()
@@ -35,7 +44,7 @@ describe('TripMiniSiteControls', () => {
     render(<TripMiniSiteControls tripId="trip-draft" />)
     fireEvent.click(await screen.findByRole('button', { name: 'Завершить поездку и подготовить черновик' }))
     expect(await screen.findByText('Черновик виден только вам. Публичной страницы пока нет.')).toBeTruthy()
-    expect(complete).toHaveBeenCalledWith('trip-draft')
+    expect(complete).toHaveBeenCalledWith('trip-draft', undefined)
     expect(publish).not.toHaveBeenCalled()
     expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
   })
@@ -81,7 +90,7 @@ describe('TripMiniSiteControls', () => {
     fireEvent.click(screen.getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: 'Обновить после согласия' }))
     expect(await screen.findByRole('link', { name: /new-link-1234567890/ })).toBeTruthy()
-    expect(publish).toHaveBeenCalledWith('trip-refresh', 'public')
+    expect(publish).toHaveBeenCalledWith('trip-refresh', 'public', undefined)
   })
 
   it('requires explicit consent before publishing and displays the returned URL', async () => {
@@ -94,7 +103,28 @@ describe('TripMiniSiteControls', () => {
     fireEvent.click(screen.getByRole('checkbox'))
     fireEvent.click(publishButton)
     await screen.findByRole('link', { name: /\/t\/secret-123$/ })
-    expect(publish).toHaveBeenCalledWith('trip-1', 'link')
+    expect(publish).toHaveBeenCalledWith('trip-1', 'link', undefined)
+  })
+
+  it('requires the selected game-stamp preview to be refreshed before consent', async () => {
+    getPassport.mockResolvedValueOnce({
+      profile: { xp: 20, energy: 5, streak: 1 },
+      stamps: [{ key: 'moscow-starter', title: 'Moscow explorer', earned_at: '2026-09-20T10:00:00Z' }],
+      cities: [], routes: [],
+    })
+    complete.mockResolvedValueOnce({
+      published: false, draft_ready: true, slug: null, visibility: null, consented_at: null,
+      completed_at: '2026-09-25T12:00:00Z',
+      preview_snapshot: { ...sampleSnapshot, game_stamps: [{ key: 'moscow-starter', title: 'Moscow explorer', earned_at: '2026-09-20T10:00:00Z', fact: 'A verified fact.', source_label: 'Source', source_url: 'https://source.example/fact' }] },
+    })
+    render(<TripMiniSiteControls tripId="trip-stamps" />)
+
+    fireEvent.click(await screen.findByLabelText(/Moscow explorer/))
+    expect(screen.getByRole('button', { name: 'Опубликовать snapshot' }).hasAttribute('disabled')).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Обновить предпросмотр' }))
+    expect(await screen.findByText('A verified fact.')).toBeTruthy()
+    expect(complete).toHaveBeenCalledWith('trip-stamps', 'signed-ticket')
+    expect(stampTicket).toHaveBeenCalledWith(['moscow-starter'])
   })
 
   it('revokes the active public link after owner confirmation', async () => {

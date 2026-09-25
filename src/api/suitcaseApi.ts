@@ -69,6 +69,15 @@ export type MiniSitePoint = {
   photos?: string[]
 }
 
+export type MiniSiteGameStamp = {
+  key: string
+  title: string
+  earned_at: string
+  fact: string
+  source_label: string | null
+  source_url: string | null
+}
+
 export type TripMiniSiteSnapshot = {
   title: string
   city: string
@@ -79,6 +88,7 @@ export type TripMiniSiteSnapshot = {
   summary: string
   photos: string[]
   points: MiniSitePoint[]
+  game_stamps?: MiniSiteGameStamp[]
   stats: { days: number; places_visited: number; distance_km: number }
 }
 
@@ -204,10 +214,11 @@ export async function getTripMiniSite(tripId: string): Promise<TripMiniSiteState
   return parseResponse<TripMiniSiteState>(response)
 }
 
-export async function completeTripForMiniSite(tripId: string): Promise<TripMiniSiteState> {
+export async function completeTripForMiniSite(tripId: string, gameStampTicket?: string): Promise<TripMiniSiteState> {
   const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/complete`, {
     method: 'POST',
-    headers: { Accept: 'application/json', ...getAuthHeaders() },
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...getAuthHeaders() },
+    ...(gameStampTicket ? { body: JSON.stringify({ game_stamp_ticket: gameStampTicket }) } : {}),
   })
   return parseResponse<TripMiniSiteState>(response)
 }
@@ -215,11 +226,12 @@ export async function completeTripForMiniSite(tripId: string): Promise<TripMiniS
 export async function publishTripMiniSite(
   tripId: string,
   visibility: 'public' | 'link',
+  gameStampTicket?: string,
 ): Promise<TripMiniSiteState> {
   const response = await fetch(`${SUITCASE_API_BASE_URL}/suitcase/trips/${encodeURIComponent(tripId)}/mini-site`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...getAuthHeaders() },
-    body: JSON.stringify({ visibility, consent_to_publish: true }),
+    body: JSON.stringify({ visibility, consent_to_publish: true, ...(gameStampTicket ? { game_stamp_ticket: gameStampTicket } : {}) }),
   })
   return parseResponse<TripMiniSiteState>(response)
 }

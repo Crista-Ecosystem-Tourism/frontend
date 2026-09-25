@@ -127,6 +127,15 @@ export function PublicTripMiniSite({ slug }: { slug: string }) {
         <h2 className="text-xl font-semibold">Фотографии</h2>
         <div className="grid gap-3 sm:grid-cols-2">{snapshot.photos.map((photo, index) => <img key={`${photo}-${index}`} src={photo} alt={`Фото поездки ${index + 1}`} loading="lazy" className="max-h-96 w-full rounded-xl object-cover" />)}</div>
       </section>}
+      {(snapshot.game_stamps?.length ?? 0) > 0 && <section aria-label="Игровые отметки" className="space-y-3">
+        <h2 className="text-xl font-semibold">Игровые отметки</h2>
+        <ul className="space-y-3">{snapshot.game_stamps?.map((stamp) => <li key={stamp.key} className="rounded-xl border border-border bg-surface-light p-4">
+          <p className="font-medium">{stamp.title}</p>
+          <p className="mt-1 text-xs text-text-muted">Получено {new Date(stamp.earned_at).toLocaleDateString('ru-RU')}</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm text-text-secondary">{stamp.fact}</p>
+          {stamp.source_url && <a href={stamp.source_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm text-primary underline">{stamp.source_label || 'Источник факта'}</a>}
+        </li>)}</ul>
+      </section>}
       <footer className="border-t border-border pt-4 text-xs text-text-muted">Опубликовано владельцем поездки через Crista.</footer>
     </article>
   </main>
