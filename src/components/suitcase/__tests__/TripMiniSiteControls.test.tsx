@@ -71,12 +71,26 @@ describe('TripMiniSiteControls', () => {
   })
 
   it('keeps the current link live until the owner reviews and consents to a refreshed snapshot', async () => {
+    const publishedStamp = { key: 'moscow-starter', title: 'Moscow explorer', earned_at: '2026-09-20T10:00:00Z', fact: 'A verified fact.', source_label: 'Source', source_url: 'https://source.example/fact' }
+    getPassport.mockResolvedValueOnce({
+      profile: { xp: 20, energy: 5, streak: 1 },
+      stamps: [{ key: publishedStamp.key, title: publishedStamp.title, earned_at: publishedStamp.earned_at }],
+      cities: [], routes: [],
+    })
     getSite.mockResolvedValueOnce({
       published: true,
       slug: 'old-link-123456789012345678901234',
       visibility: 'public',
       consented_at: '2026-09-25T12:00:00Z',
       preview_snapshot: sampleSnapshot,
+      published_snapshot: { ...sampleSnapshot, game_stamps: [publishedStamp] },
+    })
+    complete.mockResolvedValueOnce({
+      published: true,
+      slug: 'old-link-123456789012345678901234',
+      visibility: 'public',
+      consented_at: '2026-09-25T12:00:00Z',
+      preview_snapshot: { ...sampleSnapshot, game_stamps: [publishedStamp] },
     })
     publish.mockResolvedValueOnce({ published: true, slug: 'new-link-123456789012345678901234', visibility: 'public', consented_at: '2026-09-26T12:00:00Z' })
     render(<TripMiniSiteControls tripId="trip-refresh" />)
@@ -85,12 +99,16 @@ describe('TripMiniSiteControls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Обновить snapshot и ссылку' }))
     expect(await screen.findByText('Старая ссылка пока продолжает работать. После подтверждения она заменится новой.')).toBeTruthy()
     expect(screen.getByRole('link', { name: /old-link-1234567890/ })).toBe(oldUrl)
+    expect((screen.getByLabelText(/Moscow explorer/) as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Обновить предпросмотр' }))
+    expect(await screen.findByText('A verified fact.')).toBeTruthy()
+    expect(complete).toHaveBeenCalledWith('trip-refresh', 'signed-ticket')
     expect(screen.getByRole('button', { name: 'Обновить после согласия' }).hasAttribute('disabled')).toBe(true)
 
-    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(screen.getByLabelText(/согласен\(на\) опубликовать показанные данные/i))
     fireEvent.click(screen.getByRole('button', { name: 'Обновить после согласия' }))
     expect(await screen.findByRole('link', { name: /new-link-1234567890/ })).toBeTruthy()
-    expect(publish).toHaveBeenCalledWith('trip-refresh', 'public', undefined)
+    expect(publish).toHaveBeenCalledWith('trip-refresh', 'public', 'signed-ticket')
   })
 
   it('requires explicit consent before publishing and displays the returned URL', async () => {

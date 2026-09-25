@@ -101,6 +101,7 @@ export type TripMiniSiteState = {
   completed_at?: string | null
   draft_snapshot?: TripMiniSiteSnapshot | null
   preview_snapshot?: TripMiniSiteSnapshot | null
+  published_snapshot?: TripMiniSiteSnapshot | null
 }
 
 export type PublicTripMiniSite = {

@@ -38,9 +38,11 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
         if (active) {
           setSite(current)
           if (current.visibility) setVisibility(current.visibility)
-          const keys = (current.preview_snapshot?.game_stamps ?? current.draft_snapshot?.game_stamps ?? []).map((stamp) => stamp.key)
-          setSelectedStamps(keys)
-          setPreviewStampKeys(keys)
+          const preview = current.preview_snapshot ?? current.draft_snapshot
+          const previewKeys = (preview?.game_stamps ?? []).map((stamp) => stamp.key)
+          const chosenSnapshot = current.published ? current.published_snapshot : preview
+          setSelectedStamps((chosenSnapshot?.game_stamps ?? []).map((stamp) => stamp.key))
+          setPreviewStampKeys(previewKeys)
         }
       })
       .catch((reason: unknown) => {
