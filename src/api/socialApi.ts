@@ -61,6 +61,16 @@ export type WeeklyLeagueMember = {
   is_self: boolean
 }
 
+export type WeeklyLeagueResult = {
+  season_id: string
+  weekly_xp: number
+  place: number
+  rank_before: number
+  rank_after: number
+  movement: 'promoted' | 'held' | 'relegated'
+  closed_at: string
+}
+
 export type WeeklyLeague = {
   joined: boolean
   season_id: string
@@ -68,6 +78,7 @@ export type WeeklyLeague = {
   ends_at: string
   rank?: number
   participant_count?: number
+  previous_result?: WeeklyLeagueResult | null
   members: WeeklyLeagueMember[]
 }
 

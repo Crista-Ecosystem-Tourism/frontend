@@ -124,6 +124,17 @@ function LeagueSection({ language }: { language: 'ru' | 'en' }) {
     </div>
     {error && <p role="alert" className="text-sm text-error">{error}</p>}
     {loading && !league && <p role="status" className="text-sm text-text-muted">{en ? 'Loading league…' : 'Загружаю лигу…'}</p>}
+    {league?.previous_result && <GlassPanel className="space-y-1">
+      <p className="text-sm font-semibold text-text">{en ? 'Previous league result' : 'Итог прошлой недели'}</p>
+      <p className="text-xs text-text-muted">{league.previous_result.season_id} · #{league.previous_result.place} · {league.previous_result.weekly_xp} XP</p>
+      <p className="text-sm text-text-secondary">
+        {league.previous_result.movement === 'promoted'
+          ? (en ? `Promoted from rank ${league.previous_result.rank_before} to rank ${league.previous_result.rank_after}` : `Повышение: ранг ${league.previous_result.rank_before} → ${league.previous_result.rank_after}`)
+          : league.previous_result.movement === 'relegated'
+            ? (en ? `Moved from rank ${league.previous_result.rank_before} to rank ${league.previous_result.rank_after}` : `Понижение: ранг ${league.previous_result.rank_before} → ${league.previous_result.rank_after}`)
+            : (en ? `Kept rank ${league.previous_result.rank_after}` : `Ранг ${league.previous_result.rank_after} сохранён`)}
+      </p>
+    </GlassPanel>}
     {league && !league.joined && <GlassPanel className="space-y-3">
       <p className="text-sm text-text-secondary">{en ? 'Join to count server-verified XP earned this week. Your score is visible to you and accepted friends.' : 'Вступите, чтобы учитывать серверный XP за эту неделю. Ваш результат виден вам и принятым друзьям.'}</p>
       <Button disabled={busy} onClick={() => void join()}>{busy ? (en ? 'Joining…' : 'Вступаю…') : (en ? 'Join weekly league' : 'Вступить в недельную лигу')}</Button>

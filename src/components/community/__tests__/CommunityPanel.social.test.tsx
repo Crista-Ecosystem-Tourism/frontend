@@ -172,4 +172,31 @@ describe('CommunityPanel social features', () => {
     expect(await screen.findByText('Rank 1 of 10 · 1 participants')).toBeTruthy()
     expect(screen.getByText('25 XP')).toBeTruthy()
   })
+
+  it('shows the private previous-season result even before joining the new week', async () => {
+    const user = userEvent.setup()
+    getLeagueMock.mockResolvedValueOnce({
+      joined: false,
+      season_id: '2026-W40',
+      starts_at: '2026-09-28T00:00:00Z',
+      ends_at: '2026-10-05T00:00:00Z',
+      previous_result: {
+        season_id: '2026-W39',
+        weekly_xp: 600,
+        place: 1,
+        rank_before: 1,
+        rank_after: 2,
+        movement: 'promoted',
+        closed_at: '2026-09-28T00:00:00Z',
+      },
+      members: [],
+    })
+    render(<CommunityPanel onBack={() => undefined} />)
+
+    await user.click(screen.getByRole('tab', { name: 'Лидерборд' }))
+    expect(await screen.findByText('Previous league result')).toBeTruthy()
+    expect(screen.getByText('Promoted from rank 1 to rank 2')).toBeTruthy()
+    expect(screen.getByText('2026-W39 · #1 · 600 XP')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Join weekly league' })).toBeTruthy()
+  })
 })
