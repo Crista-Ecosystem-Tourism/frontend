@@ -4,6 +4,31 @@ import { ApiError } from '@/api/chatApi'
 import { fetchPublicTripMiniSite, type PublicTripMiniSite } from '@/api/suitcaseApi'
 import { SuitcaseJourneyMap, type JourneyMarker } from '@/components/suitcase/SuitcaseJourneyMap'
 
+function setHeadAttribute(selector: string, tagName: 'meta' | 'link', key: 'content' | 'href', value: string | null, attributes: Record<string, string>) {
+  const existing = document.head.querySelector<HTMLElement>(selector)
+  const previousValue = existing?.getAttribute(key) ?? null
+  const nextSibling = existing?.nextSibling ?? null
+
+  if (value === null) {
+    existing?.remove()
+  } else {
+    const element = existing ?? document.createElement(tagName)
+    for (const [name, attributeValue] of Object.entries(attributes)) element.setAttribute(name, attributeValue)
+    element.setAttribute(key, value)
+    if (!existing) document.head.appendChild(element)
+  }
+
+  return () => {
+    if (existing) {
+      if (previousValue === null) existing.removeAttribute(key)
+      else existing.setAttribute(key, previousValue)
+      if (!existing.parentNode) document.head.insertBefore(existing, nextSibling?.parentNode === document.head ? nextSibling : null)
+    } else {
+      document.head.querySelector(selector)?.remove()
+    }
+  }
+}
+
 export function PublicTripMiniSite({ slug }: { slug: string }) {
   const [page, setPage] = useState<PublicTripMiniSite | null>(null)
   const [error, setError] = useState('')
@@ -32,17 +57,30 @@ export function PublicTripMiniSite({ slug }: { slug: string }) {
   useEffect(() => {
     if (!page) return
     const previousTitle = document.title
-    document.title = `${page.snapshot.title} — Crista`
-    let robots: HTMLMetaElement | null = null
-    if (page.visibility === 'link') {
-      robots = document.createElement('meta')
-      robots.name = 'robots'
-      robots.content = 'noindex, nofollow'
-      document.head.appendChild(robots)
-    }
+    const title = `${page.snapshot.title} — Crista`
+    const description = (page.snapshot.summary.trim() || `Маршрут поездки: ${page.snapshot.city}, ${page.snapshot.country}.`)
+      .replace(/\s+/g, ' ')
+      .slice(0, 240)
+    const canonicalUrl = page.visibility === 'public'
+      ? `${window.location.origin}${window.location.pathname}`
+      : null
+    document.title = title
+    const restore = [
+      setHeadAttribute('meta[name="description"]', 'meta', 'content', description, { name: 'description' }),
+      setHeadAttribute('meta[name="robots"]', 'meta', 'content', page.visibility === 'link' ? 'noindex, nofollow' : null, { name: 'robots' }),
+      setHeadAttribute('link[rel="canonical"]', 'link', 'href', canonicalUrl, { rel: 'canonical' }),
+      setHeadAttribute('meta[property="og:title"]', 'meta', 'content', title, { property: 'og:title' }),
+      setHeadAttribute('meta[property="og:description"]', 'meta', 'content', description, { property: 'og:description' }),
+      setHeadAttribute('meta[property="og:url"]', 'meta', 'content', canonicalUrl, { property: 'og:url' }),
+      setHeadAttribute('meta[property="og:image"]', 'meta', 'content', page.snapshot.cover, { property: 'og:image' }),
+      setHeadAttribute('meta[name="twitter:title"]', 'meta', 'content', title, { name: 'twitter:title' }),
+      setHeadAttribute('meta[name="twitter:description"]', 'meta', 'content', description, { name: 'twitter:description' }),
+      setHeadAttribute('meta[name="twitter:image"]', 'meta', 'content', page.snapshot.cover, { name: 'twitter:image' }),
+      setHeadAttribute('meta[name="twitter:card"]', 'meta', 'content', page.snapshot.cover ? 'summary_large_image' : 'summary', { name: 'twitter:card' }),
+    ]
     return () => {
       document.title = previousTitle
-      robots?.remove()
+      restore.reverse().forEach((restoreAttribute) => restoreAttribute())
     }
   }, [page])
 
