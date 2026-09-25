@@ -6,6 +6,7 @@ import { GlassPanel } from '@/components/ui/glass'
 import { useApp } from '@/context/AppContext'
 import { getGameCopy } from '@/lib/gameCopy'
 import { QuestTips } from './QuestTips'
+import { QuestMedia } from './QuestMedia'
 
 export function CityPilot({ cityId, signedIn, refreshKey, onCompleted }: { cityId: 'st-petersburg' | 'sochi'; signedIn: boolean; refreshKey: number; onCompleted: () => void }) {
   const { language, user } = useApp()
@@ -66,7 +67,7 @@ export function CityPilot({ cityId, signedIn, refreshKey, onCompleted }: { cityI
       <p className="mt-4 font-sans text-sm font-semibold text-text">{quest.content.question.text}</p>
       <div className={quest.quest.kind === 'timeline' ? 'mt-3 flex items-stretch gap-2' : 'mt-2 grid gap-2 sm:grid-cols-3'}>{quest.content.question.options.map((option) => <button key={option.id} type="button" disabled={answering} onClick={() => void answer(option.id)} className={quest.quest.kind === 'timeline' ? 'relative flex-1 border-t-2 border-accent-soft bg-panel-2 px-2 pt-4 text-center font-sans text-sm text-text disabled:opacity-60 before:absolute before:left-1/2 before:top-[-6px] before:h-2 before:w-2 before:-translate-x-1/2 before:rounded-full before:bg-accent-soft' : 'rounded-md border border-white/10 bg-panel-2 px-3 py-2 text-left font-sans text-sm text-text disabled:opacity-60'}>{option.label}</button>)}</div>
     </section>}
-    {tipsQuestId && <QuestTips questId={tipsQuestId} signedIn={signedIn} isEditor={Boolean(user?.isEditor)} />}
+    {tipsQuestId && <><QuestTips questId={tipsQuestId} signedIn={signedIn} isEditor={Boolean(user?.isEditor)} /><QuestMedia questId={tipsQuestId} /></>}
     {message && <p className="mt-3 font-sans text-sm text-text-secondary">{message}</p>}
   </GlassPanel>
 }

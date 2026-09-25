@@ -39,6 +39,10 @@ vi.mock('@/api/tipApi', () => ({
   getTipAudit: getTipAuditMock, reportTip: vi.fn(), resolveTipReport: vi.fn(),
   submitTip: vi.fn(), updateTipDraft: vi.fn(),
 }))
+vi.mock('@/api/mediaApi', () => ({
+  getMyMedia: vi.fn().mockResolvedValue([]), fetchMediaPreview: vi.fn(),
+  uploadQuestMedia: vi.fn(), deleteMedia: vi.fn(),
+}))
 
 describe('CityPilot localization boundary', () => {
   beforeEach(() => {
@@ -117,6 +121,8 @@ describe('CityPilot localization boundary', () => {
     await screen.findByText('Saint Petersburg')
     fireEvent.click(screen.getByRole('button', { name: 'Tips for The Hermitage' }))
     expect(await screen.findByText('No published tips yet.')).toBeTruthy()
+    expect(await screen.findByText('My photos')).toBeTruthy()
+    expect(screen.getByText(/Private to you · EXIF removed/)).toBeTruthy()
     expect(getPublishedTipsMock).toHaveBeenCalledWith('spb-hermitage')
   })
 })
