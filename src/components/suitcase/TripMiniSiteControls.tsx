@@ -12,6 +12,7 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
   const [site, setSite] = useState<TripMiniSiteState | null>(null)
   const [visibility, setVisibility] = useState<'public' | 'link'>('link')
   const [consent, setConsent] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
@@ -20,6 +21,9 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
     let active = true
     setSite(null)
     setError('')
+    setVisibility('link')
+    setConsent(false)
+    setEditing(false)
     getTripMiniSite(tripId)
       .then((current) => { if (active) { setSite(current); if (current.visibility) setVisibility(current.visibility) } })
       .catch((reason: unknown) => {
@@ -35,6 +39,7 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
     try {
       setSite(await publishTripMiniSite(tripId, visibility))
       setConsent(false)
+      setEditing(false)
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.detail : 'Не удалось опубликовать страницу')
     } finally { setBusy(false) }
@@ -55,7 +60,14 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
     setError('')
     try {
       await revokeTripMiniSite(tripId)
-      setSite({ published: false, draft_ready: false, slug: null, visibility: null, consented_at: null })
+      setSite((current) => current ? {
+        ...current,
+        published: false,
+        draft_ready: false,
+        slug: null,
+        visibility: null,
+        consented_at: null,
+      } : null)
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.detail : 'Не удалось отозвать публикацию')
     } finally { setBusy(false) }
@@ -78,23 +90,28 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
       </p>
     </div>
 
-    {url ? <div className="space-y-2">
+    {url && <div className="space-y-2">
       <p className="text-xs text-text-secondary">Доступ: {site?.visibility === 'public' ? 'публичная страница' : 'только по секретной ссылке'}</p>
       <div className="flex gap-2">
         <a className="min-w-0 flex-1 truncate self-center text-xs text-primary underline" href={url}>{url}</a>
         <button type="button" onClick={() => void copy()} className="rounded-lg border border-border px-3 py-2 text-xs text-text">{copied ? 'Скопировано' : 'Копировать'}</button>
       </div>
+      {!editing && <button type="button" disabled={busy} onClick={() => { setConsent(false); setEditing(true) }} className="rounded-lg border border-border px-3 py-2 text-xs text-text disabled:opacity-50">
+        Обновить snapshot и ссылку
+      </button>}
       <button type="button" disabled={busy} onClick={() => void revoke()} className="rounded-lg px-3 py-2 text-xs text-destructive hover:bg-destructive/10 disabled:opacity-50">
         {busy ? 'Сохраняю…' : 'Отозвать публикацию'}
       </button>
-    </div> : <>
-      {site?.draft_snapshot && <DraftSnapshotPreview snapshot={site.draft_snapshot} persisted={Boolean(site.draft_ready)} />}
-      {!site?.completed_at ? <div className="space-y-2 rounded-lg bg-surface p-3">
+    </div>}
+    {(!url || editing) && <>
+      {site?.preview_snapshot && <DraftSnapshotPreview snapshot={site.preview_snapshot} persisted={Boolean(site.draft_ready)} />}
+      {!site?.completed_at && !url ? <div className="space-y-2 rounded-lg bg-surface p-3">
         <p className="text-xs text-text-secondary">Завершение подготовит приватный черновик. Само по себе оно не создаёт публичную страницу.</p>
         <button type="button" disabled={busy} onClick={() => void complete()} className="rounded-lg border border-border px-3 py-2 text-xs text-text disabled:opacity-50">
           {busy ? 'Готовлю черновик…' : 'Завершить поездку и подготовить черновик'}
         </button>
       </div> : null}
+      {url && editing && <p className="rounded-lg bg-surface p-3 text-xs text-text-secondary">Старая ссылка пока продолжает работать. После подтверждения она заменится новой.</p>}
       <label className="flex items-start gap-2 text-xs text-text-secondary">
         <input type="radio" name={`trip-visibility-${tripId}`} checked={visibility === 'link'} onChange={() => setVisibility('link')} />
         Доступ только по непредсказуемой ссылке
@@ -108,8 +125,11 @@ export function TripMiniSiteControls({ tripId }: { tripId: string }) {
         Я проверил(а) предпросмотр выше и согласен(на) опубликовать показанные данные. Внешние HTTPS-фото останутся на исходных сайтах.
       </label>
       <button type="button" disabled={busy || !consent} onClick={() => void publish()} className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white disabled:opacity-50">
-        {busy ? 'Публикую…' : 'Опубликовать snapshot'}
+        {busy ? 'Сохраняю…' : url ? 'Обновить после согласия' : 'Опубликовать snapshot'}
       </button>
+      {url && editing && <button type="button" disabled={busy} onClick={() => { setEditing(false); setConsent(false) }} className="ml-2 rounded-lg border border-border px-3 py-2 text-xs text-text disabled:opacity-50">
+        Отмена
+      </button>}
     </>}
     {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
   </section>
@@ -119,7 +139,7 @@ function DraftSnapshotPreview({
   snapshot,
   persisted,
 }: {
-  snapshot: NonNullable<TripMiniSiteState['draft_snapshot']>
+  snapshot: NonNullable<TripMiniSiteState['preview_snapshot']>
   persisted: boolean
 }) {
   const photos = [...new Set([snapshot.cover, ...snapshot.photos, ...snapshot.points.flatMap((point) => point.photos ?? [])].filter((url): url is string => Boolean(url)))]

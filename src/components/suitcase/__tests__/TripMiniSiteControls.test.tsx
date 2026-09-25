@@ -24,7 +24,7 @@ const sampleSnapshot = {
 
 beforeEach(() => {
   getSite.mockReset().mockResolvedValue({ published: false, slug: null, visibility: null, consented_at: null })
-  complete.mockReset().mockResolvedValue({ published: false, draft_ready: true, slug: null, visibility: null, consented_at: null, completed_at: '2026-09-25T12:00:00Z', draft_snapshot: sampleSnapshot })
+  complete.mockReset().mockResolvedValue({ published: false, draft_ready: true, slug: null, visibility: null, consented_at: null, completed_at: '2026-09-25T12:00:00Z', draft_snapshot: sampleSnapshot, preview_snapshot: sampleSnapshot })
   publish.mockReset().mockResolvedValue({ published: true, slug: 'secret-123', visibility: 'link', consented_at: '2026-09-25T12:00:00Z' })
   revoke.mockReset().mockResolvedValue()
   vi.stubGlobal('confirm', vi.fn(() => true))
@@ -47,6 +47,7 @@ describe('TripMiniSiteControls', () => {
       visibility: null,
       consented_at: null,
       draft_snapshot: sampleSnapshot,
+      preview_snapshot: sampleSnapshot,
     })
     render(<TripMiniSiteControls tripId="trip-preview" />)
 
@@ -58,6 +59,29 @@ describe('TripMiniSiteControls', () => {
     expect(screen.getByRole('link', { name: 'https://photos.example/cover.jpg' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'https://photos.example/fountain.jpg' })).toBeTruthy()
     expect(screen.queryByRole('img')).toBeNull()
+  })
+
+  it('keeps the current link live until the owner reviews and consents to a refreshed snapshot', async () => {
+    getSite.mockResolvedValueOnce({
+      published: true,
+      slug: 'old-link-123456789012345678901234',
+      visibility: 'public',
+      consented_at: '2026-09-25T12:00:00Z',
+      preview_snapshot: sampleSnapshot,
+    })
+    publish.mockResolvedValueOnce({ published: true, slug: 'new-link-123456789012345678901234', visibility: 'public', consented_at: '2026-09-26T12:00:00Z' })
+    render(<TripMiniSiteControls tripId="trip-refresh" />)
+
+    const oldUrl = await screen.findByRole('link', { name: /old-link-1234567890/ })
+    fireEvent.click(screen.getByRole('button', { name: 'Обновить snapshot и ссылку' }))
+    expect(await screen.findByText('Старая ссылка пока продолжает работать. После подтверждения она заменится новой.')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /old-link-1234567890/ })).toBe(oldUrl)
+    expect(screen.getByRole('button', { name: 'Обновить после согласия' }).hasAttribute('disabled')).toBe(true)
+
+    fireEvent.click(screen.getByRole('checkbox'))
+    fireEvent.click(screen.getByRole('button', { name: 'Обновить после согласия' }))
+    expect(await screen.findByRole('link', { name: /new-link-1234567890/ })).toBeTruthy()
+    expect(publish).toHaveBeenCalledWith('trip-refresh', 'public')
   })
 
   it('requires explicit consent before publishing and displays the returned URL', async () => {
