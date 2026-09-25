@@ -11,14 +11,20 @@ import { isLoggedIn } from '@/api/authApi'
 import {
   acceptFriendInvite,
   addTeamMember,
+  claimSharedTeamQuest,
   changeTeamRole,
+  createSharedTeamQuest,
   createFriendInvite,
   createTeam,
   listFriends,
+  listSharedQuestCatalog,
+  listSharedTeamQuests,
   listTeams,
   removeFriend,
   removeTeamMember,
   type Friend,
+  type SharedQuestCatalogItem,
+  type SharedTeamQuest,
   type SocialTeam,
 } from '@/api/socialApi'
 
@@ -218,18 +224,34 @@ function FriendsSection({ language, userId }: { language: 'ru' | 'en'; userId?: 
 function TeamSection({ language, friends, userId }: { language: 'ru' | 'en'; friends: Friend[]; userId?: string }) {
   const en = language === 'en'
   const [teams, setTeams] = useState<SocialTeam[]>([])
+  const [questCatalog, setQuestCatalog] = useState<SharedQuestCatalogItem[]>([])
+  const [sharedQuests, setSharedQuests] = useState<Record<string, SharedTeamQuest[]>>({})
+  const [selectedQuests, setSelectedQuests] = useState<Record<string, string>>({})
   const [teamName, setTeamName] = useState('')
   const [selectedFriends, setSelectedFriends] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [questError, setQuestError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
   const refreshTeams = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      setTeams(await listTeams())
+      const nextTeams = await listTeams()
+      setTeams(nextTeams)
+      try {
+        const [catalog, questLists] = await Promise.all([
+          listSharedQuestCatalog(language),
+          Promise.all(nextTeams.map((team) => listSharedTeamQuests(team.id, language))),
+        ])
+        setQuestCatalog(catalog)
+        setSharedQuests(Object.fromEntries(nextTeams.map((team, index) => [team.id, questLists[index]])))
+        setQuestError(null)
+      } catch {
+        setQuestError(en ? 'Could not load shared quests.' : 'Не удалось загрузить совместные квесты.')
+      }
     } catch {
       setError(en ? 'Could not load teams.' : 'Не удалось загрузить команды.')
     } finally {
@@ -302,6 +324,41 @@ function TeamSection({ language, friends, userId }: { language: 'ru' | 'en'; fri
     }
   }
 
+  const onCreateSharedQuest = async (team: SocialTeam) => {
+    const questId = selectedQuests[team.id]
+    if (!questId || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await createSharedTeamQuest(team.id, questId)
+      setSelectedQuests((items) => ({ ...items, [team.id]: '' }))
+      await refreshTeams()
+      setNotice(en ? 'Shared quest started. Existing published completions count; its bonus can be earned once per person and quest.' : 'Совместный квест начат. Засчитываются уже опубликованные прохождения; бонус выдаётся каждому человеку только один раз за квест.')
+    } catch {
+      setError(en ? 'Could not start this shared quest.' : 'Не удалось запустить совместный квест.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const onCheckSharedQuest = async (team: SocialTeam, quest: SharedTeamQuest) => {
+    setBusy(true)
+    setError(null)
+    try {
+      const result = await claimSharedTeamQuest(team.id, quest.id, language)
+      await refreshTeams()
+      setNotice(result.status === 'complete'
+        ? result.rewards_credited > 0
+          ? (en ? `Shared quest completed; one-time bonuses credited to ${result.rewards_credited} participants.` : `Совместный квест завершён; разовые бонусы начислены участникам: ${result.rewards_credited}.`)
+          : (en ? 'Shared quest completed; no duplicate bonuses were issued.' : 'Совместный квест завершён; повторные бонусы не начислялись.')
+        : (en ? `${result.completed_count}/${result.participant_count} members completed it.` : `Выполнили ${result.completed_count} из ${result.participant_count}.`))
+    } catch {
+      setError(en ? 'Could not refresh this shared quest.' : 'Не удалось обновить совместный квест.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <section className="space-y-3 border-t border-hairline pt-4" aria-labelledby="teams-heading">
       <h2 id="teams-heading" className="font-sans text-sm font-semibold text-text">{en ? 'Teams' : 'Команды'}</h2>
@@ -364,6 +421,41 @@ function TeamSection({ language, friends, userId }: { language: 'ru' | 'en'; fri
                 <Button size="sm" variant="secondary" disabled={busy || !selectedFriends[team.id]} onClick={() => void onAddFriend(team)}>{en ? 'Add' : 'Добавить'}</Button>
               </div>
             )}
+            <div className="space-y-2 border-t border-hairline pt-3">
+              <h4 className="font-sans text-xs font-semibold text-text-secondary">{en ? 'Shared quests' : 'Совместные квесты'}</h4>
+              {questError && <p role="alert" className="text-xs text-error">{questError}</p>}
+              {(team.role === 'owner' || team.role === 'admin') && questCatalog.length > 0 && (
+                <div className="flex gap-2">
+                  <select
+                    aria-label={`${en ? 'Quest for' : 'Квест для'} ${team.name}`}
+                    value={selectedQuests[team.id] || ''}
+                    onChange={(event) => setSelectedQuests((items) => ({ ...items, [team.id]: event.target.value }))}
+                    className="h-9 min-w-0 flex-1 rounded border border-hairline bg-panel px-2 text-xs text-text"
+                  >
+                    <option value="">{en ? 'Choose a published quest' : 'Выберите опубликованный квест'}</option>
+                    {questCatalog.filter((item) => !(sharedQuests[team.id] || []).some((shared) => shared.quest_id === item.id)).map((item) => (
+                      <option key={item.id} value={item.id}>{item.city_name} · {item.title}</option>
+                    ))}
+                  </select>
+                  <Button size="sm" variant="secondary" disabled={busy || team.members.length < 2 || !selectedQuests[team.id]} onClick={() => void onCreateSharedQuest(team)}>{en ? 'Start' : 'Начать'}</Button>
+                </div>
+              )}
+              {team.members.length < 2 && <p className="text-xs text-text-muted">{en ? 'Add a friend before starting a shared quest.' : 'Добавьте друга, чтобы начать совместный квест.'}</p>}
+              {(sharedQuests[team.id] || []).map((quest) => (
+                <div key={quest.id} className="rounded-md border border-hairline p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 truncate text-xs font-medium text-text">{quest.quest_title}</span>
+                    <span className="shrink-0 text-xs text-text-muted">{quest.completed_count}/{quest.participant_count}</span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-text-secondary">
+                      {quest.status === 'complete' ? (en ? 'Completed · bonus protected' : 'Завершён · защита от повторной награды') : quest.ready_to_claim ? (en ? 'Ready to settle' : 'Готов к завершению') : (en ? 'In progress' : 'В процессе')}
+                    </span>
+                    {quest.status === 'active' && <Button size="sm" variant="ghost" disabled={busy} onClick={() => void onCheckSharedQuest(team, quest)}>{en ? 'Check progress' : 'Проверить прогресс'}</Button>}
+                  </div>
+                </div>
+              ))}
+            </div>
           </GlassPanel>
         )
       })}

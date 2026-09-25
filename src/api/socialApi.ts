@@ -30,6 +30,26 @@ export type SocialTeam = {
   members: TeamMember[]
 }
 
+export type SharedQuestCatalogItem = {
+  id: string
+  city_id: string
+  city_name: string
+  title: string
+}
+
+export type SharedTeamQuest = {
+  id: string
+  quest_id: string
+  quest_title: string
+  status: 'active' | 'complete'
+  participant_count: number
+  completed_count: number
+  ready_to_claim: boolean
+  created_at: string
+  completed_at: string | null
+  participants: Array<{ id: string; name: string | null; completed: boolean }>
+}
+
 async function parse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let detail = `HTTP ${response.status}`
@@ -103,6 +123,32 @@ export async function changeTeamRole(teamId: string, memberId: string, role: 'ad
 export async function removeTeamMember(teamId: string, memberId: string): Promise<void> {
   await parse<void>(await fetch(`${API_BASE_URL}/social/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(memberId)}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
+  }))
+}
+
+export async function listSharedQuestCatalog(language: 'ru' | 'en' = 'ru'): Promise<SharedQuestCatalogItem[]> {
+  const params = new URLSearchParams({ language })
+  return parse<SharedQuestCatalogItem[]>(await fetch(`${API_BASE_URL}/social/team-quest-catalog?${params}`, { headers: getAuthHeaders() }))
+}
+
+export async function listSharedTeamQuests(teamId: string, language: 'ru' | 'en' = 'ru'): Promise<SharedTeamQuest[]> {
+  const params = new URLSearchParams({ language })
+  return parse<SharedTeamQuest[]>(await fetch(`${API_BASE_URL}/social/teams/${encodeURIComponent(teamId)}/quests?${params}`, { headers: getAuthHeaders() }))
+}
+
+export async function createSharedTeamQuest(teamId: string, questId: string): Promise<SharedTeamQuest> {
+  return parse<SharedTeamQuest>(await fetch(`${API_BASE_URL}/social/teams/${encodeURIComponent(teamId)}/quests`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+    body: JSON.stringify({ quest_id: questId }),
+  }))
+}
+
+export async function claimSharedTeamQuest(teamId: string, sharedQuestId: string, language: 'ru' | 'en' = 'ru'): Promise<SharedTeamQuest & { xp_awarded: number; rewards_credited: number }> {
+  const params = new URLSearchParams({ language })
+  return parse(await fetch(`${API_BASE_URL}/social/teams/${encodeURIComponent(teamId)}/quests/${encodeURIComponent(sharedQuestId)}/claim?${params}`, {
+    method: 'POST',
     headers: getAuthHeaders(),
   }))
 }
