@@ -15,3 +15,20 @@ test('desktop rail opens all four product sections', async ({ page }) => {
   await page.getByRole('button', { name: 'Паспорт' }).click()
   await expect(page.getByText('Не удалось загрузить чемодан')).toBeVisible()
 })
+
+test('mobile uses a four-tab bottom bar instead of a sliding menu', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/')
+
+  const tabs = page.getByRole('navigation', { name: 'Основные разделы' })
+  await expect(tabs.getByRole('button')).toHaveCount(4)
+  await expect(page.getByRole('button', { name: 'Открыть меню' })).toHaveCount(0)
+
+  await tabs.getByRole('button', { name: 'Crista Wiki' }).click()
+  await expect(page.getByRole('heading', { name: 'Crista Wiki' })).toBeVisible()
+  await expect(tabs.getByRole('button', { name: 'Crista Wiki' })).toHaveAttribute('aria-current', 'page')
+
+  await tabs.getByRole('button', { name: 'Паспорт' }).click()
+  // Settings moved from the sliding menu to the bottom of the Passport tab.
+  await expect(page.getByRole('button', { name: 'Переключить на английский' })).toBeVisible()
+})
