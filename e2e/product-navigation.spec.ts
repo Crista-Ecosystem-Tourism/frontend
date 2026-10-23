@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test'
 
+// Keep the smoke suite hermetic: a slow third-party font host must not hold up page load.
+test.beforeEach(async ({ page }) => {
+  await page.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.abort())
+})
+
 test('desktop rail opens all four product sections', async ({ page }) => {
   await page.goto('/')
 
