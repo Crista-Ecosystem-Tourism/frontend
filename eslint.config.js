@@ -20,7 +20,8 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // A context hook and shadcn-style variants live next to their component by convention.
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true, allowExportNames: ['useApp', 'buttonVariants'] }],
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     },
   },

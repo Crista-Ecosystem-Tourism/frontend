@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Award, BatteryMedium, CheckCircle2, Compass, Flame, LoaderCircle, MapPin, Sparkles } from 'lucide-react'
 import { GlassPanel, Chip } from '@/components/ui/glass'
 import { answerRedSquare, getOnboarding, type OnboardingState } from '@/api/gameApi'
@@ -22,6 +22,9 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
   const [view, setView] = useState<ViewState>('loading')
   const [message, setMessage] = useState<string | null>(null)
   const [step, setStep] = useState<LessonStep>('intro')
+  // The parent may pass an inline callback; keep the latest one without refetching.
+  const onCompletedRef = useRef(onCompleted)
+  useEffect(() => { onCompletedRef.current = onCompleted }, [onCompleted])
 
   useEffect(() => {
     if (!signedIn || isMockMode()) return
@@ -30,7 +33,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
       .then((result) => {
         if (!active) return
         setState(result)
-        if (result.completed) onCompleted?.()
+        if (result.completed) onCompletedRef.current?.()
         setView('ready')
       })
       .catch((error: unknown) => {
@@ -39,7 +42,7 @@ export function OnboardingFlow({ signedIn, onCompleted }: { signedIn: boolean; o
         setView('error')
       })
     return () => { active = false }
-  }, [signedIn, language])
+  }, [signedIn, language, onboarding.retry])
 
   if (isMockMode()) return null
 
